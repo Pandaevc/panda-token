@@ -9,28 +9,14 @@
 
 ## 查看方式
 
-### 方法1: TRONSCAN 直接访问
-直接复制以下链接到浏览器:
-
+### 直接访问 TRONSCAN
 - PandaToken: https://tronscan.org/#/contract/TMuA5bn29rMnYGF6xXU2s2u2q7MMPfKfX
 - PandaExchange: https://tronscan.org/#/contract/TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E
 
-### 方法2: 在TP钱包中添加代币
-
-1. 打开TP钱包
-2. 点击「资产」
-3. 点击「+」添加代币
-4. 搜索 "PANDA" 或直接输入合约地址:
-   - TMuA5bn29rMnYGF6xXU2s2u2q7MMPfKfX
-
-### 方法3: AVE钱包添加
-
-1. 打开AVE钱包
-2. 点击「钱包」
-3. 点击「添加代币」
-4. 输入合约地址搜索
-
----
+### TP/AVE钱包添加
+1. 打开钱包 → 资产 → +
+2. 搜索 "PANDA" 或输入合约地址
+3. 合约地址: TMuA5bn29rMnYGF6xXU2s2u2q7MMPfKfX
 
 ## 代币信息
 
@@ -38,5 +24,12 @@
 |------|-----|
 | 代币名称 | PANDA |
 | 符号 | PANDA |
-| 精度 | 6 |
-| 总供应量 | 4,000,000,000 |
+| 精度 | 18 |
+| 总供应量 | 40,000,000,000 |
+| 初始价格 | $0.005 |
+
+## 验证状态
+
+⚠️ 当前: **未验证** - 需要提交到TRONSCAN审核
+
+详细验证步骤见: [CONTRACT_VERIFICATION.md](./CONTRACT_VERIFICATION.md)
