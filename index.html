@@ -46,6 +46,9 @@ h1{font-size:56px;font-weight:800;margin-bottom:18px;background:var(--g2);-webki
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
 footer a{color:var(--primary);text-decoration:none}
+.msg{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:15px;border-radius:10px;margin:20px 0;text-align:center}
+.msg.error{background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.2)}
+.msg.success{background:rgba(0,230,118,0.1);border-color:rgba(0,230,118,0.2)}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}nav{display:none}}
 @media(max-width:600px){.grid{grid-template-columns:1fr}h1{font-size:36px}}
 </style>
@@ -86,7 +89,7 @@ footer a{color:var(--primary);text-decoration:none}
 <div class="grid">
 <div class="card"><div class="icon">📈</div><h3>只涨不跌</h3><p>独特经济模型</p></div>
 <div class="card"><div class="icon">🔒</div><h3>质押收益</h3><p>15%-90%年化</p></div>
-<div class="card"><div class="icon">⚡</div><div class="icon">🔄</div><h3>Swap交易</h3><p>代币变现</p></div>
+<div class="card"><div class="icon">🔄</div><h3>Swap交易</h3><p>代币变现</p></div>
 </div>
 </section>
 
@@ -102,6 +105,8 @@ footer a{color:var(--primary);text-decoration:none}
 </div>
 </section>
 
+<div id="msgBox"></div>
+
 <footer><p>© 2026 PandaToken - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
 
 <script>
@@ -111,27 +116,44 @@ const CONTRACTS = {
   pandaExchange: '410a9593fac129d4b63ea7fab3a24d4725be846fc3'
 };
 
-let tronWeb;
+let tronWeb = null;
 let connected = false;
 let wallet = '';
 
+function showMsg(text, type = '') {
+  document.getElementById('msgBox').innerHTML = '<div class="msg ' + type + '">' + text + '</div>';
+}
+
 async function connectWallet() {
-  if (typeof TronWeb === 'undefined') {
-    alert('正在加载TronWeb...');
-    location.reload();
-    return;
-  }
+  showMsg('正在连接...');
   
   try {
-    tronWeb = new TronWeb({
-      fullHost: 'https://api.trongrid.io'
-    });
+    // 检查是否有TP钱包
+    if (window.tronLink || window.tronWeb) {
+      // 优先使用已安装的tronLink
+      if (window.tronLink) {
+        await window.tronLink.request({ method: 'tron_requestAccounts' });
+        tronWeb = window.tronLink;
+      } else if (window.tronWeb) {
+        tronWeb = window.tronWeb;
+      }
+    } else {
+      // 尝试使用TronWeb
+      tronWeb = new TronWeb({
+        fullHost: 'https://api.trongrid.io'
+      });
+      
+      // 尝试请求账号权限
+      if (tronWeb && tronWeb.request) {
+        await tronWeb.request({ method: 'tron_requestAccounts' });
+      }
+    }
     
-    await tronWeb.request({ method: 'tron_requestAccounts' });
+    // 获取钱包地址
+    const account = await tronWeb.trx.getAccount();
     
-    const accounts = await tronWeb.trx.getAccounts();
-    if (accounts.address) {
-      wallet = tronWeb.address.fromHex(accounts.address);
+    if (account.address) {
+      wallet = tronWeb.address.fromHex(account.address);
       connected = true;
       
       document.getElementById('cBtn').style.display = 'none';
@@ -140,18 +162,21 @@ async function connectWallet() {
       document.getElementById('wAddr').innerHTML = wallet.substr(0,6) + '...' + wallet.substr(-4);
       
       // 获取代币余额
-      const tokenContract = await tronWeb.contract(CONTRACTS.pandaToken).at(CONTRACTS.pandaToken);
       try {
+        const tokenContract = await tronWeb.contract().at(CONTRACTS.pandaToken);
         const balance = await tokenContract.balanceOf(wallet).call();
         document.getElementById('wBal').innerHTML = (balance / 1e18).toLocaleString();
       } catch(e) {
         document.getElementById('wBal').innerHTML = '0';
       }
       
-      alert('连接成功!');
+      showMsg('连接成功!', 'success');
+    } else {
+      showMsg('请在TP钱包中授权连接', 'error');
     }
   } catch(e) {
-    alert('连接失败: ' + e.message);
+    console.error(e);
+    showMsg('连接失败: ' + (e.message || '请确保已安装TP钱包'), 'error');
   }
 }
 
@@ -161,48 +186,49 @@ function disconnectWallet() {
   document.getElementById('cBtn').style.display = 'block';
   document.getElementById('dBtn').style.display = 'none';
   document.getElementById('wInfo').style.display = 'none';
+  document.getElementById('msgBox').innerHTML = '';
 }
 
 async function redeemKey() {
   if (!connected) {
-    alert('请先连接钱包');
+    showMsg('请先连接钱包', 'error');
     return;
   }
   
   const key = document.getElementById('keyIn').value.trim();
   if (!key) {
-    alert('请输入密钥');
+    showMsg('请输入密钥', 'error');
     return;
   }
   
+  showMsg('正在兑换...');
+  
   try {
-    const exchange = await tronWeb.contract(CONTRACTS.pandaExchange).at(CONTRACTS.pandaExchange);
+    const exchange = await tronWeb.contract().at(CONTRACTS.pandaExchange);
     
     // 转换密钥格式
-    let keyBytes = key;
-    if (key.startsWith('0x')) {
-      keyBytes = key;
-    } else {
-      keyBytes = '0x' + key;
-    }
+    let keyBytes = key.startsWith('0x') ? key : '0x' + key;
     
     const tx = await exchange.redeemKey(keyBytes).send({
       feeLimit: 100000000
     });
     
-    alert('兑换成功! 交易: ' + tx);
+    showMsg('兑换成功! 交易: ' + tx.substring(0,20) + '...', 'success');
     
     // 刷新余额
-    connectWallet();
+    const tokenContract = await tronWeb.contract().at(CONTRACTS.pandaToken);
+    const balance = await tokenContract.balanceOf(wallet).call();
+    document.getElementById('wBal').innerHTML = (balance / 1e18).toLocaleString();
+    
   } catch(e) {
-    alert('兑换失败: ' + e.message);
+    console.error(e);
+    showMsg('兑换失败: ' + (e.message || '请检查密钥是否正确'), 'error');
   }
 }
 
-// 获取价格
 async function getPrice() {
   try {
-    const exchange = await tronWeb.contract(CONTRACTS.pandaExchange).at(CONTRACTS.pandaExchange);
+    const exchange = await tronWeb.contract().at(CONTRACTS.pandaExchange);
     const price = await exchange.getCurrentPrice().call();
     document.getElementById('pDis').innerHTML = '$' + (price / 1e6).toFixed(4);
   } catch(e) {
@@ -210,10 +236,14 @@ async function getPrice() {
   }
 }
 
-// 页面加载后获取价格
-if (typeof TronWeb !== 'undefined') {
-  setTimeout(getPrice, 1000);
-}
+// 页面加载后尝试连接
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    if (window.tronLink || window.tronWeb) {
+      connectWallet();
+    }
+  }, 1500);
+});
 </script>
 </body>
 </html>
