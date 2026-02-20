@@ -162,6 +162,9 @@ footer p{color:var(--text-muted);font-size:13px}
 <footer><p>© 2026 熊猫闪充 - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
 
 <script>
+// Use free JSONBin.io API
+const API_URL = 'https://api.jsonbin.io/v3/b/panda-orders/latest';
+
 var payMethod = 'usdt';
 var referral = '';
 
@@ -195,7 +198,16 @@ if (referral) {
   showModal('👥 推荐注册', '推荐人: ' + referral, '🎉');
 }
 
-function submitOrder() {
+function generateKey() {
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  var key = '';
+  for (var i = 0; i < 16; i++) {
+    key += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return key;
+}
+
+async function submitOrder() {
   var name = $('name').value.trim();
   var phone = $('phone').value.trim();
   var country = $('country').value;
@@ -219,22 +231,25 @@ function submitOrder() {
   var orderId = 'ORD' + Date.now();
   var key = generateKey();
   
-  var info = '订单号: ' + orderId + '\n密钥: ' + key + '\n物流: PKG' + Math.random().toString(36).substr(2,10).toUpperCase();
+  var order = {
+    id: orderId,
+    key: key,
+    referral: referral,
+    wallet: wallet,
+    name: name,
+    country: country,
+    address: address,
+    txHash: txHash,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
   
-  showModal('🎉 订单提交成功!', info, '✅');
-  
+  // Try to save to local storage first
   var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
-  orders.push({id: orderId, key: key, referral: referral, wallet: wallet, status: 'pending'});
+  orders.push(order);
   localStorage.setItem('panda_orders', JSON.stringify(orders));
-}
-
-function generateKey() {
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  var key = '';
-  for (var i = 0; i < 16; i++) {
-    key += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return key;
+  
+  showModal('🎉 订单提交成功!', '订单号: ' + orderId + '\n密钥: ' + key + '\n\n推荐人: ' + (referral || '无') + '\n奖励: 500 PANDA', '✅');
 }
 
 setInterval(function() {
