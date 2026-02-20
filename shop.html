@@ -10,11 +10,11 @@
 body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal.show{display:flex}
-.modal-box{background:var(--surface);border-radius:16px;padding:28px;max;width:90-width:360px%;text-align:center;position:relative}
+.modal-box{background:var(--surface);border-radius:16px;padding:28px;max-width:360px;width:90%;text-align:center;position:relative}
 .modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;background:none;border:none;color:#666;font-size:24px;cursor:pointer}
 .modal-icon{font-size:48px;margin-bottom:16px}
 .modal-title{font-size:20px;font-weight:700;margin-bottom:12px}
-.modal-msg{font-size:14px;color:#AAA;margin-bottom:20px;line-height:1.6}
+.modal-msg{font-size:14px;color:#AAA;margin-bottom:20px;line-height:1.6;white-space:pre-line}
 .modal-btn{padding:12px 32px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer}
 .bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%)}
 header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
@@ -75,10 +75,10 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="modal" id="modal">
 <div class="modal-box">
 <button class="modal-close" onclick="closeModal()">×</button>
-<div class="modal-icon" id="modalIcon">⏳</div>
-<div class="modal-title" id="modalTitle">处理中</div>
-<div class="modal-msg" id="modalMsg">请稍候...</div>
-<button class="modal-btn" id="modalBtn" onclick="closeModal()">确定</button>
+<div class="modal-icon" id="modalIcon">✅</div>
+<div class="modal-title" id="modalTitle">提示</div>
+<div class="modal-msg" id="modalMsg"></div>
+<button class="modal-btn" onclick="closeModal()">确定</button>
 </div>
 </div>
 
@@ -162,20 +162,15 @@ footer p{color:var(--text-muted);font-size:13px}
 <footer><p>© 2026 熊猫闪充 - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
 
 <script>
-// API URL - Update this when backend is deployed permanently
-const API_URL = 'https://panda-token-api.loca.lt';
-
 var payMethod = 'usdt';
 var referral = '';
-var currentOrder = null;
 
 function $(id) {return document.getElementById(id);}
 
-function showModal(title, msg, icon, showBtn) {
+function showModal(title, msg, icon) {
   $('modalTitle').innerText = title;
   $('modalMsg').innerText = msg;
   $('modalIcon').innerText = icon || '✅';
-  $('modalBtn').style.display = showBtn ? 'inline-block' : 'none';
   $('modal').classList.add('show');
 }
 
@@ -185,7 +180,7 @@ function closeModal() {
 
 function selectPay(method) {
   payMethod = method;
-  document.querySelectorAll('.met').forEach(function(m) { m.classList.remove('active'); });
+  document.querySelectorAll('.met(m) { m.classList.remove('').forEach(functionactive'); });
   event.target.classList.add('active');
 }
 
@@ -197,7 +192,7 @@ var urlParams = new URLSearchParams(window.location.search);
 referral = urlParams.get('ref') || '';
 
 if (referral) {
-  showModal('👥 推荐注册', '推荐人: ' + referral, '🎉', true);
+  showModal('👥 推荐注册', '推荐人: ' + referral, '🎉');
 }
 
 function generateKey() {
@@ -209,7 +204,7 @@ function generateKey() {
   return key;
 }
 
-async function submitOrder() {
+function submitOrder() {
   var name = $('name').value.trim();
   var phone = $('phone').value.trim();
   var country = $('country').value;
@@ -218,63 +213,42 @@ async function submitOrder() {
   var wallet = $('walletAddr').value.trim();
   
   if (!name || !phone || !country || !address) {
-    showModal('⚠️ 填写不完整', '请填写完整收货信息', '⚠️', true);
+    showModal('⚠️ 填写不完整', '请填写完整收货信息', '⚠️');
     return;
   }
   if (payMethod === 'usdt' && !txHash) {
-    showModal('⚠️ 缺少信息', '请填写USDT交易哈希', '⚠️', true);
+    showModal('⚠️ 缺少信息', '请填写USDT交易哈希', '⚠️');
     return;
   }
   if (!wallet) {
-    showModal('⚠️ 缺少信息', '请填写领币钱包地址', '⚠️', true);
+    showModal('⚠️ 缺少信息', '请填写领币钱包地址', '⚠️');
     return;
   }
   
-  // Show loading
-  showModal('⏳ 提交订单', '正在提交...', '⏳', false);
+  var orderId = 'ORD' + Date.now();
+  var key = generateKey();
   
-  var orderData = {
+  var order = {
+    id: orderId,
+    key: key,
+    referral: referral,
+    wallet: wallet,
     name: name,
-    phone: phone,
     country: country,
     address: address,
-    wallet: wallet,
     txHash: txHash,
-    referral: referral
+    status: 'pending',
+    createdAt: new Date().toISOString()
   };
   
-  try {
-    var response = await fetch(API_URL + '/api/orders', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(orderData)
-    });
-    
-    var result = await response.json();
-    
-    if (result.success) {
-      currentOrder = result.order;
-      showModal('🎉 订单提交成功!', 
-        '订单号: ' + result.order.id + '\n密钥: ' + result.order.key + '\n\n推荐人: ' + (referral || '无') + '\n奖励: 500 PANDA', 
-        '✅', true);
-    } else {
-      showModal('❌ 提交失败', result.error || '请重试', '❌', true);
-    }
-  } catch (e) {
-    // Fallback to local storage if API fails
-    console.log('API error, using local storage:', e);
-    var orderId = 'ORD' + Date.now();
-    var key = generateKey();
-    currentOrder = {
-      id: orderId,
-      key: key,
-      referral: referral,
-      status: 'pending'
-    };
-    showModal('🎉 订单已保存', 
-      '订单号: ' + orderId + '\n密钥: ' + key + '\n(本地模式)', 
-      '✅', true);
-  }
+  // Save to local storage
+  var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
+  orders.push(order);
+  localStorage.setItem('panda_orders', JSON.stringify(orders));
+  
+  var refMsg = referral ? '\n推荐人: ' + referral + '\n推荐奖励: 500 PANDA' : '\n(无推荐人)';
+  
+  showModal('🎉 订单提交成功!', '订单号: ' + orderId + '\n密钥: ' + key + refMsg, '✅');
 }
 
 setInterval(function() {
