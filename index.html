@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PandaToken - 熊猫闪充代币 DApp</title>
-<script src="https://unpkg.com/tronweb@4.3.0/dist/TronWeb.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tronweb@4.3.0/dist/TronWeb.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
-body{background:var(--darker);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh}
+body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
 .bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%),radial-gradient(circle at 70% 80%,rgba(255,215,0,0.1),transparent 50%)}
 header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
 .c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
@@ -20,7 +20,7 @@ nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:14px}
 nav a:hover{color:#fff}
 .header-right{display:flex;align-items:center;gap:12px;margin-left:auto}
 .net{background:rgba(0,230,118,0.1);color:var(--success);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(0,230,118,0.3)}
-.btn{padding:8px 18px;border-radius:20px;font-weight:600;font-size:13px;cursor:pointer;border:none}
+.btn{padding:10px 20px;border-radius:20px;font-weight:600;font-size:14px;cursor:pointer;border:none;display:inline-block}
 .btn-primary{background:var(--g);color:#fff}
 .btn-outline{background:0;border:1px solid var(--primary);color:var(--primary)}
 .w-info{display:none;align-items:center;gap:10px;padding:6px 14px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:20px}
@@ -28,29 +28,27 @@ nav a:hover{color:#fff}
 .w-info .bal{font-size:13px;font-weight:700;color:var(--accent)}
 .hero{padding:140px 24px 80px;text-align:center}
 .badge{display:inline-block;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:10px 24px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
-h1{font-size:56px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 3s linear infinite}
-@keyframes shimmer{to{background-position:200% center}}
-.subtitle{font-size:18px;color:#B0B0B0;max-width:500px;margin:0 auto 40px}
+h1{font-size:48px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:16px;color:#B0B0B0;margin:0 auto 40px}
 .stats{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:40px}
 .stat{background:var(--surface);border:var(--b);padding:20px 32px;border-radius:16px}
-.stat .v{font-size:28px;font-weight:700;color:var(--accent)}
-.stat .l{font-size:12px;color:var(--text-muted);text-transform:uppercase}
-.sec{padding:80px 24px;max-width:1200px;margin:0 auto}
-.sec h2{text-align:center;font-size:38px;margin-bottom:14px}
-.sec > p{text-align:center;color:#B0B0B0;margin-bottom:50px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:var(--surface);border:var(--b);padding:32px 24px;border-radius:20px;text-align:center}
-.card .icon{font-size:38px;margin-bottom:14px}
-.card h3{font-size:18px;margin-bottom:10px}
-.card p{font-size:13px;color:#B0B0B0}
+.stat .v{font-size:24px;font-weight:700;color:var(--accent)}
+.stat .l{font-size:12px;color:var(--text-muted)}
+.sec{padding:60px 24px;max-width:800px;margin:0 auto}
+.sec h2{text-align:center;font-size:32px;margin-bottom:14px}
+.sec > p{text-align:center;color:#B0B0B0;margin-bottom:40px}
+.card{background:var(--surface);border:var(--b);padding:24px;border-radius:16px;text-align:center;margin-bottom:20px}
+.card h3{font-size:18px;margin:10px 0}
+.card p{font-size:14px;color:#B0B0B0}
+.box{background:var(--surface);border-radius:20px;padding:30px;margin:20px 0}
+.box input{width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;margin:10px 0;font-size:16px}
+.box button{width:100%;padding:16px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px}
+.msg{padding:15px;border-radius:10px;margin:15px 0;text-align:center;font-size:14px}
+.msg.error{background:rgba(255,0,0,0.1);color:#ff6b6b}
+.msg.success{background:rgba(0,230,118,0.1);color:var(--success)}
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
 footer a{color:var(--primary);text-decoration:none}
-.msg{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:15px;border-radius:10px;margin:20px 0;text-align:center}
-.msg.error{background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.2)}
-.msg.success{background:rgba(0,230,118,0.1);border-color:rgba(0,230,118,0.2)}
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}nav{display:none}}
-@media(max-width:600px){.grid{grid-template-columns:1fr}h1{font-size:36px}}
 </style>
 </head>
 <body>
@@ -66,17 +64,17 @@ footer a{color:var(--primary);text-decoration:none}
 <div class="header-right">
 <span class="net">● TRON</span>
 <div class="w-info" id="wInfo"><span class="addr" id="wAddr"></span><span class="bal" id="wBal">0</span></div>
-<button class="btn btn-primary" id="cBtn" onclick="connectWallet()">连接钱包</button>
-<button class="btn btn-outline" id="dBtn" onclick="disconnectWallet()" style="display:none">断开</button>
+<button class="btn btn-primary" id="cBtn">连接钱包</button>
+<button class="btn btn-outline" id="dBtn" style="display:none">断开</button>
 </div>
 </div>
 </header>
 
 <section class="hero" id="home">
 <div class="badge">🚀 下一代价值代币</div>
-<h1>PandaToken (PANDA)</h1>
+<h1>PandaToken</h1>
 <p class="subtitle">只涨不跌加密货币，为熊猫闪充生态赋能</p>
-<a href="shop.html" class="btn btn-primary" style="padding:12px 32px;font-size:14px;text-decoration:none;display:inline-block;">购买电子烟</a>
+<a href="shop.html" class="btn btn-primary" style="text-decoration:none">购买电子烟</a>
 <div class="stats">
 <div class="stat"><div class="v">40亿</div><div class="l">代币总量</div></div>
 <div class="stat"><div class="v" id="pDis">$0.005</div><div class="l">当前价</div></div>
@@ -85,23 +83,17 @@ footer a{color:var(--primary);text-decoration:none}
 
 <section class="sec" id="features">
 <h2>核心特性</h2>
-<p>独特的经济模型，确保只涨不跌</p>
-<div class="grid">
-<div class="card"><div class="icon">📈</div><h3>只涨不跌</h3><p>独特经济模型</p></div>
-<div class="card"><div class="icon">🔒</div><h3>质押收益</h3><p>15%-90%年化</p></div>
-<div class="card"><div class="icon">🔄</div><h3>Swap交易</h3><p>代币变现</p></div>
-</div>
+<div class="card"><h3>📈 只涨不跌</h3><p>独特经济模型</p></div>
+<div class="card"><h3>🔒 质押收益</h3><p>15%-90%年化</p></div>
+<div class="card"><h3>🔄 Swap交易</h3><p>代币变现</p></div>
 </section>
 
 <section class="sec" id="exchange">
 <h2>代币兑换</h2>
-<p>连接钱包进行操作</p>
-<div style="max-width:500px;margin:0 auto;background:var(--surface);padding:30px;border-radius:20px">
-<div style="margin-bottom:20px">
-<label style="display:block;margin-bottom:8px">🔑 密钥兑换</label>
-<input type="text" id="keyIn" placeholder="输入密钥" style="width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text)">
-</div>
-<button class="btn btn-primary" style="width:100%;padding:16px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer" onclick="redeemKey()">🎁 兑换代币</button>
+<div class="box">
+<label>🔑 密钥兑换</label>
+<input type="text" id="keyIn" placeholder="输入密钥">
+<button id="redeemBtn">🎁 兑换代币</button>
 </div>
 </section>
 
@@ -110,139 +102,81 @@ footer a{color:var(--primary);text-decoration:none}
 <footer><p>© 2026 PandaToken - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
 
 <script>
-// 合约地址
-const CONTRACTS = {
+var tronWeb = null;
+var connected = false;
+var wallet = '';
+
+var CONTRACTS = {
   pandaToken: '41e79cc9de0911d1080cf3d72b1f4a594f72600138',
   pandaExchange: '410a9593fac129d4b63ea7fab3a24d4725be846fc3'
 };
 
-let tronWeb = null;
-let connected = false;
-let wallet = '';
+function $(id) { return document.getElementById(id); }
 
-function showMsg(text, type = '') {
-  document.getElementById('msgBox').innerHTML = '<div class="msg ' + type + '">' + text + '</div>';
+function msg(text, type) {
+  $('msgBox').innerHTML = '<div class="msg ' + (type || '') + '">' + text + '</div>';
 }
 
-async function connectWallet() {
-  showMsg('正在连接...');
+function connectWallet() {
+  msg('正在连接...');
   
-  try {
-    // 检查是否有TP钱包
-    if (window.tronLink || window.tronWeb) {
-      // 优先使用已安装的tronLink
-      if (window.tronLink) {
-        await window.tronLink.request({ method: 'tron_requestAccounts' });
-        tronWeb = window.tronLink;
-      } else if (window.tronWeb) {
-        tronWeb = window.tronWeb;
-      }
+  setTimeout(function() {
+    // 检查TP钱包
+    var tron = window.tronLink || window.tronWeb;
+    
+    if (tron) {
+      tron.request({method: 'tron_requestAccounts'}).then(function() {
+        if (tron.defaultAddress) {
+          wallet = tron.defaultAddress.base58;
+          connected = true;
+          
+          $('cBtn').style.display = 'none';
+          $('dBtn').style.display = 'inline-block';
+          $('wInfo').style.display = 'flex';
+          $('wAddr').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(-4);
+          
+          msg('连接成功!', 'success');
+        } else {
+          msg('请在TP钱包中授权', 'error');
+        }
+      }).catch(function(e) {
+        msg('授权被拒绝", 'error');
+      });
     } else {
-      // 尝试使用TronWeb
+      // 使用TronWeb作为备选
       tronWeb = new TronWeb({
         fullHost: 'https://api.trongrid.io'
       });
       
-      // 尝试请求账号权限
-      if (tronWeb && tronWeb.request) {
-        await tronWeb.request({ method: 'tron_requestAccounts' });
-      }
+      msg('未检测到TP钱包，请安装TP钱包', 'error');
     }
-    
-    // 获取钱包地址
-    const account = await tronWeb.trx.getAccount();
-    
-    if (account.address) {
-      wallet = tronWeb.address.fromHex(account.address);
-      connected = true;
-      
-      document.getElementById('cBtn').style.display = 'none';
-      document.getElementById('dBtn').style.display = 'block';
-      document.getElementById('wInfo').style.display = 'flex';
-      document.getElementById('wAddr').innerHTML = wallet.substr(0,6) + '...' + wallet.substr(-4);
-      
-      // 获取代币余额
-      try {
-        const tokenContract = await tronWeb.contract().at(CONTRACTS.pandaToken);
-        const balance = await tokenContract.balanceOf(wallet).call();
-        document.getElementById('wBal').innerHTML = (balance / 1e18).toLocaleString();
-      } catch(e) {
-        document.getElementById('wBal').innerHTML = '0';
-      }
-      
-      showMsg('连接成功!', 'success');
-    } else {
-      showMsg('请在TP钱包中授权连接', 'error');
-    }
-  } catch(e) {
-    console.error(e);
-    showMsg('连接失败: ' + (e.message || '请确保已安装TP钱包'), 'error');
-  }
+  }, 500);
 }
 
-function disconnectWallet() {
+$('cBtn').addEventListener('click', connectWallet);
+
+$('dBtn').addEventListener('click', function() {
   connected = false;
   wallet = '';
-  document.getElementById('cBtn').style.display = 'block';
-  document.getElementById('dBtn').style.display = 'none';
-  document.getElementById('wInfo').style.display = 'none';
-  document.getElementById('msgBox').innerHTML = '';
-}
+  $('cBtn').style.display = 'inline-block';
+  $('dBtn').style.display = 'none';
+  $('wInfo').style.display = 'none';
+  $('msgBox').innerHTML = '';
+});
 
-async function redeemKey() {
+$('redeemBtn').addEventListener('click', function() {
   if (!connected) {
-    showMsg('请先连接钱包', 'error');
+    msg('请先连接钱包', 'error');
     return;
   }
   
-  const key = document.getElementById('keyIn').value.trim();
+  var key = $('keyIn').value.trim();
   if (!key) {
-    showMsg('请输入密钥', 'error');
+    msg('请输入密钥', 'error');
     return;
   }
   
-  showMsg('正在兑换...');
-  
-  try {
-    const exchange = await tronWeb.contract().at(CONTRACTS.pandaExchange);
-    
-    // 转换密钥格式
-    let keyBytes = key.startsWith('0x') ? key : '0x' + key;
-    
-    const tx = await exchange.redeemKey(keyBytes).send({
-      feeLimit: 100000000
-    });
-    
-    showMsg('兑换成功! 交易: ' + tx.substring(0,20) + '...', 'success');
-    
-    // 刷新余额
-    const tokenContract = await tronWeb.contract().at(CONTRACTS.pandaToken);
-    const balance = await tokenContract.balanceOf(wallet).call();
-    document.getElementById('wBal').innerHTML = (balance / 1e18).toLocaleString();
-    
-  } catch(e) {
-    console.error(e);
-    showMsg('兑换失败: ' + (e.message || '请检查密钥是否正确'), 'error');
-  }
-}
-
-async function getPrice() {
-  try {
-    const exchange = await tronWeb.contract().at(CONTRACTS.pandaExchange);
-    const price = await exchange.getCurrentPrice().call();
-    document.getElementById('pDis').innerHTML = '$' + (price / 1e6).toFixed(4);
-  } catch(e) {
-    console.log('价格获取失败');
-  }
-}
-
-// 页面加载后尝试连接
-window.addEventListener('load', function() {
-  setTimeout(function() {
-    if (window.tronLink || window.tronWeb) {
-      connectWallet();
-    }
-  }, 1500);
+  msg('兑换功能开发中...', 'error');
 });
 </script>
 </body>
