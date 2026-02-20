@@ -20,13 +20,13 @@ nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:14px}
 nav a:hover{color:#fff}
 .header-right{display:flex;align-items:center;gap:12px;margin-left:auto}
 .net{background:rgba(0,230,118,0.1);color:var(--success);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(0,230,118,0.3)}
-.btn{padding:10px 20px;border-radius:20px;font-weight:600;font-size:14px;cursor:pointer;border:none;display:inline-block}
+.btn{padding:8px 18px;border-radius:20px;font-weight:600;font-size:13px;cursor:pointer;border:none}
 .btn-primary{background:var(--g);color:#fff}
 .btn-outline{background:0;border:1px solid var(--primary);color:var(--primary)}
 .w-info{display:none;align-items:center;gap:10px;padding:6px 14px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:20px}
 .w-info .addr{font-size:12px;color:var(--success);font-family:monospace}
 .w-info .bal{font-size:13px;font-weight:700;color:var(--accent)}
-.hero{padding:140px 24px 80px;text-align:center}
+.hero{padding:140px 24px 60px;text-align:center}
 .badge{display:inline-block;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:10px 24px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
 h1{font-size:48px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .subtitle{font-size:16px;color:#B0B0B0;margin:0 auto 40px}
@@ -34,21 +34,34 @@ h1{font-size:48px;font-weight:800;margin-bottom:18px;background:var(--g2);-webki
 .stat{background:var(--surface);border:var(--b);padding:20px 32px;border-radius:16px}
 .stat .v{font-size:24px;font-weight:700;color:var(--accent)}
 .stat .l{font-size:12px;color:var(--text-muted)}
-.sec{padding:60px 24px;max-width:800px;margin:0 auto}
+.sec{padding:60px 24px;max-width:900px;margin:0 auto}
 .sec h2{text-align:center;font-size:32px;margin-bottom:14px}
 .sec > p{text-align:center;color:#B0B0B0;margin-bottom:40px}
-.card{background:var(--surface);border:var(--b);padding:24px;border-radius:16px;text-align:center;margin-bottom:20px}
-.card h3{font-size:18px;margin:10px 0}
-.card p{font-size:14px;color:#B0B0B0}
-.box{background:var(--surface);border-radius:20px;padding:30px;margin:20px 0}
-.box input{width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;margin:10px 0;font-size:16px}
-.box button{width:100%;padding:16px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px}
-.msg{padding:15px;border-radius:10px;margin:15px 0;text-align:center;font-size:14px}
+.stakes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.stake{background:var(--surface);border:var(--b);padding:24px;border-radius:16px;text-align:center}
+.stake.featured{border:2px solid var(--primary)}
+.stake .period{font-size:22px;font-weight:700}
+.stake .apy{font-size:36px;font-weight:800;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stake button{width:100%;padding:12px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;margin-top:15px}
+.ex-card{background:var(--surface);border:var(--b);border-radius:20px;padding:24px;margin:20px 0}
+.tabs{display:flex;gap:6px;background:var(--dark);padding:4px;border-radius:10px;margin-bottom:20px}
+.tab{flex:1;padding:12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;background:0;border:none;color:var(--text-muted)}
+.tab.active{background:var(--g);color:#fff}
+.panels{display:none}
+.panels.active{display:block}
+.g{margin-bottom:15px}
+.g label{display:block;margin-bottom:6px;font-weight:500}
+.inp-wrap{position:relative}
+.inp-wrap input{width:100%;padding:12px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff}
+.inp-wrap .max{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:4px 10px;background:var(--primary);border:none;border-radius:4px;color:#fff;font-size:11px;cursor:pointer}
+.btn-full{width:100%;padding:14px;background:var(--g);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:15px}
+.msg{padding:12px;border-radius:8px;margin:15px 0;text-align:center;font-size:14px}
 .msg.error{background:rgba(255,0,0,0.1);color:#ff6b6b}
 .msg.success{background:rgba(0,230,118,0.1);color:var(--success)}
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
 footer a{color:var(--primary);text-decoration:none}
+@media(max-width:768px){.stakes{grid-template-columns:1fr}nav{display:none}}
 </style>
 </head>
 <body>
@@ -58,7 +71,7 @@ footer a{color:var(--primary);text-decoration:none}
 <div class="logo"><div class="logo-icon">🐼</div><div class="logo-text">PandaToken</div></div>
 <nav>
 <a href="#home">首页</a>
-<a href="#features">特性</a>
+<a href="#staking">质押</a>
 <a href="#exchange">兑换</a>
 </nav>
 <div class="header-right">
@@ -73,27 +86,55 @@ footer a{color:var(--primary);text-decoration:none}
 <section class="hero" id="home">
 <div class="badge">🚀 下一代价值代币</div>
 <h1>PandaToken</h1>
-<p class="subtitle">只涨不跌加密货币，为熊猫闪充生态赋能</p>
-<a href="shop.html" class="btn btn-primary" style="text-decoration:none">购买电子烟</a>
+<p class="subtitle">只涨不跌加密货币</p>
+<a href="shop.html" class="btn btn-primary" style="text-decoration:none;padding:12px 32px;">购买电子烟</a>
 <div class="stats">
 <div class="stat"><div class="v">40亿</div><div class="l">代币总量</div></div>
 <div class="stat"><div class="v" id="pDis">$0.005</div><div class="l">当前价</div></div>
 </div>
 </section>
 
-<section class="sec" id="features">
-<h2>核心特性</h2>
-<div class="card"><h3>📈 只涨不跌</h3><p>独特经济模型</p></div>
-<div class="card"><h3>🔒 质押收益</h3><p>15%-90%年化</p></div>
-<div class="card"><h3>🔄 Swap交易</h3><p>代币变现</p></div>
+<section class="sec" id="staking">
+<h2>质押收益</h2>
+<p>锁定代币，获得丰厚收益</p>
+<div class="stakes">
+<div class="stake"><div class="period">30天</div><div class="apy">15%</div><button onclick="showStake(30)">质押</button></div>
+<div class="stake featured"><div class="period">60天</div><div class="apy">45%</div><button onclick="showStake(60)">质押</button></div>
+<div class="stake"><div class="period">90天</div><div class="apy">90%</div><button onclick="showStake(90)">质押</button></div>
+</div>
 </section>
 
 <section class="sec" id="exchange">
-<h2>代币兑换</h2>
-<div class="box">
-<label>🔑 密钥兑换</label>
-<input type="text" id="keyIn" placeholder="输入密钥">
-<button id="redeemBtn">🎁 兑换代币</button>
+<h2>兑换中心</h2>
+<p>多种方式管理代币</p>
+<div class="ex-card">
+<div class="tabs">
+<button class="tab active" data-tab="key">密钥兑换</button>
+<button class="tab" data-tab="turbo">Turbo</button>
+<button class="tab" data-tab="swap">Swap</button>
+</div>
+
+<div class="panels active" id="keyP">
+<div class="g"><label>🎁 输入密钥</label><input type="text" id="keyIn" placeholder="请输入密钥"></div>
+<button class="btn-full" onclick="redeemKey()">🎁 开启盲盒</button>
+</div>
+
+<div class="panels" id="turboP">
+<div class="g"><label>⚡ 释放方式</label>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center" onclick="selectTurbo('direct')">🚀 直接<br><small>-20%</small></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center" onclick="selectTurbo('30d')">📅 30天<br><small>-10%</small></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center" onclick="selectTurbo('60d')">📆 60天<br><small>0%</small></div>
+</div>
+</div>
+<div class="g"><label>数量</label><div class="inp-wrap"><input type="number" id="tAmt" placeholder="输入数量"><button class="max" onclick="setMax('tAmt')">全部</button></div></div>
+<button class="btn-full" onclick="executeTurbo()">⚡ 执行Turbo</button>
+</div>
+
+<div class="panels" id="swapP">
+<div class="g"><label>🔄 Swap数量</label><div class="inp-wrap"><input type="number" id="sAmt" placeholder="输入数量"><button class="max" onclick="setMax('sAmt')">全部</button></div></div>
+<button class="btn-full" onclick="executeSwap()">🔄 Swap</button>
+</div>
 </div>
 </section>
 
@@ -105,6 +146,8 @@ footer a{color:var(--primary);text-decoration:none}
 var tronWeb = null;
 var connected = false;
 var wallet = '';
+var user = {balance: 15000, released: 0};
+var turboType = '30d';
 
 var CONTRACTS = {
   pandaToken: '41e79cc9de0911d1080cf3d72b1f4a594f72600138',
@@ -120,37 +163,29 @@ function msg(text, type) {
 function connectWallet() {
   msg('正在连接...');
   
-  setTimeout(function() {
-    // 检查TP钱包
-    var tron = window.tronLink || window.tronWeb;
-    
-    if (tron) {
-      tron.request({method: 'tron_requestAccounts'}).then(function() {
-        if (tron.defaultAddress) {
-          wallet = tron.defaultAddress.base58;
-          connected = true;
-          
-          $('cBtn').style.display = 'none';
-          $('dBtn').style.display = 'inline-block';
-          $('wInfo').style.display = 'flex';
-          $('wAddr').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(-4);
-          
-          msg('连接成功!', 'success');
-        } else {
-          msg('请在TP钱包中授权', 'error');
-        }
-      }).catch(function(e) {
-        msg('授权被拒绝", 'error');
-      });
-    } else {
-      // 使用TronWeb作为备选
-      tronWeb = new TronWeb({
-        fullHost: 'https://api.trongrid.io'
-      });
-      
-      msg('未检测到TP钱包，请安装TP钱包', 'error');
-    }
-  }, 500);
+  var tron = window.tronLink || window.tronWeb;
+  if (tron) {
+    tron.request({method: 'tron_requestAccounts'}).then(function() {
+      if (tron.defaultAddress && tron.defaultAddress.base58) {
+        wallet = tron.defaultAddress.base58;
+        connected = true;
+        
+        $('cBtn').style.display = 'none';
+        $('dBtn').style.display = 'inline-block';
+        $('wInfo').style.display = 'flex';
+        $('wAddr').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(-4);
+        $('wBal').innerHTML = user.balance.toLocaleString();
+        
+        msg('连接成功!', 'success');
+      } else {
+        msg('请在TP钱包中授权', 'error');
+      }
+    }).catch(function(e) {
+      msg('授权被拒绝', 'error');
+    });
+  } else {
+    msg('请安装TP钱包', 'error');
+  }
 }
 
 $('cBtn').addEventListener('click', connectWallet);
@@ -158,26 +193,77 @@ $('cBtn').addEventListener('click', connectWallet);
 $('dBtn').addEventListener('click', function() {
   connected = false;
   wallet = '';
+  user = {balance: 15000, released: 0};
   $('cBtn').style.display = 'inline-block';
   $('dBtn').style.display = 'none';
   $('wInfo').style.display = 'none';
   $('msgBox').innerHTML = '';
 });
 
-$('redeemBtn').addEventListener('click', function() {
-  if (!connected) {
-    msg('请先连接钱包', 'error');
-    return;
-  }
-  
-  var key = $('keyIn').value.trim();
-  if (!key) {
-    msg('请输入密钥', 'error');
-    return;
-  }
-  
-  msg('兑换功能开发中...', 'error');
+// Tab切换
+document.querySelectorAll('.tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.panels').forEach(function(p) { p.classList.remove('active'); });
+    this.classList.add('active');
+    $(this.dataset.tab + 'P').classList.add('active');
+  });
 });
+
+function selectTurbo(type) {
+  turboType = type;
+}
+
+function setMax(id) {
+  if (id === 'tAmt') {
+    $('tAmt').value = user.balance;
+  } else if (id === 'sAmt') {
+    $('sAmt').value = user.released;
+  }
+}
+
+function redeemKey() {
+  if (!connected) { msg('请先连接钱包', 'error'); return; }
+  var key = $('keyIn').value.trim();
+  if (!key) { msg('请输入密钥', 'error'); return; }
+  
+  // 模拟
+  var tokens = Math.floor(Math.random() * 2500) + 500;
+  user.balance += tokens;
+  $('wBal').innerHTML = user.balance.toLocaleString();
+  msg('盲盒开启! 获得: ' + tokens.toLocaleString() + ' PANDA', 'success');
+}
+
+function showStake(days) {
+  if (!connected) { msg('请先连接钱包', 'error'); return; }
+  var rate = days === 30 ? 0.15 : days === 60 ? 0.45 : 0.9;
+  var reward = (user.balance * rate * days / 365).toFixed(2);
+  msg('质押模拟: ' + user.balance + ' 代币, ' + days + '天, 收益: ' + reward + ' PANDA', 'success');
+}
+
+function executeTurbo() {
+  if (!connected) { msg('请先连接钱包', 'error'); return; }
+  var amt = parseFloat($('tAmt').value);
+  if (!amt || amt <= 0) { msg('请输入数量', 'error'); return; }
+  
+  var fee = turboType === 'direct' ? 0.2 : turboType === '30d' ? 0.1 : 0;
+  var release = amt * (1 - fee);
+  user.balance -= amt;
+  user.released += release;
+  $('wBal').innerHTML = user.balance.toLocaleString();
+  
+  msg('Turbo成功! 释放: ' + release.toLocaleString() + ' PANDA', 'success');
+}
+
+function executeSwap() {
+  if (!connected) { msg('请先连接钱包', 'error'); return; }
+  var amt = parseFloat($('sAmt').value);
+  if (!amt || amt <= 0) { msg('请输入数量', 'error'); return; }
+  if (amt > user.released) { msg('可Swap余额不足', 'error'); return; }
+  
+  user.released -= amt;
+  msg('Swap成功! 获得: $' + (amt * 0.005 * 0.95).toFixed(2), 'success');
+}
 </script>
 </body>
 </html>
