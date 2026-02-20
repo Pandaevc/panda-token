@@ -8,7 +8,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
-body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
+body{background:var(--darker);color:var(--text);font-family:-apple-system, system-ui,sans-serif;min-height:100vh}
 .bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%),radial-gradient(circle at 70% 80%,rgba(255,215,0,0.1),transparent 50%)}
 header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
 .c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
@@ -34,20 +34,17 @@ h1{font-size:42px;font-weight:800;margin-bottom:18px;background:var(--g2);-webki
 .stat{background:var(--surface);border:var(--b);padding:20px 28px;border-radius:16px;min-width:120px}
 .stat .v{font-size:22px;font-weight:700;color:var(--accent)}
 .stat .l{font-size:12px;color:var(--text-muted);margin-top:4px}
+.cta{margin-top:30px}
+.cta a{background:var(--g);color:#fff;padding:14px 36px;border-radius:30px;font-weight:700;text-decoration:none;display:inline-block}
 .sec{padding:60px 24px;max-width:1000px;margin:0 auto}
 .sec h2{text-align:center;font-size:28px;margin-bottom:14px}
 .sec > p{text-align:center;color:#B0B0B0;margin-bottom:40px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.card{background:var(--surface);border:var(--b);padding:20px;border-radius:16px;text-align:center;cursor:pointer;transition:all 0.3s}
-.card:hover{transform:translateY(-4px);border-color:var(--primary)}
-.card .icon{font-size:32px;margin-bottom:10px}
-.card h3{font-size:16px;margin:8px 0}
-.card p{font-size:12px;color:#B0B0B0}
 .stakes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .stake{background:var(--surface);border:var(--b);padding:24px;border-radius:16px;text-align:center}
 .stake.featured{border:2px solid var(--primary)}
 .stake .period{font-size:20px;font-weight:700}
 .stake .apy{font-size:32px;font-weight:800;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stake .reward{font-size:12px;color:var(--text-muted);margin-top:8px}
 .stake button{width:100%;padding:12px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;margin-top:15px}
 .ex-card{background:var(--surface);border:var(--b);border-radius:20px;padding:24px;margin:20px 0}
 .tabs{display:flex;gap:6px;background:var(--dark);padding:4px;border-radius:10px;margin-bottom:20px}
@@ -56,21 +53,22 @@ h1{font-size:42px;font-weight:800;margin-bottom:18px;background:var(--g2);-webki
 .panels{display:none}
 .panels.active{display:block}
 .inp{width:100%;padding:12px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;margin:10px 0}
-.btn-full{width:100%;padding:14px;background:var(--g);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor-pointer;margin-top:15px}
+.btn-full{width:100%;padding:14px;background:var(--g);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:15px}
 .msg{padding:12px;border-radius:8px;margin:15px 0;text-align:center;font-size:14px}
 .msg.error{background:rgba(255,0,0,0.1);color:#ff6b6b}
 .msg.success{background:rgba(0,230,118,0.1);color:var(--success)}
+.ref-box{background:var(--surface);border-radius:16px;padding:24px;text-align:center}
+.ref-code{font-size:32px;font-weight:700;color:var(--accent);margin:15px 0}
+.ref-link{font-size:14px;word-break:break-all;background:var(--dark);padding:12px;border-radius:8px;margin:10px 0}
 .leaderboard{background:var(--surface);border-radius:16px;overflow:hidden}
 .leaderboard table{width:100%;border-collapse:collapse}
 .leaderboard th,.leaderboard td{padding:12px;text-align:left;border-bottom:var(--b)}
 .leaderboard th{background:var(--dark);font-size:12px;color:var(--text-muted)}
-.leaderboard td{font-size:14px}
 .leaderboard .rank{font-weight:700;color:var(--accent)}
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
 footer a{color:var(--primary);text-decoration:none}
-@media(max-width:900px){.grid,.stakes{grid-template-columns:repeat(2,1fr)}nav{display:none}}
-@media(max-width:600px){.grid,.stakes{grid-template-columns:1fr}h1{font-size:32px}}
+@media(max-width:768px){.stakes{grid-template-columns:1fr}nav{display:none}}
 </style>
 </head>
 <body>
@@ -81,8 +79,7 @@ footer a{color:var(--primary);text-decoration:none}
 <nav>
 <a href="#home">首页</a>
 <a href="#staking">质押</a>
-<a href="#games">游戏</a>
-<a href="#swap">兑换</a>
+<a href="#exchange">兑换</a>
 <a href="#referral">推荐</a>
 </nav>
 <div class="header-right">
@@ -97,37 +94,43 @@ footer a{color:var(--primary);text-decoration:none}
 <section class="hero" id="home">
 <div class="badge">🚀 只涨不跌</div>
 <h1>PandaToken</h1>
-<p class="subtitle">全球首个电子烟挖矿代币 · 质押收益高达90%</p>
+<p class="subtitle">全球首个电子烟挖矿代币</p>
+<div class="cta">
+<a href="shop.html">购买电子烟</a>
+</div>
 <div class="stats">
 <div class="stat"><div class="v" id="price">$0.005</div><div class="l">当前价格</div></div>
 <div class="stat"><div class="v">40亿</div><div class="l">代币总量</div></div>
 <div class="stat"><div class="v" id="holders">1,234</div><div class="l">持币地址</div></div>
-<div class="stat"><div class="v" id="volume">$567K</div><div class="l">24h交易</div></div>
 </div>
 </section>
 
 <section class="sec" id="staking">
 <h2>💰 质押收益</h2>
-<p>锁定代币，获得丰厚被动收入</p>
+<p>锁定代币，获得被动收入</p>
 <div class="stakes">
-<div class="stake"><div class="period">30天</div><div class="apy">15%</div><button onclick="stake(30)">质押</button></div>
-<div class="stake featured"><div class="period">60天</div><div class="apy">45%</div><button onclick="stake(60)">质押</button></div>
-<div class="stake"><div class="period">90天</div><div class="apy">90%</div><button onclick="stake(90)">质押</button></div>
+<div class="stake">
+<div class="period">30天</div>
+<div class="apy">15%</div>
+<div class="reward">每日释放</div>
+<button onclick="doStake(30)">质押</button>
+</div>
+<div class="stake featured">
+<div class="period">60天</div>
+<div class="apy">45%</div>
+<div class="reward">每日释放</div>
+<button onclick="doStake(60)">质押</button>
+</div>
+<div class="stake">
+<div class="period">90天</div>
+<div class="apy">90%</div>
+<div class="reward">每日释放</div>
+<button onclick="doStake(90)">质押</button>
+</div>
 </div>
 </section>
 
-<section class="sec" id="games">
-<h2>🎰 游戏中心</h2>
-<p>边玩边赚</p>
-<div class="grid">
-<div class="card" onclick="showGame('dice')"><div class="icon">🎲</div><h3>骰子</h3><p>大小/单双</p></div>
-<div class="card" onclick="showGame('slot')"><div class="icon">🎰</div><h3>老虎机</h3><p>试试手气</p></div>
-<div class="card" onclick="showGame('lottery')"><div class="icon">🎁</div><h3>抽奖</h3><p>每日免费</p></div>
-<div class="card" onclick="showGame('predict')"><div class="icon">📊</div><h3>预测</h3><p>预测价格</p></div>
-</div>
-</section>
-
-<section class="sec" id="swap">
+<section class="sec" id="exchange">
 <h2>🔄 代币兑换</h2>
 <p>连接钱包进行操作</p>
 <div class="ex-card">
@@ -138,44 +141,43 @@ footer a{color:var(--primary);text-decoration:none}
 </div>
 <div class="panels active" id="keyP">
 <input type="text" class="inp" id="keyIn" placeholder="输入密钥">
-<button class="btn-full" onclick="redeemKey()">🎁 兑换代币</button>
+<button class="btn-full" onclick="doRedeemKey()">🎁 兑换代币</button>
 </div>
 <div class="panels" id="turboP">
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px">
-<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center" onclick="selectTurbo('direct')">🚀直接<br><small>-20%</small></div>
-<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center" onclick="selectTurbo('30d')">📅30天<br><small>-10%</small></div>
-<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center" onclick="selectTurbo('60d')">📆60天<br><small>0%</small></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center;cursor:pointer" onclick="selectTurbo('direct')">🚀直接<br><small>-20%</small></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center;cursor:pointer" onclick="selectTurbo('30d')">📅30天<br><small>-10%</small></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center;cursor:pointer" onclick="selectTurbo('60d')">📆60天<br><small>0%</small></div>
 </div>
 <input type="number" class="inp" id="tAmt" placeholder="输入数量">
-<button class="btn-full" onclick="executeTurbo()">⚡ 执行Turbo</button>
+<button class="btn-full" onclick="doTurbo()">⚡ 执行Turbo</button>
 </div>
 <div class="panels" id="swapP">
 <input type="number" class="inp" id="sAmt" placeholder="输入数量">
-<button class="btn-full" onclick="executeSwap()">🔄 Swap</button>
+<button class="btn-full" onclick="doSwap()">🔄 Swap</button>
 </div>
 </div>
 </section>
 
 <section class="sec" id="referral">
 <h2>👥 推荐奖励</h2>
-<p>邀请好友，获得额外收益</p>
-<div class="ex-card">
-<div style="text-align:center;margin-bottom:20px">
-<div style="font-size:14px;color:var(--text-muted);margin-bottom:8px">你的邀请码</div>
-<div style="font-size:28px;font-weight:700;color:var(--accent)" id="refCode">PAND123</div>
-<button class="btn btn-primary" style="margin-top:10px" onclick="copyRef()">复制邀请链接</button>
+<p>邀请好友，获得额外代币奖励</p>
+<div class="ex-card ref-box">
+<div style="font-size:14px;color:var(--text-muted)">推荐奖励: 每邀请1人购买电子烟获得 500 PANDA</div>
+<div class="ref-code" id="refCode">PAND123456</div>
+<input type="text" class="inp ref-link" id="refLink" readonly>
+<button class="btn btn-primary" style="margin-top:10px" onclick="copyRefLink()">复制推广链接</button>
 </div>
 <h3 style="margin:30px 0 15px">🏆 推荐排行榜</h3>
 <div class="leaderboard">
 <table>
-<tr><th>#</th><th>地址</th><th>推荐人数</th><th>奖励</th></tr>
-<tr><td class="rank">1</td><td>TQ3...8f2K</td><td>128</td><td>12,500 PANDA</td></tr>
-<tr><td class="rank">2</td><td>TLk...3mN</td><td>86</td><td>8,200 PANDA</td></tr>
-<tr><td class="rank">3</td><td>TRw...9pQ</td><td>54</td><td>5,400 PANDA</td></tr>
-<tr><td>4</td><td>TYu...2vB</td><td>32</td><td>3,200 PANDA</td></tr>
-<tr><td>5</td><td>TZs...7xC</td><td>28</td><td>2,800 PANDA</td></tr>
+<tr><th>#</th><th>地址</th><th>邀请人数</th><th>奖励</th></tr>
+<tr><td class="rank">1</td><td>TQ3...8f2K</td><td>128</td><td>64,000 PANDA</td></tr>
+<tr><td class="rank">2</td><td>TLk...3mN</td><td>86</td><td>43,000 PANDA</td></tr>
+<tr><td class="rank">3</td><td>TRw...9pQ</td><td>54</td><td>27,000 PANDA</td></tr>
+<tr><td>4</td><td>TYu...2vB</td><td>32</td><td>16,000 PANDA</td></tr>
+<tr><td>5</td><td>TZs...7xC</td><td>28</td><td>14,000 PANDA</td></tr>
 </table>
-</div>
 </div>
 </section>
 
@@ -186,7 +188,7 @@ footer a{color:var(--primary);text-decoration:none}
 <script>
 var connected = false;
 var wallet = '';
-var user = {balance: 15000, staked: 0, released: 0};
+var user = {balance: 15000, staked: 0, released: 0, referrals: 0};
 var turboType = '30d';
 
 function $(id) {return document.getElementById(id);}
@@ -198,37 +200,34 @@ function msg(text, type) {
 function connectWallet() {
   msg('正在连接...');
   
-  var tron = window.tronLink;
-  if (!tron) tron = window.tronWeb;
-  
-  if (tron) {
-    // TP Wallet uses tronLink
-    if (tron.request) {
-      tron.request({method: 'tron_requestAccounts'}).then(function(result) {
-        if (result && result.length > 0) {
-          wallet = result[0];
-          // Convert to base58
-          var tronWeb = new TronWeb({fullHost: 'https://api.trongrid.io'});
-          wallet = tronWeb.address.fromHex(wallet);
-          
-          connected = true;
-          $('cBtn').style.display = 'none';
-          $('dBtn').style.display = 'inline-block';
-          $('wInfo').style.display = 'flex';
-          $('wAddr').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(-4);
-          $('wBal').innerHTML = user.balance.toLocaleString();
-          msg('连接成功!', 'success');
-        } else {
-          msg('请在TP钱包中授权', 'error');
-        }
-      }).catch(function(e) {
-        msg('授权被拒绝，请重试', 'error');
-      });
-    } else {
-      msg('请使用TP钱包访问', 'error');
-    }
+  var tron = window.tronLink || window.tronWeb;
+  if (tron && tron.request) {
+    tron.request({method: 'tron_requestAccounts'}).then(function(result) {
+      if (result && result.length > 0) {
+        var addr = result[0];
+        var tw = new TronWeb({fullHost: 'https://api.trongrid.io'});
+        wallet = tw.address.fromHex(addr);
+        
+        connected = true;
+        $('cBtn').style.display = 'none';
+        $('dBtn').style.display = 'inline-block';
+        $('wInfo').style.display = 'flex';
+        $('wAddr').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(-4);
+        $('wBal').innerHTML = user.balance.toLocaleString();
+        
+        // Generate referral code from wallet
+        $('refCode').innerHTML = 'PAND' + wallet.substring(2, 8).toUpperCase();
+        $('refLink').value = 'https://pandaevc.github.io/panda-token/?ref=' + wallet.substring(2, 10);
+        
+        msg('连接成功!', 'success');
+      } else {
+        msg('请在TP钱包中授权', 'error');
+      }
+    }).catch(function(e) {
+      msg('授权被拒绝，请重试', 'error');
+    });
   } else {
-    msg('请安装TP钱包', 'error');
+    msg('请使用TP钱包访问', 'error');
   }
 }
 
@@ -237,7 +236,7 @@ $('cBtn').addEventListener('click', connectWallet);
 $('dBtn').addEventListener('click', function() {
   connected = false;
   wallet = '';
-  user = {balance: 15000, staked: 0, released: 0};
+  user = {balance: 15000, staked: 0, released: 0, referrals: 0};
   $('cBtn').style.display = 'inline-block';
   $('dBtn').style.display = 'none';
   $('wInfo').style.display = 'none';
@@ -255,19 +254,17 @@ document.querySelectorAll('.tab').forEach(function(tab) {
 });
 
 function selectTurbo(type) { turboType = type; }
-function showGame(game) {
-  if (!connected) { msg('请先连接钱包', 'error'); return; }
-  msg('游戏 ' + game + ' 即将上线!', 'success');
-}
 
-function stake(days) {
+function doStake(days) {
   if (!connected) { msg('请先连接钱包', 'error'); return; }
   var rate = days === 30 ? 0.15 : days === 60 ? 0.45 : 0.9;
   var reward = (user.balance * rate * days / 365).toFixed(2);
-  msg('质押演示: ' + days + '天, 预计收益: ' + reward + ' PANDA', 'success');
+  user.staked = user.balance;
+  $('wBal').innerHTML = '质押中: ' + user.staked.toLocaleString();
+  msg('质押成功! ' + days + '天, 预计收益: ' + reward + ' PANDA', 'success');
 }
 
-function redeemKey() {
+function doRedeemKey() {
   if (!connected) { msg('请先连接钱包', 'error'); return; }
   var key = $('keyIn').value.trim();
   if (!key) { msg('请输入密钥', 'error'); return; }
@@ -277,10 +274,12 @@ function redeemKey() {
   msg('盲盒开启! 获得: ' + tokens.toLocaleString() + ' PANDA', 'success');
 }
 
-function executeTurbo() {
+function doTurbo() {
   if (!connected) { msg('请先连接钱包', 'error'); return; }
   var amt = parseFloat($('tAmt').value);
-  if (!amt) { msg('请输入数量', 'error'); return; }
+  if (!amt || amt <= 0) { msg('请输入数量', 'error'); return; }
+  if (amt > user.balance) { msg('余额不足', 'error'); return; }
+  
   var fee = turboType === 'direct' ? 0.2 : turboType === '30d' ? 0.1 : 0;
   var release = amt * (1 - fee);
   user.balance -= amt;
@@ -289,19 +288,27 @@ function executeTurbo() {
   msg('Turbo成功! 释放: ' + release.toLocaleString() + ' PANDA', 'success');
 }
 
-function executeSwap() {
+function doSwap() {
   if (!connected) { msg('请先连接钱包', 'error'); return; }
   var amt = parseFloat($('sAmt').value);
   if (!amt || amt <= 0) { msg('请输入数量', 'error'); return; }
   if (amt > user.released) { msg('可Swap余额不足', 'error'); return; }
+  
   user.released -= amt;
   msg('Swap成功! 获得: $' + (amt * 0.005 * 0.95).toFixed(2), 'success');
 }
 
-function copyRef() {
-  var link = 'https://pandaevc.github.io/panda-token/?ref=' + $('refCode').innerHTML;
-  navigator.clipboard.writeText(link);
-  msg('邀请链接已复制!', 'success');
+function copyRefLink() {
+  if (!connected) { msg('请先连接钱包', 'error'); return; }
+  navigator.clipboard.writeText($('refLink').value);
+  msg('推广链接已复制!', 'success');
+}
+
+// Check URL for referral code
+var urlParams = new URLSearchParams(window.location.search);
+var refCode = urlParams.get('ref');
+if (refCode) {
+  msg('通过推荐链接注册! 推荐人: ' + refCode, 'success');
 }
 </script>
 </body>
