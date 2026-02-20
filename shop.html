@@ -8,6 +8,14 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
 body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:var(--surface);border-radius:16px;padding:28px;max-width:360px;width:90%;text-align:center;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;background:none;border:none;color:#666;font-size:24px;cursor:pointer}
+.modal-icon{font-size:48px;margin-bottom:16px}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:12px}
+.modal-msg{font-size:14px;color:#AAA;margin-bottom:20px;line-height:1.6}
+.modal-btn{padding:12px 32px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer}
 .bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%)}
 header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
 .c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
@@ -26,25 +34,22 @@ nav a:hover{color:#fff}
 h1{font-size:42px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .subtitle{font-size:16px;color:#B0B0B0;margin:0 auto 40px}
 .product{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
-.product-img{position:relative}
 .ecig{width:100%;max-width:280px;height:380px;background:linear-gradient(180deg,#1a1a2e,#0f0f1a);border-radius:28px;position:relative;margin:0 auto;box-shadow:0 30px 60px rgba(0,0,0,0.5)}
 .screen{position:absolute;top:28px;left:18px;right:18px;height:160px;background:#000;border-radius:14px}
 .screen-content{display:flex;align-items:center;justify-content:center;font-size:42px;gap:6px}
 .led{position:absolute;bottom:24px;left:18px;right:18px;height:24px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:8px;animation:led 2s infinite}
 @keyframes led{0%,100%{opacity:1}50%{opacity:0.6}}
 .product-info h2{font-size:36px;margin-bottom:14px}
-.product-info .tag{display:inline-block;background:var(--g);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;margin-bottom:14px}
-.product-info .desc{color:#AAA;font-size:16px;line-height:1.7;margin-bottom:20px}
+.tag{display:inline-block;background:var(--g);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;margin-bottom:14px}
+.desc{color:#AAA;font-size:16px;line-height:1.7;margin-bottom:20px}
 .features{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
 .feature{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:10px 16px;border-radius:10px;font-size:13px}
 .buy-card{background:var(--surface);border:var(--b);border-radius:20px;padding:28px}
 .price{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .price .c{font-size:42px;font-weight:700;color:var(--primary)}
 .price .o{font-size:18px;color:#666;text-decoration:line-through}
-.token{background:rgba(255,215,0,0.1);color:var(--accent);padding:14px;border-radius:12px;margin:18px 0;font-weight:600;font-size:15px}
+.token{background:rgba(255,215,0,0.1);color:var(--accent);padding:14px;border-radius:12px;margin:18px 0;font-weight:600}
 .referral{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);padding:14px;border-radius:12px;margin:18px 0}
-.referral .title{font-size:13px;color:var(--success);margin-bottom:8px}
-.referral .reward{font-size:20px;font-weight:700;color:var(--accent)}
 .buy-btn{width:100%;padding:18px;background:var(--g);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
 .pay{max-width:800px;margin:0 auto;padding:60px 24px}
 .pay h2{text-align:center;font-size:32px;margin-bottom:40px}
@@ -61,19 +66,22 @@ h1{font-size:42px;font-weight:800;margin-bottom:18px;background:var(--g2);-webki
 .summ .r:last-child{border:none}
 .summ .r.t{font-size:20px;font-weight:700;color:var(--primary);padding-top:14px}
 .btn-chk{width:100%;padding:18px;background:var(--g);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
-.res{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);padding:24px;border-radius:12px;margin-top:20px;display:none}
-.res.show{display:block}
-.res h4{color:var(--success);margin-bottom:16px}
-.res .info{background:var(--dark);padding:14px;border-radius:8px;margin:10px 0;font-family:monospace}
-.msg{padding:12px;border-radius:8px;margin:15px 0;text-align:center;font-size:14px}
-.msg.error{background:rgba(255,0,0,0.1);color:#ff6b6b}
-.msg.success{background:rgba(0,230,118,0.1);color:var(--success)}
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
 @media(max-width:768px){.product{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<div class="modal" id="modal">
+<div class="modal-box">
+<button class="modal-close" onclick="closeModal()">×</button>
+<div class="modal-icon" id="modalIcon">✅</div>
+<div class="modal-title" id="modalTitle">提示</div>
+<div class="modal-msg" id="modalMsg"></div>
+<button class="modal-btn" onclick="closeModal()">确定</button>
+</div>
+</div>
+
 <div class="bg"></div>
 <header>
 <div class="c">
@@ -81,10 +89,10 @@ footer p{color:var(--text-muted);font-size:13px}
 <nav>
 <a href="#product">产品</a>
 <a href="#pay">购买</a>
-<a href="../index.html">DApp</a>
+<a href="index.html">DApp</a>
 </nav>
 <div class="header-right">
-<a href="../index.html" class="btn btn-outline">DApp</a>
+<a href="index.html" class="btn btn-outline">DApp</a>
 </div>
 </div>
 </header>
@@ -96,11 +104,9 @@ footer p{color:var(--text-muted);font-size:13px}
 </section>
 
 <section class="product" id="product">
-<div class="product-img">
+<div style="text-align:center">
 <div class="ecig">
-<div class="screen">
-<div class="screen-content" id="slotDisplay">🍒 🍒 🍒</div>
-</div>
+<div class="screen"><div class="screen-content" id="slotDisplay">🍒 🍒 🍒</div></div>
 <div class="led"></div>
 </div>
 </div>
@@ -118,8 +124,8 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="price"><span class="c">$70</span><span class="o">$99</span></div>
 <div class="token">🎰 包含 3000 PANDA 代币密钥</div>
 <div class="referral">
-<div class="title">👥 推荐奖励</div>
-<div class="reward">邀请1人购买 +500 PANDA</div>
+<div style="font-size:13px;color:var(--success)">👥 推荐奖励</div>
+<div style="font-size:20px;font-weight:700;color:var(--accent)">邀请1人购买 +500 PANDA</div>
 </div>
 <button class="buy-btn" onclick="scrollToPay()">🛒 立即购买</button>
 </div>
@@ -137,19 +143,11 @@ footer p{color:var(--text-muted);font-size:13px}
 <h3>📝 订单信息</h3>
 <div class="form"><label>收货人 *</label><input type="text" id="name" placeholder="姓名"></div>
 <div class="form"><label>电话 *</label><input type="tel" id="phone" placeholder="电话"></div>
-<div class="form"><label>国家 *</label><select id="country"><option value="">选择国家</option><option value="CN">中国</option><option value="US">美国</option><option value="UK">英国</option><option value="DE">德国</option><option value="JP">日本</option><option value="SV">萨尔瓦多</option></select></div>
+<div class="form"><label>国家 *</label><select id="country"><option value="">选择国家</option><option value="CN">中国</option><option value="US">美国</option><option value="UK">英国</option><option value="DE">德国</option><option value="JP">日本</option></select></div>
 <div class="form"><label>地址 *</label><input type="text" id="address" placeholder="详细地址"></div>
-
-<div class="form" id="usdtSection">
-<label>USDT地址 (TRC20)</label>
-<select id="usdtAddr">
-<option value="TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E">地址1 (推荐)</option>
-<option value="TMbrADTHB4GP4VHWVDYNAEJXKQM4D4E4F">地址2</option>
-</select>
-</div>
+<div class="form"><label>USDT地址 (TRC20)</label><select id="usdtAddr"><option value="TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E">地址1 (推荐)</option></select></div>
 <div class="form"><label>交易哈希 *</label><input type="text" id="txHash" placeholder="USDT转账后的哈希"></div>
 <div class="form"><label>领代币钱包地址 *</label><input type="text" id="walletAddr" placeholder="TRC20钱包地址"></div>
-
 <div class="summ">
 <div class="r"><span>熊猫智能电子烟 Pro</span><span>$70</span></div>
 <div class="r"><span>代币密钥</span><span>3000 PANDA</span></div>
@@ -157,17 +155,9 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="r t"><span>总计</span><span>$70 USD</span></div>
 </div>
 <button class="btn-chk" onclick="submitOrder()">✅ 确认订单</button>
-
-<div class="res" id="resBox">
-<h4>🎉 订单提交成功!</h4>
-<div class="info" id="orderInfo"></div>
-<p style="margin-top:15px;color:var(--accent)">⚠️ 推荐人奖励: 500 PANDA 将发放给推荐人</p>
-</div>
 </div>
 </div>
 </section>
-
-<div id="msgBox"></div>
 
 <footer><p>© 2026 熊猫闪充 - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
 
@@ -177,8 +167,15 @@ var referral = '';
 
 function $(id) {return document.getElementById(id);}
 
-function msg(text, type) {
-  $('msgBox').innerHTML = '<div class="msg ' + (type||'') + '">' + text + '</div>';
+function showModal(title, msg, icon) {
+  $('modalTitle').innerText = title;
+  $('modalMsg').innerText = msg;
+  $('modalIcon').innerText = icon || '✅';
+  $('modal').classList.add('show');
+}
+
+function closeModal() {
+  $('modal').classList.remove('show');
 }
 
 function selectPay(method) {
@@ -191,12 +188,11 @@ function scrollToPay() {
   $('pay').scrollIntoView({behavior: 'smooth'});
 }
 
-// Get referral code from URL
 var urlParams = new URLSearchParams(window.location.search);
 referral = urlParams.get('ref') || '';
 
 if (referral) {
-  msg('感谢推荐! 推荐码: ' + referral, 'success');
+  showModal('👥 推荐注册', '推荐人: ' + referral, '🎉');
 }
 
 function submitOrder() {
@@ -207,37 +203,29 @@ function submitOrder() {
   var txHash = $('txHash').value.trim();
   var wallet = $('walletAddr').value.trim();
   
-  if (!name || !phone || !country || !address) { msg('请填写完整收货信息', 'error'); return; }
-  if (payMethod === 'usdt' && !txHash) { msg('请填写USDT交易哈希', 'error'); return; }
-  if (!wallet) { msg('请填写领币钱包地址', 'error'); return; }
+  if (!name || !phone || !country || !address) {
+    showModal('⚠️ 填写不完整', '请填写完整收货信息', '⚠️');
+    return;
+  }
+  if (payMethod === 'usdt' && !txHash) {
+    showModal('⚠️ 缺少信息', '请填写USDT交易哈希', '⚠️');
+    return;
+  }
+  if (!wallet) {
+    showModal('⚠️ 缺少信息', '请填写领币钱包地址', '⚠️');
+    return;
+  }
   
-  // Generate order
   var orderId = 'ORD' + Date.now();
   var key = generateKey();
-  var refReward = referral ? 500 : 0;
   
-  var info = '订单号: ' + orderId + '\n';
-  info += '密钥: ' + key + '\n';
-  info += '物流: PKG' + Math.random().toString(36).substr(2,10).toUpperCase();
+  var info = '订单号: ' + orderId + '\n密钥: ' + key + '\n物流: PKG' + Math.random().toString(36).substr(2,10).toUpperCase();
   
-  $('orderInfo').innerText = info;
-  $('resBox').classList.add('show');
+  showModal('🎉 订单提交成功!', info, '✅');
   
-  // Save to localStorage (in real app, would send to backend)
   var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
-  orders.push({
-    id: orderId,
-    key: key,
-    referral: referral,
-    refReward: refReward,
-    wallet: wallet,
-    name: name,
-    country: country,
-    status: 'pending'
-  });
+  orders.push({id: orderId, key: key, referral: referral, wallet: wallet, status: 'pending'});
   localStorage.setItem('panda_orders', JSON.stringify(orders));
-  
-  msg('订单提交成功! 密钥: ' + key, 'success');
 }
 
 function generateKey() {
@@ -249,7 +237,6 @@ function generateKey() {
   return key;
 }
 
-// Slot animation
 setInterval(function() {
   var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
   var s = symbols[Math.floor(Math.random() * symbols.length)];
