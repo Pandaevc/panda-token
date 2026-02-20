@@ -75,9 +75,9 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="modal" id="modal">
 <div class="modal-box">
 <button class="modal-close" onclick="closeModal()">×</button>
-<div class="modal-icon" id="modalIcon">✅</div>
-<div class="modal-title" id="modalTitle">提示</div>
-<div class="modal-msg" id="modalMsg"></div>
+<div class="modal-icon" id="modalIcon">⏳</div>
+<div class="modal-title" id="modalTitle">处理中</div>
+<div class="modal-msg" id="modalMsg">请稍候...</div>
 <button class="modal-btn" onclick="closeModal()">确定</button>
 </div>
 </div>
@@ -162,6 +162,9 @@ footer p{color:var(--text-muted);font-size:13px}
 <footer><p>© 2026 熊猫闪充 - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
 
 <script>
+// Vercel API URL
+const API_URL = 'https://panda-token-d6bckkwli-pandaevc.vercel.app';
+
 var payMethod = 'usdt';
 var referral = '';
 
@@ -180,7 +183,7 @@ function closeModal() {
 
 function selectPay(method) {
   payMethod = method;
-  document.querySelectorAll('.met(m) { m.classList.remove('').forEach(functionactive'); });
+  document.querySelectorAll('.met').forEach(function(m) { m.classList.remove('active'); });
   event.target.classList.add('active');
 }
 
@@ -195,16 +198,7 @@ if (referral) {
   showModal('👥 推荐注册', '推荐人: ' + referral, '🎉');
 }
 
-function generateKey() {
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  var key = '';
-  for (var i = 0; i < 16; i++) {
-    key += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return key;
-}
-
-function submitOrder() {
+async function submitOrder() {
   var name = $('name').value.trim();
   var phone = $('phone').value.trim();
   var country = $('country').value;
@@ -225,30 +219,34 @@ function submitOrder() {
     return;
   }
   
-  var orderId = 'ORD' + Date.now();
-  var key = generateKey();
+  showModal('⏳ 提交订单', '正在提交...', '⏳');
   
-  var order = {
-    id: orderId,
-    key: key,
-    referral: referral,
-    wallet: wallet,
-    name: name,
-    country: country,
-    address: address,
-    txHash: txHash,
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  };
-  
-  // Save to local storage
-  var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
-  orders.push(order);
-  localStorage.setItem('panda_orders', JSON.stringify(orders));
-  
-  var refMsg = referral ? '\n推荐人: ' + referral + '\n推荐奖励: 500 PANDA' : '\n(无推荐人)';
-  
-  showModal('🎉 订单提交成功!', '订单号: ' + orderId + '\n密钥: ' + key + refMsg, '✅');
+  try {
+    var response = await fetch(API_URL + '/api/orders', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: name,
+        phone: phone,
+        country: country,
+        address: address,
+        wallet: wallet,
+        txHash: txHash,
+        referral: referral
+      })
+    });
+    
+    var result = await response.json();
+    
+    if (result.success) {
+      var refMsg = referral ? '\n推荐人: ' + referral + '\n推荐奖励: 500 PANDA' : '\n(无推荐人)';
+      showModal('🎉 订单提交成功!', '订单号: ' + result.order.id + '\n密钥: ' + result.order.key + refMsg, '✅');
+    } else {
+      showModal('❌ 提交失败', result.error || '请重试', '❌');
+    }
+  } catch (e) {
+    showModal('❌ 网络错误', '请检查网络后重试', '❌');
+  }
 }
 
 setInterval(function() {
