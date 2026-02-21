@@ -95,14 +95,30 @@ function parseCSV(text) {
 
 
 function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
-  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '持仓导入模板.csv';
-  a.click();
-  URL.revokeObjectURL(url);
+  var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
+  
+  // Try modern method first
+  if (window.Blob && window.URL) {
+    try {
+      var blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "持仓模板.csv";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      return;
+    } catch(e) {}
+  }
+  
+  // Fallback: open in new window
+  var win = window.open("", "_blank");
+  win.document.write("<pre>" + csv + "</pre>");
+  win.document.close();
 }
 
 
