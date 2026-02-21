@@ -4,7 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>股票管理系统 - 红熵AI</title>
-<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.24.1.min.js">
+
+function getRecommendation(s, profit, analysis) {
+  var rec = {action: '持有', reason: '观望', color: '#FFD700'};
+  
+  // Boss's conditions combined with analysis
+  var isHot = s.hotConcept || (s.sectorName && (s.sectorName.indexOf('科技') >= 0 || s.sectorName.indexOf('AI') >= 0 || s.sectorName.indexOf('新能源') >= 0));
+  
+  // Strong buy: hot sector + strong pattern
+  if (analysis.rating === '强' && isHot && profit < 10) {
+    rec = {action: '加仓', reason: '热门赛道+形态强势', color: '#FF4757'};
+  }
+  // Take profit
+  else if (profit > 25) {
+    rec = {action: '减仓', reason: '盈利已达25%', color: '#FF4757'};
+  }
+  // Strong sell: weak pattern + loss
+  else if (analysis.rating === '弱' && profit < -5) {
+    rec = {action: '清仓', reason: '走势较弱+亏损', color: '#FF4757'};
+  }
+  // Stop loss
+  else if (profit < -8) {
+    rec = {action: '清仓', reason: '亏损超过8%', color: '#FF4757'};
+  }
+  // Hold in hot sector
+  else if (isHot && profit > 0) {
+    rec = {action: '持有', reason: '热门赛道继续持有', color: '#2ED573'};
+  }
+  // Reduce in cold sector
+  else if (!isHot && analysis.rating === '弱') {
+    rec = {action: '减仓', reason: '非热门+走势弱', color: '#FF4757'};
+  }
+  // Default hold
+  else {
+    rec = {action: '持有', reason: analysis.rating === '强' ? '形态良好' : analysis.rating === '弱' ? '走势偏弱' : '震荡整理', color: '#FFD700'};
+  }
+  
+  return rec;
+}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
@@ -385,7 +424,9 @@ async function renderPortfolio() {
     if (p.currentPrice < levels.support) {
       alerts.push({code: p.code, name: p.name, price: p.currentPrice, support: levels.support, type: 'break'});
     }
-    return '<div class="sr-result"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(p.sector?'<span class="tag tag-blue">'+p.sector+'</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'股</div><div>买价:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(2):'-')+'</div></div></div>';
+    var rec = getRecommendation(s, profit, getQuickAnalysis(s));
+    var recColor = rec.action === '加仓' ? '#FF4757' : rec.action === '减仓' || rec.action === '清仓' ? '#FF4757' : '#2ED573';
+    return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
   }).join('');
   document.getElementById('portfolioMonitor').innerHTML = html || '<div style="color:#666;text-align:center">暂无持仓</div>';
   document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
@@ -573,6 +614,45 @@ function showPage(page) {
 }
 
 loadData();
+
+
+function getRecommendation(s, profit, analysis) {
+  var rec = {action: '持有', reason: '观望', color: '#FFD700'};
+  
+  // Boss's conditions combined with analysis
+  var isHot = s.hotConcept || (s.sectorName && (s.sectorName.indexOf('科技') >= 0 || s.sectorName.indexOf('AI') >= 0 || s.sectorName.indexOf('新能源') >= 0));
+  
+  // Strong buy: hot sector + strong pattern
+  if (analysis.rating === '强' && isHot && profit < 10) {
+    rec = {action: '加仓', reason: '热门赛道+形态强势', color: '#FF4757'};
+  }
+  // Take profit
+  else if (profit > 25) {
+    rec = {action: '减仓', reason: '盈利已达25%', color: '#FF4757'};
+  }
+  // Strong sell: weak pattern + loss
+  else if (analysis.rating === '弱' && profit < -5) {
+    rec = {action: '清仓', reason: '走势较弱+亏损', color: '#FF4757'};
+  }
+  // Stop loss
+  else if (profit < -8) {
+    rec = {action: '清仓', reason: '亏损超过8%', color: '#FF4757'};
+  }
+  // Hold in hot sector
+  else if (isHot && profit > 0) {
+    rec = {action: '持有', reason: '热门赛道继续持有', color: '#2ED573'};
+  }
+  // Reduce in cold sector
+  else if (!isHot && analysis.rating === '弱') {
+    rec = {action: '减仓', reason: '非热门+走势弱', color: '#FF4757'};
+  }
+  // Default hold
+  else {
+    rec = {action: '持有', reason: analysis.rating === '强' ? '形态良好' : analysis.rating === '弱' ? '走势偏弱' : '震荡整理', color: '#FFD700'};
+  }
+  
+  return rec;
+}
 </script>
 
 
@@ -707,6 +787,45 @@ function editStock(code) {
     saveData();
     renderPortfolio();
   }
+}
+
+
+function getRecommendation(s, profit, analysis) {
+  var rec = {action: '持有', reason: '观望', color: '#FFD700'};
+  
+  // Boss's conditions combined with analysis
+  var isHot = s.hotConcept || (s.sectorName && (s.sectorName.indexOf('科技') >= 0 || s.sectorName.indexOf('AI') >= 0 || s.sectorName.indexOf('新能源') >= 0));
+  
+  // Strong buy: hot sector + strong pattern
+  if (analysis.rating === '强' && isHot && profit < 10) {
+    rec = {action: '加仓', reason: '热门赛道+形态强势', color: '#FF4757'};
+  }
+  // Take profit
+  else if (profit > 25) {
+    rec = {action: '减仓', reason: '盈利已达25%', color: '#FF4757'};
+  }
+  // Strong sell: weak pattern + loss
+  else if (analysis.rating === '弱' && profit < -5) {
+    rec = {action: '清仓', reason: '走势较弱+亏损', color: '#FF4757'};
+  }
+  // Stop loss
+  else if (profit < -8) {
+    rec = {action: '清仓', reason: '亏损超过8%', color: '#FF4757'};
+  }
+  // Hold in hot sector
+  else if (isHot && profit > 0) {
+    rec = {action: '持有', reason: '热门赛道继续持有', color: '#2ED573'};
+  }
+  // Reduce in cold sector
+  else if (!isHot && analysis.rating === '弱') {
+    rec = {action: '减仓', reason: '非热门+走势弱', color: '#FF4757'};
+  }
+  // Default hold
+  else {
+    rec = {action: '持有', reason: analysis.rating === '强' ? '形态良好' : analysis.rating === '弱' ? '走势偏弱' : '震荡整理', color: '#FFD700'};
+  }
+  
+  return rec;
 }
 </script>
 </body>
