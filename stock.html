@@ -35,45 +35,52 @@ function handleCSVImport(input) {
 
 function parseCSV(text) {
   var positions = [];
-  var lines = text.split('\n');
+  // Handle different line endings
+  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line || line.length < 5) continue;
+    if (line.indexOf('股票名称') >= 0 || line.indexOf('股票代码') >= 0) continue;
     
-    var parts = line.split(/[,，\t]/);
-    if (parts.length < 2) return;
+    // Find 6-digit stock code anywhere in line
+    var m = line.match(/(\d{6})/);
+    if (!m) continue;
+    var code = m[1];
     
-    // Format: 股票名称,股票代码,持股数量,成本价
-    var name = '', code = '', shares = 100, buyPrice = 10;
+    // Validate code prefix
+    if (code.indexOf('6') !== 0 && code.indexOf('0') !== 0 && 
+        code.indexOf('3') !== 0 && code.indexOf('68') !== 0) continue;
     
-    parts.forEach((p, i) => {
-      p = p.trim();
-      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      
-      if (i === 0) name = p;  // First col: name
-      else if (i === 1) {      // Second col: code
-        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
-      }
-      else if (i === 2 && num > 10) shares = num;  // shares
-      else if (i === 3 && num > 0) buyPrice = num;  // price
-    });
+    // Find numbers - first is shares, second is price
+    var nums = line.match(/(\d+\.?\d*)/g);
+    if (!nums || nums.length < 2) continue;
     
-    // Validate code
-    if (!code) return;
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
+    var shares = parseInt(nums[0]);
+    var price = parseFloat(nums[1]);
+    
+    // Sanity check
+    if (shares < 10) shares = 100;
+    if (price < 1 || price > 10000) price = 10;
+    
+    // Get name (text before code)
+    var name = code;
+    var parts = line.split(code);
+    if (parts.length > 0 && parts[0].length > 0) {
+      name = parts[0].replace(/[,，\t\s]/g, '').substring(0, 10);
+    }
     
     positions.push({
       code: code,
-      name: name || code,
+      name: name,
       shares: shares,
-      buyPrice: buyPrice,
+      buyPrice: price,
       sector: '',
       addTime: Date.now()
     });
-  });
+  }
   
-  return positions.slice(0, 20);
+  return positions;
 }
 
 
@@ -138,45 +145,52 @@ function handleCSVImport(input) {
 
 function parseCSV(text) {
   var positions = [];
-  var lines = text.split('\n');
+  // Handle different line endings
+  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line || line.length < 5) continue;
+    if (line.indexOf('股票名称') >= 0 || line.indexOf('股票代码') >= 0) continue;
     
-    var parts = line.split(/[,，\t]/);
-    if (parts.length < 2) return;
+    // Find 6-digit stock code anywhere in line
+    var m = line.match(/(\d{6})/);
+    if (!m) continue;
+    var code = m[1];
     
-    // Format: 股票名称,股票代码,持股数量,成本价
-    var name = '', code = '', shares = 100, buyPrice = 10;
+    // Validate code prefix
+    if (code.indexOf('6') !== 0 && code.indexOf('0') !== 0 && 
+        code.indexOf('3') !== 0 && code.indexOf('68') !== 0) continue;
     
-    parts.forEach((p, i) => {
-      p = p.trim();
-      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      
-      if (i === 0) name = p;  // First col: name
-      else if (i === 1) {      // Second col: code
-        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
-      }
-      else if (i === 2 && num > 10) shares = num;  // shares
-      else if (i === 3 && num > 0) buyPrice = num;  // price
-    });
+    // Find numbers - first is shares, second is price
+    var nums = line.match(/(\d+\.?\d*)/g);
+    if (!nums || nums.length < 2) continue;
     
-    // Validate code
-    if (!code) return;
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
+    var shares = parseInt(nums[0]);
+    var price = parseFloat(nums[1]);
+    
+    // Sanity check
+    if (shares < 10) shares = 100;
+    if (price < 1 || price > 10000) price = 10;
+    
+    // Get name (text before code)
+    var name = code;
+    var parts = line.split(code);
+    if (parts.length > 0 && parts[0].length > 0) {
+      name = parts[0].replace(/[,，\t\s]/g, '').substring(0, 10);
+    }
     
     positions.push({
       code: code,
-      name: name || code,
+      name: name,
       shares: shares,
-      buyPrice: buyPrice,
+      buyPrice: price,
       sector: '',
       addTime: Date.now()
     });
-  });
+  }
   
-  return positions.slice(0, 20);
+  return positions;
 }
 
 
@@ -1044,45 +1058,52 @@ function handleCSVImport(input) {
 
 function parseCSV(text) {
   var positions = [];
-  var lines = text.split('\n');
+  // Handle different line endings
+  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line || line.length < 5) continue;
+    if (line.indexOf('股票名称') >= 0 || line.indexOf('股票代码') >= 0) continue;
     
-    var parts = line.split(/[,，\t]/);
-    if (parts.length < 2) return;
+    // Find 6-digit stock code anywhere in line
+    var m = line.match(/(\d{6})/);
+    if (!m) continue;
+    var code = m[1];
     
-    // Format: 股票名称,股票代码,持股数量,成本价
-    var name = '', code = '', shares = 100, buyPrice = 10;
+    // Validate code prefix
+    if (code.indexOf('6') !== 0 && code.indexOf('0') !== 0 && 
+        code.indexOf('3') !== 0 && code.indexOf('68') !== 0) continue;
     
-    parts.forEach((p, i) => {
-      p = p.trim();
-      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      
-      if (i === 0) name = p;  // First col: name
-      else if (i === 1) {      // Second col: code
-        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
-      }
-      else if (i === 2 && num > 10) shares = num;  // shares
-      else if (i === 3 && num > 0) buyPrice = num;  // price
-    });
+    // Find numbers - first is shares, second is price
+    var nums = line.match(/(\d+\.?\d*)/g);
+    if (!nums || nums.length < 2) continue;
     
-    // Validate code
-    if (!code) return;
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
+    var shares = parseInt(nums[0]);
+    var price = parseFloat(nums[1]);
+    
+    // Sanity check
+    if (shares < 10) shares = 100;
+    if (price < 1 || price > 10000) price = 10;
+    
+    // Get name (text before code)
+    var name = code;
+    var parts = line.split(code);
+    if (parts.length > 0 && parts[0].length > 0) {
+      name = parts[0].replace(/[,，\t\s]/g, '').substring(0, 10);
+    }
     
     positions.push({
       code: code,
-      name: name || code,
+      name: name,
       shares: shares,
-      buyPrice: buyPrice,
+      buyPrice: price,
       sector: '',
       addTime: Date.now()
     });
-  });
+  }
   
-  return positions.slice(0, 20);
+  return positions;
 }
 
 
