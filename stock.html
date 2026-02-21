@@ -34,27 +34,63 @@ function handleCSVImport(input) {
       if (!line) continue;
       if (line.indexOf("股票") >= 0) continue;
       
-      var m = line.match(/(\d{6})/);
-      if (!m) continue;
-      var code = m[1];
+      // Split by comma, tab, or multiple spaces
+      var parts = line.split(/[,，\t\s]+/);
+      if (parts.length < 2) continue;
       
-      if (code.charAt(0) !== "6" && code.charAt(0) !== "0" && 
-          code.charAt(0) !== "3" && code.substring(0,2) !== "68") continue;
+      var code = "";
+      var shares = 100;
+      var price = 10;
+      var name = "";
       
-      var nums = line.match(/(\d+)/g);
-      if (!nums || nums.length < 2) continue;
+      // Find code and numbers
+      for (var j = 0; j < parts.length; j++) {
+        var p = parts[j].trim();
+        if (!p) continue;
+        
+        // Check if it's a 6-digit code
+        if (/^\d{6}$/.test(p)) {
+          if (p.charAt(0) === "6" || p.charAt(0) === "0" || p.charAt(0) === "3" || p.substring(0,2) === "68") {
+            code = p;
+          }
+        }
+        // Check if it's a number
+        else if (/^\d+(\.\d+)?$/.test(p)) {
+          var num = parseFloat(p);
+          // Price should be 1-10000, shares should be 10-1000000
+          if (num > 1 && num < 100 && shares === 100) {
+            // This is likely price (1-100 range)
+            price = num;
+          } else if (num >= 10 && shares === 100) {
+            shares = num;
+          } else if (num > 100 && shares !== 100) {
+            // This is more likely shares
+            shares = num;
+          }
+        }
+        // Text is likely name
+        else if (p.length > 0 && !/^\d+$/.test(p)) {
+          name = p.substring(0, 10);
+        }
+      }
       
-      var shares = parseInt(nums[0]) || 100;
-      var price = parseFloat(nums[1]) || 10;
+      if (!code) continue;
       
       // Check if already exists
       var exists = false;
-      for (var j = 0; j < db.portfolio.length; j++) {
-        if (db.portfolio[j].code === code) { exists = true; break; }
+      for (var k = 0; k < db.portfolio.length; k++) {
+        if (db.portfolio[k].code === code) { exists = true; break; }
       }
       
       if (!exists) {
-        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        db.portfolio.push({
+          code: code, 
+          name: name || code, 
+          shares: shares || 100, 
+          buyPrice: price || 10, 
+          sector: "", 
+          addTime: Date.now()
+        });
         added++;
       }
     }
@@ -64,7 +100,7 @@ function handleCSVImport(input) {
       render();
       alert("成功导入 " + added + " 只股票！");
     } else {
-      alert("未找到新股票或格式不正确");
+      alert("未找到新股票，请检查格式");
     }
   };
   reader.readAsText(file);
