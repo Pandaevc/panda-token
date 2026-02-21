@@ -448,18 +448,23 @@ async function renderPortfolio() {
   var totalProfit = 0;
   var alerts = [];
   var html = db.portfolio.map(function(p) {
-    var s = stockCache[p.code];
-    console.log('Mapping:', p.code, 's:', s, 'currentPrice:', p.currentPrice);
-    if (!s) return '';
-    var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
-    totalProfit += profit;
-    var levels = calcSupportResistance(s);
-    if (p.currentPrice < levels.support) {
-      alerts.push({code: p.code, name: p.name, price: p.currentPrice, support: levels.support, type: 'break'});
+    try {
+      var s = stockCache[p.code];
+      console.log('Mapping:', p.code, 's:', s, 'currentPrice:', p.currentPrice);
+      if (!s) return '';
+      var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
+      totalProfit += profit;
+      var levels = calcSupportResistance(s);
+      if (p.currentPrice < levels.support) {
+        alerts.push({code: p.code, name: p.name, price: p.currentPrice, support: levels.support, type: 'break'});
+      }
+      var rec = getRecommendation(s, profit, getQuickAnalysis(s));
+      var recColor = rec.action === '加仓' ? '#FF4757' : rec.action === '减仓' || rec.action === '清仓' ? '#FF4757' : '#2ED573';
+      return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
+    } catch(e) {
+      console.error('Error mapping stock:', p.code, e);
+      return '';
     }
-    var rec = getRecommendation(s, profit, getQuickAnalysis(s));
-    var recColor = rec.action === '加仓' ? '#FF4757' : rec.action === '减仓' || rec.action === '清仓' ? '#FF4757' : '#2ED573';
-    return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
   }).join('');
   console.log('HTML generated, length:', html.length, 'first 200 chars:', html.substring(0, 200));
   document.getElementById('portfolioMonitor').innerHTML = html || '<div style="color:#666;text-align:center">暂无持仓</div>';
