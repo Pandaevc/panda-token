@@ -226,7 +226,7 @@ var db = {portfolio: [], picks: []};
 async function loadData() {
   // Try to load from backend first
   try {
-    var res = await fetch(API_URL + '/api/portfolio');
+    var res = await fetch(API_URL + '/api/stock/portfolio');
     if (res.ok) {
       var data = await res.json();
       if (data && data.length > 0) {
