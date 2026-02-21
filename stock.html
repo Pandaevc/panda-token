@@ -433,7 +433,7 @@ async function getStockWithHistory(code) {
     var res = await fetch(url);
     var data = await res.json();
     if (data.data && data.data.klines) {
-      stock.history = data.data(k) { return k.split(','.klines.map(function); });
+      stock.history = data.data.klines.map(function(k) { return k.split(','); });
     }
   } catch(e) { 
     console.log('Kline error:', e); 
