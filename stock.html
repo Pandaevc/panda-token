@@ -4,8 +4,170 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>股票管理系统 - 红熵AI</title>
-<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.24.1.min.js">
+
+function handleCSVImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var positions = parseCSV(text);
+    
+    if (positions.length > 0) {
+      var added = 0;
+      positions.forEach(p => {
+        if (!db.portfolio.find(x => x.code === p.code)) {
+          db.portfolio.push(p);
+          added++;
+        }
+      });
+      saveData();
+      renderPortfolio();
+      alert('成功导入 ' + added + ' 只股票！');
+    } else {
+      alert('未能解析表格，请检查格式');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  var positions = [];
+  var lines = text.split('\n');
+  
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    
+    var parts = line.split(/[,，\t]/);
+    if (parts.length < 2) return;
+    
+    // Extract code - look for 6 digits
+    var codeMatch = line.match(/(\d{6})/);
+    if (!codeMatch) return;
+    var code = codeMatch[1];
+    
+    // Validate code
+    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
+    
+    // Extract shares and price
+    var shares = 100;
+    var buyPrice = 10;
+    var name = code;
+    var sector = '';
+    
+    parts.forEach(p => {
+      p = p.trim();
+      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
+      if (!isNaN(num)) {
+        if (num > 10 && num < 1000 && shares === 100) shares = num;
+        else if (num > 1 && num < 10000 && buyPrice === 10) buyPrice = num;
+      }
+      // Check for sector keywords
+      if (p.includes('科技') || p.includes('新能源') || p.includes('医药') || p.includes('消费') || 
+          p.includes('金融') || p.includes('军工') || p.includes('半导体') || p.includes('AI')) {
+        sector = p;
+      }
+    });
+    
+    positions.push({
+      code: code,
+      name: name,
+      shares: shares,
+      buyPrice: buyPrice,
+      sector: sector,
+      addTime: Date.now()
+    });
+  });
+  
+  return positions.slice(0, 20);
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js">
+
+function handleCSVImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var positions = parseCSV(text);
+    
+    if (positions.length > 0) {
+      var added = 0;
+      positions.forEach(p => {
+        if (!db.portfolio.find(x => x.code === p.code)) {
+          db.portfolio.push(p);
+          added++;
+        }
+      });
+      saveData();
+      renderPortfolio();
+      alert('成功导入 ' + added + ' 只股票！');
+    } else {
+      alert('未能解析表格，请检查格式');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  var positions = [];
+  var lines = text.split('\n');
+  
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    
+    var parts = line.split(/[,，\t]/);
+    if (parts.length < 2) return;
+    
+    // Extract code - look for 6 digits
+    var codeMatch = line.match(/(\d{6})/);
+    if (!codeMatch) return;
+    var code = codeMatch[1];
+    
+    // Validate code
+    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
+    
+    // Extract shares and price
+    var shares = 100;
+    var buyPrice = 10;
+    var name = code;
+    var sector = '';
+    
+    parts.forEach(p => {
+      p = p.trim();
+      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
+      if (!isNaN(num)) {
+        if (num > 10 && num < 1000 && shares === 100) shares = num;
+        else if (num > 1 && num < 10000 && buyPrice === 10) buyPrice = num;
+      }
+      // Check for sector keywords
+      if (p.includes('科技') || p.includes('新能源') || p.includes('医药') || p.includes('消费') || 
+          p.includes('金融') || p.includes('军工') || p.includes('半导体') || p.includes('AI')) {
+        sector = p;
+      }
+    });
+    
+    positions.push({
+      code: code,
+      name: name,
+      shares: shares,
+      buyPrice: buyPrice,
+      sector: sector,
+      addTime: Date.now()
+    });
+  });
+  
+  return positions.slice(0, 20);
+}
+
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
@@ -117,6 +279,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <button class="btn" onclick="document.getElementById('screenshotInput').click()">📸 上传截图</button>
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动输入</button>
+<button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 表格导入</button>
+<input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
 </div>
 <div id="manualInput" style="display:none;margin-top:16px">
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
@@ -649,6 +813,87 @@ function showPage(page) {
 }
 
 loadData();
+
+
+function handleCSVImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var positions = parseCSV(text);
+    
+    if (positions.length > 0) {
+      var added = 0;
+      positions.forEach(p => {
+        if (!db.portfolio.find(x => x.code === p.code)) {
+          db.portfolio.push(p);
+          added++;
+        }
+      });
+      saveData();
+      renderPortfolio();
+      alert('成功导入 ' + added + ' 只股票！');
+    } else {
+      alert('未能解析表格，请检查格式');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  var positions = [];
+  var lines = text.split('\n');
+  
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    
+    var parts = line.split(/[,，\t]/);
+    if (parts.length < 2) return;
+    
+    // Extract code - look for 6 digits
+    var codeMatch = line.match(/(\d{6})/);
+    if (!codeMatch) return;
+    var code = codeMatch[1];
+    
+    // Validate code
+    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
+    
+    // Extract shares and price
+    var shares = 100;
+    var buyPrice = 10;
+    var name = code;
+    var sector = '';
+    
+    parts.forEach(p => {
+      p = p.trim();
+      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
+      if (!isNaN(num)) {
+        if (num > 10 && num < 1000 && shares === 100) shares = num;
+        else if (num > 1 && num < 10000 && buyPrice === 10) buyPrice = num;
+      }
+      // Check for sector keywords
+      if (p.includes('科技') || p.includes('新能源') || p.includes('医药') || p.includes('消费') || 
+          p.includes('金融') || p.includes('军工') || p.includes('半导体') || p.includes('AI')) {
+        sector = p;
+      }
+    });
+    
+    positions.push({
+      code: code,
+      name: name,
+      shares: shares,
+      buyPrice: buyPrice,
+      sector: sector,
+      addTime: Date.now()
+    });
+  });
+  
+  return positions.slice(0, 20);
+}
+
 </script>
 </body>
 </html>
