@@ -214,6 +214,7 @@ var db = {products:[{id:1,name:'熊猫电子烟Pro',price:70,tokens:3000,flavors
 var currentPayType = 'usdt';
 
 function adminLogin() {
+  alert("登录函数已触发");
   if (document.getElementById('adminUser').value === 'admin' && document.getElementById('adminPass').value === 'admin123') {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('sidebar').style.display = 'block';
