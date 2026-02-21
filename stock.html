@@ -75,14 +75,27 @@ function parseCSV(text) {
     positions.push({
       code: code,
       name: name,
-      shares: shares,
-      buyPrice: buyPrice,
-      sector: sector,
+      shares: shares || 100,
+      buyPrice: buyPrice || 10,
+      sector: sector || '',
       addTime: Date.now()
     });
   });
   
   return positions.slice(0, 20);
+}
+
+
+
+function downloadTemplate() {
+  var template = "股票代码,股票名称,持仓数量,买入价格,板块\n300449,汉邦高科,1000,15.50,科技\n600410,北京雅克,500,8.20,科技\n300499,科大智能,800,12.00,AI";
+  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '持仓导入模板.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 </script>
@@ -157,14 +170,27 @@ function parseCSV(text) {
     positions.push({
       code: code,
       name: name,
-      shares: shares,
-      buyPrice: buyPrice,
-      sector: sector,
+      shares: shares || 100,
+      buyPrice: buyPrice || 10,
+      sector: sector || '',
       addTime: Date.now()
     });
   });
   
   return positions.slice(0, 20);
+}
+
+
+
+function downloadTemplate() {
+  var template = "股票代码,股票名称,持仓数量,买入价格,板块\n300449,汉邦高科,1000,15.50,科技\n600410,北京雅克,500,8.20,科技\n300499,科大智能,800,12.00,AI";
+  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '持仓导入模板.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 </script>
@@ -173,7 +199,7 @@ function parseCSV(text) {
 body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
 .header{background:#1A1A1A;padding:16px 24px;border-bottom:1px solid #333}
 .logo{font-size:20px;font-weight:700;color:#FF6B35}
-.nav{display:flex;gap:16px;flex-wrap:wrap}
+.nav{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-left:auto;margin-right:auto}
 .nav a{color:#888;text-decoration:none;padding:8px 16px;border-radius:8px;font-size:14px}
 .nav a:hover,.nav a.active{background:#FF6B35;color:#FFF}
 .container{padding:24px;max-width:1400px;margin:0 auto}
@@ -226,6 +252,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="stat"><div class="v" id="pickCount">0</div><div class="l">今日精选</div></div>
 <div class="stat"><div class="v" id="portfolioCount">0</div><div class="l">持仓数量</div></div>
 <div class="stat"><div class="v" id="profit">0%</div><div class="l">总盈亏</div></div>
+<div class="stat"><div class="v" id="totalInvest">0</div><div class="l">总投入(万)</div></div>
 <div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
 </div>
 <div class="strategy-card">
@@ -279,6 +306,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <button class="btn" onclick="document.getElementById('screenshotInput').click()">📸 上传截图</button>
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动输入</button>
+<button class="btn btn-outline" onclick="downloadTemplate()">📥 下载模板</button>
 <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 表格导入</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
 </div>
@@ -339,7 +367,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 
 <script>
 var stockCache = {};
-var db = {portfolio: [], picks: []};
+var db = {portfolio: [], picks: [], totalInvestment: 0};
 
 function loadData() {
   var s = localStorage.getItem('stock_db');
@@ -591,6 +619,13 @@ async function renderPortfolio() {
     return '<div class="sr-result"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(p.sector?'<span class="tag tag-blue">'+p.sector+'</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'股</div><div>买价:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(2):'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="tag '+tag+'">'+qa.rating+'推荐</span><span style="font-size:11px;color:#888">'+qa.summary+'</span></div>'+alertHtml+'</div>';
   }).join('');
   document.getElementById('portfolioMonitor').innerHTML = html || '<div style="color:#666;text-align:center">暂无持仓</div>';
+  // Calculate total investment
+  var totalInvest = 0;
+  db.portfolio.forEach(function(p) {
+    totalInvest += p.shares * p.buyPrice;
+  });
+  db.totalInvestment = totalInvest;
+  document.getElementById('totalInvest').innerText = (totalInvest / 10000).toFixed(1);
   document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
   document.getElementById('needAction').innerText = alerts.length;
   if (alerts.length > 0) {
@@ -884,14 +919,27 @@ function parseCSV(text) {
     positions.push({
       code: code,
       name: name,
-      shares: shares,
-      buyPrice: buyPrice,
-      sector: sector,
+      shares: shares || 100,
+      buyPrice: buyPrice || 10,
+      sector: sector || '',
       addTime: Date.now()
     });
   });
   
   return positions.slice(0, 20);
+}
+
+
+
+function downloadTemplate() {
+  var template = "股票代码,股票名称,持仓数量,买入价格,板块\n300449,汉邦高科,1000,15.50,科技\n600410,北京雅克,500,8.20,科技\n300499,科大智能,800,12.00,AI";
+  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '持仓导入模板.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 </script>
