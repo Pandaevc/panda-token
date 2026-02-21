@@ -598,40 +598,80 @@ function handleCSVImport(input) {
     var text = e.target.result;
     var lines = text.split(/[\n\r]+/);
     var added = 0;
+    var debug = [];
+    
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
       if (!line || line.length < 4) continue;
-      if (line.indexOf("股票") >= 0) continue;
       
-      // Find 6-digit code
-      var m = line.match(/(\d{6})/);
-      if (!m) continue;
-      var code = m[1];
-      if (code.charAt(0) !== "6" && code.charAt(0) !== "0" && code.charAt(0) !== "3") continue;
+      // Skip header
+      if (line.indexOf("股票") >= 0 && line.indexOf("代码") >= 0) continue;
       
-      // Get numbers
-      var nums = line.match(/(\d+\.?\d*)/g);
-      if (!nums || nums.length < 2) continue;
+      // Split by comma or tab
+      var parts = line.split(/[,，\t]+/);
       
-      var shares = parseInt(nums[0]) || 100;
-      var price = parseFloat(nums[1]) || 10;
+      // Try to find: code, shares, price
+      var code = "";
+      var shares = 100;
+      var price = 10;
+      var name = "";
       
-      // Check exists
+      for (var j = 0; j < parts.length; j++) {
+        var p = parts[j].trim();
+        if (!p) continue;
+        
+        // Is it a 6-digit number?
+        if (/^\d{6}$/.test(p)) {
+          code = p;
+        }
+        // Is it a number?
+        else if (/^\d+(\.\d+)?$/.test(p)) {
+          var n = parseFloat(p);
+          if (!shares || shares === 100) shares = n;
+          else if (!price || price === 10) price = n;
+        }
+        // Otherwise it's text (name)
+        else if (p.length > 0 && !/^\d+$/.test(p)) {
+          name = p;
+        }
+      }
+      
+      // Validate code
+      if (!code || code.length !== 6) continue;
+      
+      // First digit should be 6, 0, or 3
+      var first = code.charAt(0);
+      if (first !== "6" && first !== "0" && first !== "3" && code.substring(0,2) !== "68") continue;
+      
+      // If shares is small (<=100), make it bigger (probably wrong)
+      if (shares <= 100) shares = shares * 100;
+      
+      debug.push(code + ": " + shares + "股, " + price + "元");
+      
+      // Check if exists
       var exists = false;
-      for (var j = 0; j < db.portfolio.length; j++) {
-        if (db.portfolio[j].code === code) { exists = true; break; }
+      for (var k = 0; k < db.portfolio.length; k++) {
+        if (db.portfolio[k].code === code) { exists = true; break; }
       }
       if (!exists) {
-        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        db.portfolio.push({
+          code: code,
+          name: name || code,
+          shares: shares,
+          buyPrice: price,
+          sector: "",
+          addTime: Date.now()
+        });
         added++;
       }
     }
+    
     if (added > 0) {
       saveData();
       renderPortfolio();
       alert("成功导入 " + added + " 只股票！");
     } else {
-      alert("未找到新股票");
+      alert("未找到新股票\n格式：名称,代码,数量,价格");
     }
   };
   reader.readAsText(file);
