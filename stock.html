@@ -424,15 +424,19 @@ function handleScreenshot(input) {
 }
 
 async function renderPortfolio() {
+  console.log('renderPortfolio called, portfolio length:', db.portfolio.length);
   for (var p of db.portfolio) {
+    console.log('Fetching data for:', p.code);
     if (!stockCache[p.code]) {
       var s = await getStockWithHistory(p.code);
+      console.log('Got stock data:', p.code, s);
       if (s) { stockCache[p.code] = s; p.currentPrice = s.price; p.change = s.change; }
     } else {
       p.currentPrice = stockCache[p.code].price;
       p.change = stockCache[p.code].change;
     }
   }
+  console.log('stockCache:', stockCache);
   var totalProfit = 0;
   var alerts = [];
   var html = db.portfolio.map(function(p) {
