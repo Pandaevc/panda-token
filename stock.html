@@ -685,6 +685,29 @@ function clearPortfolio() {
     alert("已清空");
   }
 }
+
+function deleteStock(code) {
+  if (confirm("确定删除 " + code + "？")) {
+    db.portfolio = db.portfolio.filter(function(p){return p.code !== code;});
+    saveData();
+    renderPortfolio();
+  }
+}
+
+function editStock(code) {
+  var p = db.portfolio.find(function(x){return x.code === code;});
+  if (!p) return;
+  
+  var newShares = prompt("持仓数量", p.shares);
+  var newPrice = prompt("买入价格", p.buyPrice);
+  
+  if (newShares !== null && newPrice !== null) {
+    p.shares = parseInt(newShares) || p.shares;
+    p.buyPrice = parseFloat(newPrice) || p.buyPrice;
+    saveData();
+    renderPortfolio();
+  }
+}
 </script>
 </body>
 </html>
