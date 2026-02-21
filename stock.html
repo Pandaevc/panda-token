@@ -192,6 +192,18 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 </div>
 <div class="card">
 <h3>📊 持仓监控</h3>
+<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+<select id="filterAction" class="input" style="width:auto" onchange="renderPortfolio()">
+<option value="all">全部</option>
+<option value="action">只看增持/加仓</option>
+<option value="reduce">只看减仓/清仓</option>
+</select>
+<select id="sortBy" class="input" style="width:auto" onchange="renderPortfolio()">
+<option value="profit">按盈亏排序</option>
+<option value="code">按代码排序</option>
+<option value="name">按名称排序</option>
+</select>
+</div>
 <div id="portfolioMonitor"></div>
 </div>
 <div class="card">
@@ -456,7 +468,38 @@ async function renderPortfolio() {
   console.log('stockCache after fetch:', stockCache);
   var totalProfit = 0;
   var alerts = [];
-  var html = db.portfolio.map(function(p) {
+  // Filter and sort
+  var filterAction = document.getElementById('filterAction') ? document.getElementById('filterAction').value : 'all';
+  var sortBy = document.getElementById('sortBy') ? document.getElementById('sortBy').value : 'profit';
+  
+  var filteredPortfolio = db.portfolio.filter(function(p) {
+    if (filterAction === 'all') return true;
+    var s = stockCache[p.code];
+    if (!s) return false;
+    var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
+    var rec = getRecommendation(s, profit, getQuickAnalysis(s));
+    if (filterAction === 'action') {
+      return rec.action === '加仓' || rec.action === '增持';
+    } else if (filterAction === 'reduce') {
+      return rec.action === '减仓' || rec.action === '清仓';
+    }
+    return true;
+  });
+  
+  // Sort
+  filteredPortfolio.sort(function(a, b) {
+    var s1 = stockCache[a.code];
+    var s2 = stockCache[b.code];
+    if (!s1 || !s2) return 0;
+    var profit1 = ((s1.price - a.buyPrice) / a.buyPrice * 100);
+    var profit2 = ((s2.price - b.buyPrice) / b.buyPrice * 100);
+    if (sortBy === 'profit') return profit2 - profit1;
+    if (sortBy === 'code') return a.code.localeCompare(b.code);
+    if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+    return 0;
+  });
+  
+  var html = filteredPortfolio.map(function(p) {
     try {
       var s = stockCache[p.code];
       console.log('Mapping:', p.code, 's:', s, 'currentPrice:', p.currentPrice);
@@ -468,8 +511,17 @@ async function renderPortfolio() {
         alerts.push({code: p.code, name: p.name, price: p.currentPrice, support: levels.support, type: 'break'});
       }
       var rec = getRecommendation(s, profit, getQuickAnalysis(s));
-      var recColor = rec.action === '加仓' ? '#FF4757' : rec.action === '减仓' || rec.action === '清仓' ? '#FF4757' : '#2ED573';
-      return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
+      var recColor = rec.action === '加仓' || rec.action === '增持' ? '#FF4757' : rec.action === '减仓' || rec.action === '清仓' ? '#FF4757' : '#2ED573';
+      // Detailed analysis text
+      var analysisText = rec.reason;
+      if (s.change > 5) analysisText += '；今日涨幅较大，注意回调风险';
+      else if (s.change < -5) analysisText += '；今日跌幅较大，关注支撑位';
+      if (profit > 20) analysisText += '；盈利超过20%，可考虑部分止盈';
+      else if (profit < -8) analysisText += '；亏损超过8%，注意止损';
+      if (s.turnover > 5) analysisText += '；换手率较高，活跃度高';
+      if (s.mainMoney < -10) analysisText += '；主力资金净流出，注意风险';
+      else if (s.mainMoney > 10) analysisText += '；主力资金净流入，看涨';
+      return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="showEditStock(\''+p.code+'\')" style="background:#0096FF;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px">✏️</button><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700;margin-left:8px">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span onclick="alert(\''+p.code+' '+p.name+' 详细分析：\\n'+analysisText+'\')" style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
     } catch(e) {
       console.error('Error mapping stock:', p.code, e);
       return '';
@@ -826,6 +878,55 @@ function deleteStock(code) {
     saveData();
       renderPortfolio();
     renderPortfolio();
+  }
+}
+
+function showEditStock(code) {
+  var p = db.portfolio.find(function(x){return x.code === code;});
+  if (!p) return;
+  
+  document.getElementById('manualCode').value = p.code;
+  document.getElementById('manualName').value = p.name || '';
+  document.getElementById('manualShares').value = p.shares;
+  document.getElementById('manualBuyPrice').value = p.buyPrice;
+  document.getElementById('manualSector').value = p.sector || '';
+  
+  // Show the manual input form
+  document.getElementById('manualInput').style.display = 'block';
+  
+  // Change button to update
+  var btn = document.querySelector('#manualInput .btn');
+  if (btn) {
+    btn.innerText = '✏️ 更新';
+    btn.onclick = function() { updateStock(code); };
+  }
+}
+
+function updateStock(code) {
+  var p = db.portfolio.find(function(x){return x.code === code;});
+  if (!p) return;
+  
+  var shares = parseFloat(document.getElementById('manualShares').value);
+  var buyPrice = parseFloat(document.getElementById('manualBuyPrice').value);
+  var sector = document.getElementById('manualSector').value;
+  
+  if (!shares || !buyPrice) { alert('请填写完整信息'); return; }
+  
+  p.shares = shares;
+  p.buyPrice = buyPrice;
+  p.sector = sector;
+  saveData();
+  renderPortfolio();
+  
+  // Reset form
+  document.getElementById('manualCode').value = '';
+  document.getElementById('manualName').value = '';
+  document.getElementById('manualShares').value = '';
+  document.getElementById('manualBuyPrice').value = '';
+  var btn = document.querySelector('#manualInput .btn');
+  if (btn) {
+    btn.innerText = '➕ 添加';
+    btn.onclick = addManualPosition;
   }
 }
 
