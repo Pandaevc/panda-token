@@ -8,71 +8,79 @@
 
 function handleCSVImport(input) {
   var file = input.files[0];
-  if (!file) return;
+  if (!file) { alert('请选择文件'); return; }
+  
+  console.log('File:', file.name);
   
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    var positions = parseCSV(text);
+    console.log('Text length:', text.length);
+    console.log('Text preview:', text.substring(0, 100));
     
-    if (positions.length > 0) {
+    var positions = parseCSV(text);
+    console.log('Positions:', positions);
+    
+    if (positions && positions.length > 0) {
       var added = 0;
-      positions.forEach(p => {
-        if (!db.portfolio.find(x => x.code === p.code)) {
+      for (var i = 0; i < positions.length; i++) {
+        var p = positions[i];
+        var exists = false;
+        for (var j = 0; j < db.portfolio.length; j++) {
+          if (db.portfolio[j].code === p.code) { exists = true; break; }
+        }
+        if (!exists) {
           db.portfolio.push(p);
           added++;
         }
-      });
+      }
+      console.log('Added:', added);
       saveData();
       renderPortfolio();
       alert('成功导入 ' + added + ' 只股票！');
     } else {
-      alert('未能解析表格，请检查格式');
+      alert('未能解析，请检查格式\n格式：名称,代码,数量,价格');
     }
   };
+  reader.onerror = function(e) { alert('读取文件失败'); };
   reader.readAsText(file);
 }
 
 function parseCSV(text) {
   var positions = [];
-  // Handle different line endings
-  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  var lines = text.split(/[\n\r]+/);
   
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
-    if (!line || line.length < 5) continue;
-    if (line.indexOf('股票名称') >= 0 || line.indexOf('股票代码') >= 0) continue;
+    if (!line) continue;
+    if (line.indexOf('股票') >= 0) continue;
     
-    // Find 6-digit stock code anywhere in line
+    // Extract code - look for exactly 6 digits
     var m = line.match(/(\d{6})/);
     if (!m) continue;
     var code = m[1];
     
-    // Validate code prefix
-    if (code.indexOf('6') !== 0 && code.indexOf('0') !== 0 && 
-        code.indexOf('3') !== 0 && code.indexOf('68') !== 0) continue;
+    // Validate
+    if (code.charAt(0) !== '6' && code.charAt(0) !== '0' && 
+        code.charAt(0) !== '3' && code.substring(0,2) !== '68') continue;
     
-    // Find numbers - first is shares, second is price
-    var nums = line.match(/(\d+\.?\d*)/g);
+    // Extract all numbers
+    var nums = line.match(/(\d+)/g);
     if (!nums || nums.length < 2) continue;
     
-    var shares = parseInt(nums[0]);
-    var price = parseFloat(nums[1]);
+    var shares = parseInt(nums[0]) || 100;
+    var price = parseFloat(nums[1]) || 10;
     
-    // Sanity check
-    if (shares < 10) shares = 100;
-    if (price < 1 || price > 10000) price = 10;
-    
-    // Get name (text before code)
+    // Simple name extraction
     var name = code;
-    var parts = line.split(code);
-    if (parts.length > 0 && parts[0].length > 0) {
-      name = parts[0].replace(/[,，\t\s]/g, '').substring(0, 10);
+    if (line.indexOf(code) > 0) {
+      name = line.substring(0, line.indexOf(code)).replace(/[,，\t ]/g, '');
+      if (name.length > 10) name = name.substring(0, 10);
     }
     
     positions.push({
       code: code,
-      name: name,
+      name: name || code,
       shares: shares,
       buyPrice: price,
       sector: '',
@@ -80,6 +88,7 @@ function parseCSV(text) {
     });
   }
   
+  console.log('Parsed:', positions.length, 'positions');
   return positions;
 }
 
