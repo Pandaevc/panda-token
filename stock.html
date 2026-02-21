@@ -748,7 +748,6 @@ function handleCSVImport(input) {
       if (first !== "6" && first !== "0" && first !== "3" && code.substring(0,2) !== "68") continue;
       
       // If shares is small (<=100), make it bigger (probably wrong)
-      if (shares <= 100) shares = shares * 100;
       
       
       // Check if exists
