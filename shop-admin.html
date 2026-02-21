@@ -559,18 +559,14 @@ function showPage(page) {
     logistics:'🚚 物流配送',payments:'💳 支付管理',marketing:'📢 营销管理',settings:'⚙️ 系统设置'
   }[page];
   
+
   document.querySelectorAll('.sidebar-nav a').forEach(function(a){
     a.classList.remove('active');
     if (a.getAttribute('data-page') === page) a.classList.add('active');
   });
-}
-
-// Sidebar nav
+}// Sidebar nav
 document.querySelectorAll('.sidebar-nav a').forEach(function(link){
-  link.onclick = function() {
-    var page = this.getAttribute('data-page');
-    showPage(page);
-  };
+  link.onclick = function(e) { e.preventDefault(); var page = this.getAttribute('data-page'); showPage(page); };
 });
 
 // ============ OTHER FUNCTIONS ============
