@@ -219,7 +219,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <script>
 
 // Backend API - change to your server URL
-var API_URL = 'https://panda-token.vercel.app'; // or your server
+var API_URL = ''; // Fill in your backend URL after deployment // or your server
 var stockCache = {};
 var db = {portfolio: [], picks: []};
 
@@ -688,7 +688,7 @@ function getRecommendation(s, profit, analysis) {
 <script>
 
 // Backend API - change to your server URL
-var API_URL = 'https://panda-token.vercel.app'; // or your server
+var API_URL = ''; // Fill in your backend URL after deployment // or your server
 function downloadTemplate() {
   var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
   var blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
