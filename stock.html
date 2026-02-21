@@ -25,7 +25,7 @@ function handleCSVImport(input) {
       });
       saveData();
       renderPortfolio();
-      console.log('Imported:', positions); alert('成功导入 ' + added + ' 只股票！');
+      alert('成功导入 ' + added + ' 只股票！');
     } else {
       alert('未能解析表格，请检查格式');
     }
@@ -35,47 +35,37 @@ function handleCSVImport(input) {
 
 function parseCSV(text) {
   var positions = [];
-  // Normalize line endings
-  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   var lines = text.split('\n');
   
-  console.log('Total lines:', lines.length);
-  
-  lines.forEach(function(line) {
+  lines.forEach(line => {
     line = line.trim();
-    if (!line || line.length < 4) return;
+    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
     
-    // Skip header
-    if (line.includes('股票名称') && line.includes('股票代码')) return;
+    var parts = line.split(/[,，\t]/);
+    if (parts.length < 2) return;
     
-    // Extract 6-digit code anywhere in line
-    var codeMatch = line.match(/(\d{6})/);
-    if (!codeMatch) return;
-    var code = codeMatch[1];
+    // Format: 股票名称,股票代码,持股数量,成本价
+    var name = '', code = '', shares = 100, buyPrice = 10;
     
-    // Validate code prefix
+    parts.forEach((p, i) => {
+      p = p.trim();
+      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
+      
+      if (i === 0) name = p;  // First col: name
+      else if (i === 1) {      // Second col: code
+        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
+      }
+      else if (i === 2 && num > 10) shares = num;  // shares
+      else if (i === 3 && num > 0) buyPrice = num;  // price
+    });
+    
+    // Validate code
+    if (!code) return;
     if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    // Extract numbers - look for shares and price
-    var numbers = line.match(/(\d+\.?\d*)/g);
-    if (!numbers || numbers.length < 2) return;
-    
-    // First number after code is shares, second is price
-    var shares = parseFloat(numbers[0]);
-    var buyPrice = parseFloat(numbers[1]);
-    
-    // Extract name (text before code)
-    var name = line.split(code)[0].replace(/[,，\t\s]/g, '').trim() || code;
-    
-    // Skip if shares is too small (probably not shares)
-    if (shares < 10 || shares > 1000000) shares = 100;
-    if (buyPrice < 0.1 || buyPrice > 10000) buyPrice = 10;
-    
-    console.log('Parsed:', code, name, shares, buyPrice);
     
     positions.push({
       code: code,
-      name: name.substring(0, 10),
+      name: name || code,
       shares: shares,
       buyPrice: buyPrice,
       sector: '',
@@ -83,7 +73,6 @@ function parseCSV(text) {
     });
   });
   
-  console.log('Total positions:', positions.length);
   return positions.slice(0, 20);
 }
 
@@ -117,58 +106,6 @@ function filterAnalysis(type) {
   });
 }
 
-
-function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
-  var blob = new Blob([template], {type: "text/csv;charset=utf-8"});
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "持仓模板.csv";
-  a.click();
-}
-
-function handleCSVImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var text = e.target.result;
-    alert("读取到: " + text.substring(0, 100));
-    
-    // Simple parse: look for 6-digit codes anywhere
-    var codes = text.match(/\d{6}/g) || [];
-    alert("找到代码: " + codes.join(", "));
-    
-    var added = 0;
-    codes.forEach(function(code) {
-      // Validate
-      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && 
-          code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
-      
-      // Try to find numbers for shares and price
-      var lineMatch = text.match(new RegExp(code + "[^\n]*"));
-      if (!lineMatch) return;
-      
-      var nums = lineMatch[0].match(/\d+\.?\d*/g) || [];
-      var shares = nums.length > 0 ? parseFloat(nums[0]) : 100;
-      var price = nums.length > 1 ? parseFloat(nums[1]) : 10;
-      
-      if (shares < 10) shares = 100;
-      if (price < 1) price = 10;
-      
-      if (!db.portfolio.find(function(p){return p.code === code})) {
-        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
-        added++;
-      }
-    });
-    
-    alert("导入成功: " + added + "只");
-    saveData();
-    renderPortfolio();
-  };
-  reader.readAsText(file);
-}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js">
 
@@ -191,7 +128,7 @@ function handleCSVImport(input) {
       });
       saveData();
       renderPortfolio();
-      console.log('Imported:', positions); alert('成功导入 ' + added + ' 只股票！');
+      alert('成功导入 ' + added + ' 只股票！');
     } else {
       alert('未能解析表格，请检查格式');
     }
@@ -201,47 +138,37 @@ function handleCSVImport(input) {
 
 function parseCSV(text) {
   var positions = [];
-  // Normalize line endings
-  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   var lines = text.split('\n');
   
-  console.log('Total lines:', lines.length);
-  
-  lines.forEach(function(line) {
+  lines.forEach(line => {
     line = line.trim();
-    if (!line || line.length < 4) return;
+    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
     
-    // Skip header
-    if (line.includes('股票名称') && line.includes('股票代码')) return;
+    var parts = line.split(/[,，\t]/);
+    if (parts.length < 2) return;
     
-    // Extract 6-digit code anywhere in line
-    var codeMatch = line.match(/(\d{6})/);
-    if (!codeMatch) return;
-    var code = codeMatch[1];
+    // Format: 股票名称,股票代码,持股数量,成本价
+    var name = '', code = '', shares = 100, buyPrice = 10;
     
-    // Validate code prefix
+    parts.forEach((p, i) => {
+      p = p.trim();
+      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
+      
+      if (i === 0) name = p;  // First col: name
+      else if (i === 1) {      // Second col: code
+        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
+      }
+      else if (i === 2 && num > 10) shares = num;  // shares
+      else if (i === 3 && num > 0) buyPrice = num;  // price
+    });
+    
+    // Validate code
+    if (!code) return;
     if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    // Extract numbers - look for shares and price
-    var numbers = line.match(/(\d+\.?\d*)/g);
-    if (!numbers || numbers.length < 2) return;
-    
-    // First number after code is shares, second is price
-    var shares = parseFloat(numbers[0]);
-    var buyPrice = parseFloat(numbers[1]);
-    
-    // Extract name (text before code)
-    var name = line.split(code)[0].replace(/[,，\t\s]/g, '').trim() || code;
-    
-    // Skip if shares is too small (probably not shares)
-    if (shares < 10 || shares > 1000000) shares = 100;
-    if (buyPrice < 0.1 || buyPrice > 10000) buyPrice = 10;
-    
-    console.log('Parsed:', code, name, shares, buyPrice);
     
     positions.push({
       code: code,
-      name: name.substring(0, 10),
+      name: name || code,
       shares: shares,
       buyPrice: buyPrice,
       sector: '',
@@ -249,7 +176,6 @@ function parseCSV(text) {
     });
   });
   
-  console.log('Total positions:', positions.length);
   return positions.slice(0, 20);
 }
 
@@ -283,58 +209,6 @@ function filterAnalysis(type) {
   });
 }
 
-
-function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
-  var blob = new Blob([template], {type: "text/csv;charset=utf-8"});
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "持仓模板.csv";
-  a.click();
-}
-
-function handleCSVImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var text = e.target.result;
-    alert("读取到: " + text.substring(0, 100));
-    
-    // Simple parse: look for 6-digit codes anywhere
-    var codes = text.match(/\d{6}/g) || [];
-    alert("找到代码: " + codes.join(", "));
-    
-    var added = 0;
-    codes.forEach(function(code) {
-      // Validate
-      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && 
-          code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
-      
-      // Try to find numbers for shares and price
-      var lineMatch = text.match(new RegExp(code + "[^\n]*"));
-      if (!lineMatch) return;
-      
-      var nums = lineMatch[0].match(/\d+\.?\d*/g) || [];
-      var shares = nums.length > 0 ? parseFloat(nums[0]) : 100;
-      var price = nums.length > 1 ? parseFloat(nums[1]) : 10;
-      
-      if (shares < 10) shares = 100;
-      if (price < 1) price = 10;
-      
-      if (!db.portfolio.find(function(p){return p.code === code})) {
-        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
-        added++;
-      }
-    });
-    
-    alert("导入成功: " + added + "只");
-    saveData();
-    renderPortfolio();
-  };
-  reader.readAsText(file);
-}
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -395,7 +269,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="stat"><div class="v" id="portfolioCount">0</div><div class="l">持仓数量</div></div>
 <div class="stat"><div class="v" id="profit">0%</div><div class="l">总盈亏</div></div>
 <div class="stat"><div class="v" id="totalInvest">0</div><div class="l">总投入(万)</div></div>
-<div class="stat"><div class="v" id="totalInvest">0</div><div class="l">总投入(万)</div></div>
 <div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
 </div>
 <div class="strategy-card">
@@ -450,8 +323,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动输入</button>
 <button class="btn btn-outline" onclick="downloadTemplate()">📥 下载模板</button>
-<button class="btn btn-outline" onclick="downloadTemplate()">📥 模板</button>
-<button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 导入</button>
+<button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 表格导入</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
 </div>
 <div id="manualInput" style="display:none;margin-top:16px">
@@ -812,12 +684,9 @@ function parsePositionsFromText(text) {
 
 var sortBy = 'profit';
 
-console.log('Rendering portfolio, count:', db.portfolio.length);
-
 async function renderPortfolio(sort) {
   document.getElementById('portfolioCount').innerText = db.portfolio.length;
   for (var p of db.portfolio) {
-    console.log('Fetching data for:', p.code);
     if (!stockCache[p.code]) {
       var s = await getStockWithHistory(p.code);
       if (s) { stockCache[p.code] = s; p.currentPrice = s.price; p.change = s.change; }
@@ -1165,7 +1034,7 @@ function handleCSVImport(input) {
       });
       saveData();
       renderPortfolio();
-      console.log('Imported:', positions); alert('成功导入 ' + added + ' 只股票！');
+      alert('成功导入 ' + added + ' 只股票！');
     } else {
       alert('未能解析表格，请检查格式');
     }
@@ -1175,47 +1044,37 @@ function handleCSVImport(input) {
 
 function parseCSV(text) {
   var positions = [];
-  // Normalize line endings
-  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   var lines = text.split('\n');
   
-  console.log('Total lines:', lines.length);
-  
-  lines.forEach(function(line) {
+  lines.forEach(line => {
     line = line.trim();
-    if (!line || line.length < 4) return;
+    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
     
-    // Skip header
-    if (line.includes('股票名称') && line.includes('股票代码')) return;
+    var parts = line.split(/[,，\t]/);
+    if (parts.length < 2) return;
     
-    // Extract 6-digit code anywhere in line
-    var codeMatch = line.match(/(\d{6})/);
-    if (!codeMatch) return;
-    var code = codeMatch[1];
+    // Format: 股票名称,股票代码,持股数量,成本价
+    var name = '', code = '', shares = 100, buyPrice = 10;
     
-    // Validate code prefix
+    parts.forEach((p, i) => {
+      p = p.trim();
+      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
+      
+      if (i === 0) name = p;  // First col: name
+      else if (i === 1) {      // Second col: code
+        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
+      }
+      else if (i === 2 && num > 10) shares = num;  // shares
+      else if (i === 3 && num > 0) buyPrice = num;  // price
+    });
+    
+    // Validate code
+    if (!code) return;
     if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    // Extract numbers - look for shares and price
-    var numbers = line.match(/(\d+\.?\d*)/g);
-    if (!numbers || numbers.length < 2) return;
-    
-    // First number after code is shares, second is price
-    var shares = parseFloat(numbers[0]);
-    var buyPrice = parseFloat(numbers[1]);
-    
-    // Extract name (text before code)
-    var name = line.split(code)[0].replace(/[,，\t\s]/g, '').trim() || code;
-    
-    // Skip if shares is too small (probably not shares)
-    if (shares < 10 || shares > 1000000) shares = 100;
-    if (buyPrice < 0.1 || buyPrice > 10000) buyPrice = 10;
-    
-    console.log('Parsed:', code, name, shares, buyPrice);
     
     positions.push({
       code: code,
-      name: name.substring(0, 10),
+      name: name || code,
       shares: shares,
       buyPrice: buyPrice,
       sector: '',
@@ -1223,7 +1082,6 @@ function parseCSV(text) {
     });
   });
   
-  console.log('Total positions:', positions.length);
   return positions.slice(0, 20);
 }
 
@@ -1257,58 +1115,6 @@ function filterAnalysis(type) {
   });
 }
 
-
-function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
-  var blob = new Blob([template], {type: "text/csv;charset=utf-8"});
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "持仓模板.csv";
-  a.click();
-}
-
-function handleCSVImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var text = e.target.result;
-    alert("读取到: " + text.substring(0, 100));
-    
-    // Simple parse: look for 6-digit codes anywhere
-    var codes = text.match(/\d{6}/g) || [];
-    alert("找到代码: " + codes.join(", "));
-    
-    var added = 0;
-    codes.forEach(function(code) {
-      // Validate
-      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && 
-          code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
-      
-      // Try to find numbers for shares and price
-      var lineMatch = text.match(new RegExp(code + "[^\n]*"));
-      if (!lineMatch) return;
-      
-      var nums = lineMatch[0].match(/\d+\.?\d*/g) || [];
-      var shares = nums.length > 0 ? parseFloat(nums[0]) : 100;
-      var price = nums.length > 1 ? parseFloat(nums[1]) : 10;
-      
-      if (shares < 10) shares = 100;
-      if (price < 1) price = 10;
-      
-      if (!db.portfolio.find(function(p){return p.code === code})) {
-        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
-        added++;
-      }
-    });
-    
-    alert("导入成功: " + added + "只");
-    saveData();
-    renderPortfolio();
-  };
-  reader.readAsText(file);
-}
 </script>
 </body>
 </html>
