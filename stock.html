@@ -627,58 +627,7 @@ function showPage(page) {
 loadData();
 
 
-function downloadTemplate() {
-  var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
-  var blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = "持仓模板.csv";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(url);},100);
-}
 
-function handleCSVImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var text = e.target.result;
-    var positions = [];
-    var lines = text.split(/[\n\r]+/);
-    
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i].trim();
-      if (!line) continue;
-      if (line.indexOf("股票") >= 0) continue;
-      
-      var m = line.match(/(\d{6})/);
-      if (!m) continue;
-      var code = m[1];
-      
-      if (code.charAt(0) !== "6" && code.charAt(0) !== "0" && 
-          code.charAt(0) !== "3" && code.substring(0,2) !== "68") continue;
-      
-      var nums = line.match(/(\d+)/g);
-      if (!nums || nums.length < 2) continue;
-      
-      var shares = parseInt(nums[0]) || 100;
-      var price = parseFloat(nums[1]) || 10;
-      
-      if (!db.portfolio.some(function(p){return p.code === code;})) {
-        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
-      }
-    }
-    
-    saveData();
-    render();
-    alert("成功导入 " + db.portfolio.length + " 只股票！");
-  };
-  reader.readAsText(file);
-}
 </script>
 </body>
 </html>
