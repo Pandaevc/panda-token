@@ -3,18 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PandaToken - 熊猫闪充代币 DApp</title>
+<title>PandaToken - 创新代币 DApp</title>
+<script src="https://cdn.jsdelivr.net/npm/tronweb@4.3.0/dist/TronWeb.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
-body{background:var(--darker);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh}
-.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%),radial-gradient(circle at 70% 80%,rgba(255,215,0,0.1),transparent 50%)}
+body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui;sans-serif;min-height:100vh}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:var(--surface);border-radius:16px;padding:28px;max-width:360px;width:90%;text-align:center;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;background:none;border:none;color:#666;font-size:24px;cursor:pointer}
+.modal-icon{font-size:48px;margin-bottom:16px}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:12px}
+.modal-msg{font-size:14px;color:#AAA;margin-bottom:20px;line-height:1.6}
+.modal-btn{padding:12px 32px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;margin:5px}
+.modal-btn.error{background:#ff4757}
+.modal-btn.secondary{background:#444}
+.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%)}
 header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
 .c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
 .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700}
-.logo-icon{width:38px;height:38px;background:var(--g);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(255,107,53,0.4)}
+.logo-icon{width:38px;height:38px;background:var(--g);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
 .logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-nav{display:flex;gap:28px;margin:0 auto}
+nav{display:flex;gap:20px;margin:0 auto}
 nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:14px}
 nav a:hover{color:#fff}
 .header-right{display:flex;align-items:center;gap:12px;margin-left:auto}
@@ -25,438 +36,483 @@ nav a:hover{color:#fff}
 .w-info{display:none;align-items:center;gap:10px;padding:6px 14px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:20px}
 .w-info .addr{font-size:12px;color:var(--success);font-family:monospace}
 .w-info .bal{font-size:13px;font-weight:700;color:var(--accent)}
-.hero{padding:140px 24px 80px;text-align:center}
+.hero{padding:140px 24px 60px;text-align:center}
 .badge{display:inline-block;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:10px 24px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
-h1{font-size:56px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 3s linear infinite}
-@keyframes shimmer{to{background-position:200% center}}
-.subtitle{font-size:18px;color:#B0B0B0;max-width:500px;margin:0 auto 40px}
-.stats{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:40px}
-.stat{background:var(--surface);border:var(--b);padding:20px 32px;border-radius:16px}
-.stat .v{font-size:28px;font-weight:700;color:var(--accent)}
-.stat .l{font-size:12px;color:var(--text-muted);text-transform:uppercase}
-.sec{padding:80px 24px;max-width:1200px;margin:0 auto}
-.sec h2{text-align:center;font-size:38px;margin-bottom:14px}
-.sec > p{text-align:center;color:#B0B0B0;margin-bottom:50px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:var(--surface);border:var(--b);padding:32px 24px;border-radius:20px;text-align:center}
-.card .icon{font-size:38px;margin-bottom:14px}
-.card h3{font-size:18px;margin-bottom:10px}
-.card p{font-size:13px;color:#B0B0B0}
-.stakes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto}
-.stake{background:var(--surface);border:var(--b);padding:36px 28px;border-radius:20px;text-align:center;position:relative}
-.stake.featured{background:linear-gradient(180deg,rgba(255,107,53,0.1),var(--surface));border:2px solid var(--primary)}
-.stake.featured::before{content:"推荐";position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--g);padding:5px 18px;border-radius:18px;font-size:11px;font-weight:700}
-.stake .period{font-size:26px;font-weight:700}
-.stake .apy{font-size:46px;font-weight:800;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:18px 0}
-.stake ul{list-style:none;text-align:left;margin:18px 0}
-.stake ul li{padding:8px 0;border-bottom:var(--b);font-size:13px;color:#B0B0B0}
-.stake ul li::before{content:"✓";color:var(--success);font-weight:bold}
-.stake button{width:100%;padding:14px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
-.st-form{background:var(--surface);border:var(--b);border-radius:20px;padding:28px;margin-top:30px;display:none}
-.st-form.show{display:block}
-.bal-disp{background:var(--dark);padding:14px 18px;border-radius:10px;margin-bottom:18px;display:flex;justify-content:space-between}
-.bal-disp .l{color:var(--text-muted)}
-.bal-disp .v{color:var(--accent);font-weight:700}
-.daily{background:linear-gradient(135deg,rgba(0,230,118,0.1),rgba(255,193,7,0.1));padding:18px;border-radius:10px;margin-bottom:18px}
-.daily .l{color:var(--text-muted);font-size:12px}
-.daily .v{font-size:24px;font-weight:700;color:var(--success)}
-.inp-grp{display:flex;gap:10px;margin-bottom:18px}
-.inp-grp input{flex:1;padding:14px 18px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text)}
-.inp-grp button{padding:14px 24px;background:var(--g);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer}
-.info{background:var(--dark);padding:14px;border-radius:10px;margin:18px 0}
-.info .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:var(--b)}
-.info .row:last-child{border:none}
-.info .row .v{color:var(--accent);font-weight:600}
-.ex-card{background:var(--surface);border:var(--b);border-radius:24px;padding:32px;max-width:480px;margin:0 auto}
-.tabs{display:flex;gap:6px;background:var(--dark);padding:4px;border-radius:12px;margin-bottom:24px}
-.tab{flex:1;padding:12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;background:0;border:none;color:var(--text-muted)}
+h1{font-size:42px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:16px;color:#B0B0B0;margin:0 auto 40px}
+.stats{display:flex;justify-content:center;gap:30px;flex-wrap:wrap;margin-top:40px}
+.stat{background:var(--surface);border:var(--b);padding:20px 28px;border-radius:16px;min-width:120px}
+.stat .v{font-size:22px;font-weight:700;color:var(--accent)}
+.stat .l{font-size:12px;color:var(--text-muted);margin-top:4px}
+.cta{margin-top:30px}
+.cta a{background:var(--g);color:#fff;padding:14px 36px;border-radius:30px;font-weight:700;text-decoration:none;display:inline-block}
+.sec{padding:60px 24px;max-width:1000px;margin:0 auto}
+.sec h2{text-align:center;font-size:28px;margin-bottom:14px}
+.sec > p{text-align:center;color:#B0B0B0;margin-bottom:40px}
+.stakes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.stake{background:var(--surface);border:var(--b);padding:24px;border-radius:16px;text-align:center}
+.stake.featured{border:2px solid var(--primary)}
+.stake .period{font-size:20px;font-weight:700}
+.stake .apy{font-size:32px;font-weight:800;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stake .reward{font-size:12px;color:var(--text-muted);margin-top:8px}
+.stake button{width:100%;padding:12px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;margin-top:15px}
+.stake button:disabled{background:#444;cursor:not-allowed}
+.ex-card{background:var(--surface);border:var(--b);border-radius:20px;padding:24px;margin:20px 0}
+.tabs{display:flex;gap:6px;background:var(--dark);padding:4px;border-radius:10px;margin-bottom:20px}
+.tab{flex:1;padding:12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;background:0;border:none;color:var(--text-muted)}
 .tab.active{background:var(--g);color:#fff}
 .panels{display:none}
 .panels.active{display:block}
-.g{margin-bottom:18px}
-.g label{display:block;margin-bottom:8px;font-weight:500}
-.inp-wrap{position:relative}
-.inp-wrap input{width:100%;padding:14px 65px 14px 16px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:var(--text)}
-.inp-wrap .max{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:6px 12px;background:var(--primary);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;cursor:pointer}
-.tip{font-size:12px;color:var(--text-muted);margin-top:6px}
-.topt{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-.topt .opt{background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer}
-.topt .opt:hover,.topt .opt.selected{border-color:var(--primary);background:rgba(255,107,53,0.1)}
-.topt .opt .n{font-weight:600;margin-bottom:4px;font-size:13px}
-.topt .opt .f{color:var(--accent);font-size:12px}
-.topt .opt .t{font-size:10px;color:var(--text-muted);margin-top:2px}
-.note{font-size:11px;color:var(--text-muted);margin-top:10px}
-.btn-full{width:100%;padding:16px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px}
-.dbets{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
-.dbet{background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;cursor:pointer}
-.dbet:hover,.dbet.selected{border-color:var(--primary);background:rgba(255,107,53,0.1)}
-.dbet .l{font-weight:600;font-size:13px}
-.dbet .o{font-size:11px;color:var(--text-muted)}
-.dnums{display:flex;gap:8px;justify-content:center;margin:14px 0}
-.dnum{width:44px;height:44px;background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;cursor:pointer}
-.dnum:hover,.dnum.selected{border-color:var(--primary);background:rgba(255,107,53,0.2)}
-.ddisp{display:flex;justify-content:center;gap:14px;margin:20px 0}
-.dice{width:54px;height:54px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#333}
+.inp{width:100%;padding:12px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;margin:10px 0}
+.inp:disabled{opacity:0.5;cursor:not-allowed}
+.btn-full{width:100%;padding:14px;background:var(--g);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:15px}
+.btn-full:disabled{background:#444;cursor:not-allowed}
+.ref-box{background:var(--surface);border-radius:16px;padding:24px;text-align:center}
+.ref-code{font-size:32px;font-weight:700;color:var(--accent);margin:15px 0}
+.ref-link{font-size:14px;word-break:break-all;background:var(--dark);padding:12px;border-radius:8px;margin:10px 0}
+.leaderboard{background:var(--surface);border-radius:16px;overflow:hidden}
+.leaderboard table{width:100%;border-collapse:collapse}
+.leaderboard th,.leaderboard td{padding:12px;text-align:left;border-bottom:var(--b)}
+.leaderboard th{background:var(--dark);font-size:12px;color:var(--text-muted)}
+.leaderboard .rank{font-weight:700;color:var(--accent)}
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
-footer a{color:var(--primary);text-decoration:none}
-@media(max-width:900px){.grid,.stakes{grid-template-columns:repeat(2,1fr)}nav{display:none}}
-@media(max-width:600px){.grid,.stakes{grid-template-columns:1fr}h1{font-size:36px}}
+@media(max-width:768px){.stakes{grid-template-columns:1fr}nav{display:none}}
 </style>
 </head>
 <body>
+<div class="modal" id="modal">
+<div class="modal-box">
+<button class="modal-close" onclick="closeModal()">×</button>
+<div class="modal-icon" id="modalIcon">✅</div>
+<div class="modal-title" id="modalTitle">提示</div>
+<div class="modal-msg" id="modalMsg"></div>
+<div id="modalBtns"><button class="modal-btn" onclick="closeModal()">确定</button></div>
+</div>
+</div>
+
 <div class="bg"></div>
 <header>
 <div class="c">
 <div class="logo"><div class="logo-icon">🐼</div><div class="logo-text">PandaToken</div></div>
 <nav>
 <a href="#home">首页</a>
-<a href="#features">特性</a>
 <a href="#staking">质押</a>
 <a href="#exchange">兑换</a>
-<a href="#dice">🎲</a>
+<a href="#referral">推荐</a>
 </nav>
 <div class="header-right">
 <span class="net">● TRON</span>
-<div class="w-info" id="wInfo"><span class="addr" id="wAddr"></span><span class="bal" id="wBal">0</span></div>
-<button class="btn btn-primary" id="cBtn" onclick="connectWallet()">连接钱包</button>
-<button class="btn btn-outline" id="dBtn" onclick="disconnectWallet()" style="display:none">断开</button>
+<div class="w-info" id="wInfo">
+<span class="addr" id="wAddr"></span>
+<span class="bal" id="wBal">0</span>
+</div>
+<button class="btn btn-primary" id="cBtn">连接钱包</button>
+<button class="btn btn-outline" id="dBtn" style="display:none">断开</button>
 </div>
 </div>
 </header>
 
 <section class="hero" id="home">
-<div class="badge">🚀 下一代价值代币</div>
-<h1>PandaToken (PANDA)</h1>
-<p class="subtitle">只涨不跌加密货币，为熊猫闪充生态赋能</p>
-<a href="shop.html" class="btn btn-primary" style="padding:12px 32px;font-size:14px;text-decoration:none;display:inline-block;">购买电子烟</a>
+<div class="badge">🚀 只涨不跌</div>
+<h1>PandaToken</h1>
+<p class="subtitle">全球首个电子烟挖矿代币</p>
+<div class="cta">
+<a href="shop.html">购买电子烟</a>
+</div>
 <div class="stats">
-<div class="stat"><div class="v">40亿</div><div class="l">代币总量</div></div>
-<div class="stat"><div class="v">$0.005</div><div class="l">初始价格</div></div>
-<div class="stat"><div class="v">3,000</div><div class="l">每支代币</div></div>
-<div class="stat"><div class="v" id="pDis">$0.0052</div><div class="l">当前价</div></div>
+<div class="stat"><div class="v" id="price">$0.00001</div><div class="l">当前价格</div></div>
+<div class="stat"><div class="v">60亿</div><div class="l">代币总量</div></div>
+<div class="stat"><div class="v" id="holders">1,234</div><div class="l">持币地址</div></div>
 </div>
-</section>
-
-<section class="sec" id="features">
-<h2>核心特性</h2>
-<p>独特的经济模型，确保只涨不跌</p>
-<div class="grid">
-<div class="card"><div class="icon">📈</div><h3>只涨不跌</h3><p>独特经济模型</p></div>
-<div class="card"><div class="icon">🎁</div><h3>盲盒惊喜</h3><p>密钥开启盲盒</p></div>
-<div class="card"><div class="icon">🎲</div><h3>骰子游戏</h3><p>趣味博彩</p></div>
-<div class="card"><div class="icon">🔒</div><h3>质押收益</h3><p>15%-90%年化</p></div>
-<div class="card"><div class="icon">⚡</div><h3>Turbo释放</h3><p>稳定币价</p></div>
-<div class="card"><div class="icon">🔄</div><h3>Swap交易</h3><p>代币变现</p></div>
 </div>
-</section>
 
 <section class="sec" id="staking">
-<h2>质押收益</h2>
-<p>锁定代币，获得丰厚收益</p>
+<h2>💰 质押收益</h2>
+<p>锁定代币，获得被动收入</p>
 <div class="stakes">
-<div class="stake"><div class="period">30天</div><div class="apy">15%<span>/年</span></div><ul><li>每日计算收益</li><li>到期自动解锁</li></ul><button onclick="showStake(30)">质押</button></div>
-<div class="stake featured"><div class="period">60天</div><div class="apy">45%<span>/年</span></div><ul><li>更高收益</li><li>每日释放</li></ul><button onclick="showStake(60)">质押</button></div>
-<div class="stake"><div class="period">90天</div><div class="apy">90%<span>/年</span></div><ul><li>最高收益</li><li>机构首选</li></ul><button onclick="showStake(90)">质押</button></div>
+<div class="stake">
+<div class="period">30天</div>
+<div class="apy">15%</div>
+<div class="reward">每日释放</div>
+<button onclick="doStake(30)" id="stake30Btn">质押</button>
 </div>
-<div class="ex-card st-form" id="stForm">
-<h3 style="margin-bottom:18px" id="stTitle">质押 - 30天</h3>
-<div class="bal-disp"><span class="l">钱包余额</span><span class="v" id="stBal">0 PANDA</span></div>
-<div class="daily"><div class="l">预计每日收益</div><div class="v" id="dailyE">0 PANDA/天</div></div>
-<div class="inp-grp"><input type="number" id="stAmt" placeholder="输入质押数量" oninput="calcStake()"><button onclick="setMaxStake()">全部</button></div>
-<div class="info">
-<div class="row"><span>质押数量</span><span class="v" id="stConfAmt">0</span></div>
-<div class="row"><span>期限</span><span class="v" id="stConfDays">30天</span></div>
-<div class="row"><span>预计收益</span><span class="v" id="stConfRew">0 PANDA</span></div>
+<div class="stake featured">
+<div class="period">60天</div>
+<div class="apy">45%</div>
+<div class="reward">每日释放</div>
+<button onclick="doStake(60)" id="stake60Btn">质押</button>
 </div>
-<button class="btn-full" onclick="confirmStake()">确认质押</button>
+<div class="stake">
+<div class="period">90天</div>
+<div class="apy">90%</div>
+<div class="reward">每日释放</div>
+<button onclick="doStake(90)" id="stake90Btn">质押</button>
+</div>
 </div>
 </section>
 
 <section class="sec" id="exchange">
-<h2>兑换中心</h2>
-<p>多种方式管理您的代币</p>
+<h2>🔄 代币兑换</h2>
+<p>连接钱包进行操作</p>
 <div class="ex-card">
 <div class="tabs">
-<button class="tab active" onclick="switchTab('key')">密钥兑换</button>
-<button class="tab" onclick="switchTab('turbo')">Turbo</button>
-<button class="tab" onclick="switchTab('swap')">Swap</button>
+<button class="tab active" data-tab="key">密钥兑换</button>
+<button class="tab" data-tab="turbo">Turbo</button>
+<button class="tab" data-tab="swap">Swap</button>
 </div>
-
 <div class="panels active" id="keyP">
-<div class="g"><label>🎁 输入密钥</label><input type="text" id="keyIn" placeholder="请输入密钥" style="width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text)"></div>
-<div class="tip">每个密钥可开启盲盒，代币随机(最高3000)</div>
-<button class="btn-full" onclick="redeemKey()">🎁 开启盲盒</button>
+<input type="text" class="inp" id="keyIn" placeholder="输入密钥">
+<button class="btn-full" onclick="doRedeemKey()" id="redeemBtn">🎁 兑换代币</button>
 </div>
-
 <div class="panels" id="turboP">
-<div class="g"><label>⚡ 释放方式</label></div>
-<div class="topt">
-<div class="opt" onclick="selectTurbo(this,'direct')"><div class="n">🚀 直接</div><div class="f">-20%</div><div class="t">即时USDT</div></div>
-<div class="opt selected" onclick="selectTurbo(this,'30d')"><div class="n">📅 30天</div><div class="f">-10%</div><div class="t">每天释放</div></div>
-<div class="opt" onclick="selectTurbo(this,'60d')"><div class="n">📆 60天</div><div class="f">0%</div><div class="t">每天释放</div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px">
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center;cursor:pointer" onclick="selectTurbo('direct')" id="turboDirect">🚀直接<br><small>-20%</small></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center;cursor:pointer" onclick="selectTurbo('30d')" id="turbo30d">📅30天<br><small>-10%</small></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;text-align:center;cursor:pointer" onclick="selectTurbo('60d')" id="turbo60d">📆60天<br><small>0%</small></div>
 </div>
-<div class="g" style="margin-top:18px"><label>🔄 数量</label><div class="inp-wrap"><input type="number" id="tAmt" placeholder="输入数量" oninput="calcTurbo()"><button class="max" onclick="setMaxTurbo()">全部</button></div><div class="tip" id="tBal">可用: 0 PANDA</div></div>
-<div class="info">
-<div class="row"><span>释放</span><span class="v" id="tOut">0</span></div>
-<div class="row"><span>手续费</span><span class="v" id="tFee">0</span></div>
-<div class="row"><span>USDT</span><span class="v" id="tUSD">$0</span></div>
+<input type="number" class="inp" id="tAmt" placeholder="输入数量 (需持有PANDA代币)">
+<button class="btn-full" onclick="doTurbo()" id="turboBtn">⚡ 执行Turbo</button>
 </div>
-<div class="note">⚠️ 线性释放需到期后方可Swap</div>
-<button class="btn-full" onclick="executeTurbo()">⚡ 执行Turbo</button>
-</div>
-
 <div class="panels" id="swapP">
-<div class="g"><label>🔄 Swap数量</label><div class="inp-wrap"><input type="number" id="sAmt" placeholder="输入数量" oninput="calcSwap()"><button class="max" onclick="setMaxSwap()">全部</button></div><div class="tip" id="sBal">可Swap: 0 (需Turbo释放)</div></div>
-<div class="info">
-<div class="row"><span>汇率</span><span class="v">1=$0.005</span></div>
-<div class="row"><span>获得</span><span class="v" id="sOut">$0</span></div>
-<div class="row"><span>费5%</span><span class="v" id="sFee">$0</span></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;margin-bottom:15px;font-size:13px">
+可用Swap余额: <span id="swapBalance" style="color:var(--accent)">0 PANDA</span>
 </div>
-<div class="note">⚠️ 只能Swap Turbo释放的代币</div>
-<button class="btn-full" onclick="executeSwap()">🔄 Swap</button>
+<input type="number" class="inp" id="sAmt" placeholder="输入数量 (需Turbo释放的代币)">
+<button class="btn-full" onclick="doSwap()" id="swapBtn">🔄 Swap</button>
 </div>
 </div>
 </section>
 
-<section class="sec" id="dice">
-<h2>🎲 骰子游戏</h2>
-<p>大小玩法，试试运气</p>
-<div class="ex-card">
-<div class="g"><label>🎰 下注</label><div class="inp-wrap"><input type="number" id="dAmt" placeholder="数量"><button class="max" onclick="setMaxDice()">全部</button></div><div class="tip" id="dBal">可用: 0</div></div>
-<div class="dbets">
-<div class="dbet" onclick="selectBet('big')"><div class="l">大(11-17)</div><div class="o">1:1</div></div>
-<div class="dbet" onclick="selectBet('small')"><div class="l">小(4-10)</div><div class="o">1:1</div></div>
+<section class="sec" id="referral">
+<h2>👥 推荐奖励</h2>
+<p>邀请好友，获得额外代币奖励</p>
+<div class="ex-card ref-box">
+<div style="font-size:14px;color:var(--text-muted)">推荐奖励: 每邀请1人购买电子烟获得 500 PANDA</div>
+<div class="ref-code" id="refCode">PAND123456</div>
+<input type="text" class="inp ref-link" id="refLink" readonly>
+<button class="btn btn-primary" style="margin-top:10px" onclick="copyRefLink()">复制推广链接</button>
 </div>
-<div class="dnums">
-<div class="dnum" onclick="selectNum(1)">1</div>
-<div class="dnum" onclick="selectNum(2)">2</div>
-<div class="dnum" onclick="selectNum(3)">3</div>
-<div class="dnum" onclick="selectNum(4)">4</div>
-<div class="dnum" onclick="selectNum(5)">5</div>
-<div class="dnum" onclick="selectNum(6)">6</div>
-</div>
-<div class="ddisp">
-<div class="dice">🎲</div>
-<div class="dice">🎲</div>
-<div class="dice">🎲</div>
-</div>
-<button class="btn-full" onclick="rollDice()">🎲 开始</button>
-<div class="note" style="text-align:center">📊 小48.6% 大47.2% 豹4.2%</div>
+<h3 style="margin:30px 0 15px">🏆 推荐排行榜</h3>
+<div class="leaderboard">
+<table>
+<tr><th>#</th><th>地址</th><th>邀请人数</th><th>奖励</th></tr>
+<tr><td class="rank">1</td><td>TQ3...8f2K</td><td>128</td><td>64,000 PANDA</td></tr>
+<tr><td class="rank">2</td><td>TLk...3mN</td><td>86</td><td>43,000 PANDA</td></tr>
+<tr><td class="rank">3</td><td>TRw...9pQ</td><td>54</td><td>27,000 PANDA</td></tr>
+</table>
 </div>
 </section>
 
-<footer><p>© 2026 PandaToken - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
+<footer><p>© 2026 PandaToken | All Rights Reserved</p></footer>
 
 <script>
-var connected=false;
-var wallet='';
-var price=0.0052;
-var turboType='30d';
-var betType='';
-var betNum=0;
-var stakeDays=30;
-var user={balance:15000,staked:0,released:0,usdt:500};
+var connected = false;
+var wallet = '';
+// 用户余额状态
+var user = {
+  balance: 0,        // 钱包余额 (PANDA)
+  staked: 0,        // 质押中
+  released: 0       // Turbo释放出的代币 (可Swap)
+};
+var turboType = '30d';
 
-function connectWallet(){
-    var btn=document.getElementById('cBtn');
-    btn.innerHTML='连接中...';
-    setTimeout(function(){
-        wallet='T'+Math.random().toString(36).substr(2,33);
-        connected=true;
-        btn.style.display='none';
-        document.getElementById('dBtn').style.display='block';
-        document.getElementById('wInfo').style.display='flex';
-        document.getElementById('wAddr').innerHTML=wallet.substr(0,6)+'...'+wallet.substr(-4);
-        updateUI();
-        alert('连接成功！\n\n演示: 15000 PANDA\n\n💡 释放代币可Swap');
-    },800);
+function $(id) {return document.getElementById(id);}
+
+function showModal(title, msg, icon, btns) {
+  $('modalTitle').innerText = title;
+  $('modalMsg').innerText = msg;
+  $('modalIcon').innerText = icon || '✅';
+  
+  var btnHtml = btns || '<button class="modal-btn" onclick="closeModal()">确定</button>';
+  $('modalBtns').innerHTML = btnHtml;
+  
+  $('modal').classList.add('show');
 }
 
-function disconnectWallet(){
-    connected=false;
-    wallet='';
-    user={balance:15000,staked:0,released:0,usdt:500};
-    document.getElementById('cBtn').style.display='block';
-    document.getElementById('cBtn').innerHTML='连接钱包';
-    document.getElementById('dBtn').style.display='none';
-    document.getElementById('wInfo').style.display='none';
-    document.getElementById('stForm').classList.remove('show');
-    updateUI();
+function closeModal() {
+  $('modal').classList.remove('show');
 }
 
-function updateUI(){
-    document.getElementById('wBal').innerHTML=user.balance.toLocaleString();
-    document.getElementById('tBal').innerHTML='可用: '+user.balance.toLocaleString()+' PANDA';
-    document.getElementById('sBal').innerHTML='可Swap: '+user.released.toLocaleString()+' PANDA';
-    document.getElementById('dBal').innerHTML='可用: '+user.balance.toLocaleString()+' PANDA';
-    document.getElementById('stBal').innerHTML=user.balance.toLocaleString()+' PANDA';
+// 更新UI显示用户余额
+function updateBalanceUI() {
+  if (!connected) {
+    $('wBal').innerHTML = '0';
+    $('swapBalance').innerHTML = '0 PANDA';
+    return;
+  }
+  
+  $('wBal').innerHTML = user.balance.toLocaleString() + ' PANDA';
+  $('swapBalance').innerHTML = user.released.toLocaleString() + ' PANDA';
 }
 
-function switchTab(tab){
-    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
-    event.target.classList.add('active');
-    document.querySelectorAll('.panels').forEach(function(p){p.classList.remove('active')});
-    document.getElementById(tab+'P').classList.add('active');
+// 禁用/启用按钮
+function updateButtons() {
+  var hasBalance = connected && user.balance > 0;
+  var hasReleased = connected && user.released > 0;
+  
+  // 质押按钮
+  $('stake30Btn').disabled = !hasBalance;
+  $('stake60Btn').disabled = !hasBalance;
+  $('stake90Btn').disabled = !hasBalance;
+  
+  // Turbo按钮
+  $('turboBtn').disabled = !hasBalance;
+  $('tAmt').disabled = !hasBalance;
+  
+  // Swap按钮  
+  $('swapBtn').disabled = !hasReleased;
+  $('sAmt').disabled = !hasReleased;
+  
+  // 如果未连接钱包，显示提示
+  if (!connected) {
+    $('stake30Btn').innerHTML = '请先连接钱包';
+    $('turboBtn').innerHTML = '请先连接钱包';
+    $('swapBtn').innerHTML = '无Turbo释放代币';
+  } else if (user.balance <= 0) {
+    $('stake30Btn').innerHTML = '需持有代币';
+    $('turboBtn').innerHTML = '需持有代币';
+  } else {
+    $('stake30Btn').innerHTML = '质押';
+    $('stake60Btn').innerHTML = '质押';
+    $('stake90Btn').innerHTML = '质押';
+    $('turboBtn').innerHTML = '⚡ 执行Turbo';
+  }
+  
+  if (!hasReleased) {
+    $('swapBtn').innerHTML = '无释放代币';
+  } else {
+    $('swapBtn').innerHTML = '🔄 Swap';
+  }
 }
 
-function setMaxTurbo(){document.getElementById('tAmt').value=user.balance;calcTurbo();}
-function setMaxSwap(){document.getElementById('sAmt').value=user.released;calcSwap();}
-function setMaxStake(){document.getElementById('stAmt').value=user.balance;calcStake();}
-function setMaxDice(){document.getElementById('dAmt').value=user.balance;}
-
-function selectTurbo(el,type){
-    document.querySelectorAll('#turboP .topt .opt').forEach(function(o){o.classList.remove('selected')});
-    el.classList.add('selected');
-    turboType=type;
-    calcTurbo();
+function connectWallet() {
+  showModal('🔗 连接中', '正在连接钱包...', '⏳', '');
+  
+  var tron = window.tronLink || window.tronWeb;
+  if (tron && tron.request) {
+    tron.request({method: 'tron_requestAccounts'}).then(function(result) {
+      if (result && result.length > 0) {
+        var addr = result[0];
+        var tw = new TronWeb({fullHost: 'https://api.trongrid.io'});
+        wallet = tw.address.fromHex(addr);
+        
+        connected = true;
+        $('cBtn').style.display = 'none';
+        $('dBtn').style.display = 'inline-block';
+        $('wInfo').style.display = 'flex';
+        $('wAddr').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(-4);
+        
+        // 生成推荐码
+        $('refCode').innerHTML = 'PAND' + wallet.substring(2, 8).toUpperCase();
+        $('refLink').value = 'https://pandaevc.github.io/panda-token/shop.html?ref=' + wallet.substring(2, 10);
+        
+        // 模拟查询余额 (实际需要调用合约)
+        user.balance = 0;  // 初始为0，需要调用合约获取
+        user.released = 0;
+        
+        updateBalanceUI();
+        updateButtons();
+        
+        closeModal();
+        showModal('✅ 连接成功', '钱包已连接!\n\n⚠️ 提示: 当前显示余额为0\n请先购买电子烟获得代币', '✅');
+      } else {
+        closeModal();
+        showModal('⚠️ 授权被拒绝', '请在TP钱包中授权连接', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+      }
+    }).catch(function(e) {
+      closeModal();
+      showModal('❌ 连接失败', '授权被拒绝，请重试', '❌', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    });
+  } else {
+    closeModal();
+    showModal('⚠️ 请使用TP钱包', '请先安装TokenPocket钱包', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+  }
 }
 
-function calcTurbo(){
-    var amt=parseFloat(document.getElementById('tAmt').value)||0;
-    var fee=0,out=amt;
-    if(turboType==='direct'){fee=amt*0.2;out=amt*0.8;}
-    else if(turboType==='30d'){fee=amt*0.1;out=amt*0.9;}
-    document.getElementById('tOut').innerHTML=out.toLocaleString()+' PANDA';
-    document.getElementById('tFee').innerHTML=fee.toLocaleString()+' PANDA';
-    document.getElementById('tUSD').innerHTML='$'+(out*price*0.95).toFixed(2);
+$('cBtn').addEventListener('click', connectWallet);
+
+$('dBtn').addEventListener('click', function() {
+  connected = false;
+  wallet = '';
+  user = {balance: 0, staked: 0, released: 0};
+  $('cBtn').style.display = 'inline-block';
+  $('dBtn').style.display = 'none';
+  $('wInfo').style.display = 'none';
+  updateButtons();
+});
+
+document.querySelectorAll('.tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.panels').forEach(function(p) { p.classList.remove('active'); });
+    this.classList.add('active');
+    $(this.dataset.tab + 'P').classList.add('active');
+  });
+});
+
+function selectTurbo(type) {
+  turboType = type;
+  // 视觉反馈
+  ['turboDirect', 'turbo30d', 'turbo60d'].forEach(function(id) {
+    $(id).style.border = 'none';
+    $(id).style.background = 'var(--dark)';
+  });
+  $(id).style.border = '2px solid var(--primary)';
+  $(id).style.background = 'rgba(255,107,53,0.1)';
 }
 
-function calcSwap(){
-    var amt=parseFloat(document.getElementById('sAmt').value)||0;
-    document.getElementById('sOut').innerHTML='$'+(amt*price).toFixed(2);
-    document.getElementById('sFee').innerHTML='$'+(amt*price*0.05).toFixed(2);
+// 质押功能
+function doStake(days) {
+  if (!connected) {
+    showModal('⚠️ 请先连接', '请先连接钱包', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  if (user.balance <= 0) {
+    showModal('⚠️ 余额不足', '质押需要持有PANDA代币\n\n请先购买电子烟获取代币', '💰', '<button class="modal-btn" onclick="closeModal()">知道了</button>');
+    return;
+  }
+  
+  var amount = user.balance;
+  var rate = days === 30 ? 0.15 : days === 60 ? 0.45 : 0.9;
+  var reward = (amount * rate * days / 365).toFixed(2);
+  
+  // 模拟质押
+  user.staked = user.balance;
+  user.balance = 0;
+  
+  updateBalanceUI();
+  updateButtons();
+  
+  showModal('✅ 质押成功!', 
+    '天数: ' + days + '天\n质押数量: ' + amount.toLocaleString() + ' PANDA\n预计收益: ' + reward + ' PANDA\n\n⚠️ 质押期间代币将被锁定', 
+    '💰');
 }
 
-function calcStake(){
-    var amt=parseFloat(document.getElementById('stAmt').value)||0;
-    var rate=stakeDays===30?0.15:stakeDays===60?0.45:0.9;
-    var reward=(amt*rate*stakeDays)/365;
-    document.getElementById('stConfAmt').innerHTML=amt.toLocaleString();
-    document.getElementById('stConfDays').innerHTML=stakeDays+'天';
-    document.getElementById('stConfRew').innerHTML=reward.toFixed(2)+' PANDA';
-    document.getElementById('dailyE').innerHTML=(reward/stakeDays).toFixed(4)+' PANDA/天';
+// 密钥兑换
+function doRedeemKey() {
+  if (!connected) {
+    showModal('⚠️ 请先连接', '请先连接钱包', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  var key = $('keyIn').value.trim();
+  if (!key) {
+    showModal('⚠️ 请输入密钥', '请输入电子烟附带的密钥', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  // 模拟兑换 (获得代币到余额)
+  var tokens = 3000;
+  user.balance += tokens;
+  
+  $('keyIn').value = '';
+  updateBalanceUI();
+  updateButtons();
+  
+  showModal('🎉 兑换成功!', 
+    '密钥: ' + key + '\n获得: ' + tokens.toLocaleString() + ' PANDA\n\n代币已添加到钱包余额', 
+    '🎁');
 }
 
-function executeTurbo(){
-    if(!connected){alert('请先连接钱包');return;}
-    var amt=parseFloat(document.getElementById('tAmt').value);
-    if(!amt||amt<=0){alert('请输入数量');return;}
-    if(amt>user.balance){alert('余额不足');return;}
-    var fee=0;
-    if(turboType==='direct')fee=amt*0.2;
-    else if(turboType==='30d')fee=amt*0.1;
-    var release=amt-fee;
-    user.balance-=amt;
-    if(turboType==='direct'){
-        user.usdt+=release*price*0.95;
-        alert('Turbo成功！\n\n释放:'+release.toLocaleString()+' PANDA\n获得:$'+(release*price*0.95).toFixed(2));
-    }else{
-        user.released+=release;
-        alert('Turbo成功！\n\n释放:'+release.toLocaleString()+' PANDA\n每天释放:'+(release/(turboType==='30d'?30:60)).toFixed(2)+'\n\n⚠️ 需到期后Swap');
-    }
-    updateUI();
-    document.getElementById('tAmt').value='';
-    calcTurbo();
+// Turbo释放
+function doTurbo() {
+  if (!connected) {
+    showModal('⚠️ 请先连接', '请先连接钱包', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  if (user.balance <= 0) {
+    showModal('⚠️ 余额不足', 'Turbo需要持有PANDA代币\n\n当前余额: 0 PANDA', '💰', '<button class="modal-btn" onclick="closeModal()">知道了</button>');
+    return;
+  }
+  
+  var amt = parseFloat($('tAmt').value);
+  if (!amt || amt <= 0) {
+    showModal('⚠️ 请输入数量', '请输入要释放的代币数量', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  if (amt > user.balance) {
+    showModal('⚠️ 余额不足', '输入数量超过持有余额\n\n持有: ' + user.balance.toLocaleString() + ' PANDA', '💰', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  // 计算手续费和释放量
+  var fee = turboType === 'direct' ? 0.2 : turboType === '30d' ? 0.1 : 0;
+  var release = amt * (1 - fee);
+  
+  // 执行Turbo
+  user.balance -= amt;
+  user.released += release;
+  
+  $('tAmt').value = '';
+  updateBalanceUI();
+  updateButtons();
+  
+  var feeMsg = turboType === 'direct' ? '手续费20%' : turboType === '30d' ? '手续费10%' : '免手续费';
+  
+  showModal('⚡ Turbo成功!', 
+    '释放数量: ' + amt.toLocaleString() + ' PANDA\n' + feeMsg + '\n实际释放: ' + release.toLocaleString() + ' PANDA\n\n释放的代币可用于Swap', 
+    '✅');
 }
 
-function executeSwap(){
-    if(!connected){alert('请先连接钱包');return;}
-    var amt=parseFloat(document.getElementById('sAmt').value);
-    if(!amt||amt<=0){alert('请输入数量');return;}
-    if(amt>user.released){alert('可Swap代币不足(Turbo释放)');return;}
-    user.released-=amt;
-    user.usdt+=amt*price*0.95;
-    updateUI();
-    alert('Swap成功！\n\n交换:'+amt.toLocaleString()+' PANDA\n获得:$'+(amt*price*0.95).toFixed(2));
-    document.getElementById('sAmt').value='';
-    calcSwap();
+// Swap兑换
+function doSwap() {
+  if (!connected) {
+    showModal('⚠️ 请先连接', '请先连接钱包', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  if (user.released <= 0) {
+    showModal('⚠️ 无可Swap代币', 'Swap只能使用Turbo释放的代币\n\n请先执行Turbo释放', '💰', '<button class="modal-btn" onclick="closeModal()">知道了</button>');
+    return;
+  }
+  
+  var amt = parseFloat($('sAmt').value);
+  if (!amt || amt <= 0) {
+    showModal('⚠️ 请输入数量', '请输入要Swap的代币数量', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  if (amt > user.released) {
+    showModal('⚠️ 余额不足', '输入数量超过可Swap余额\n\n可Swap: ' + user.released.toLocaleString() + ' PANDA', '💰', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  
+  // 执行Swap
+  user.released -= amt;
+  
+  // 计算USDT (简化计算)
+  var usdt = amt * 0.00001 * 0.95; // 5%手续费
+  
+  $('sAmt').value = '';
+  updateBalanceUI();
+  updateButtons();
+  
+  showModal('🔄 Swap成功!', 
+    'Swap数量: ' + amt.toLocaleString() + ' PANDA\n获得: $' + usdt.toFixed(4) + ' USDT\n(扣除5%手续费)', 
+    '✅');
 }
 
-function redeemKey(){
-    if(!connected){alert('请先连接钱包');return;}
-    var key=document.getElementById('keyIn').value.trim();
-    if(!key){alert('请输入密钥');return;}
-    var tokens=Math.floor(Math.random()*2500)+500;
-    user.balance+=tokens;
-    updateUI();
-    alert('🎉 盲盒开启！\n\n获得: '+tokens.toLocaleString()+' PANDA');
-    document.getElementById('keyIn').value='';
+function copyRefLink() {
+  if (!connected) {
+    showModal('⚠️ 请先连接', '请先连接钱包', '⚠️', '<button class="modal-btn error" onclick="closeModal()">确定</button>');
+    return;
+  }
+  navigator.clipboard.writeText($('refLink').value);
+  showModal('✅ 已复制', '推广链接已复制!', '📋');
 }
 
-function showStake(days){
-    if(!connected){alert('请先连接钱包');return;}
-    stakeDays=days;
-    document.getElementById('stTitle').innerHTML='质押 - '+days+'天';
-    document.getElementById('stForm').classList.add('show');
-    calcStake();
+var urlParams = new URLSearchParams(window.location.search);
+var refCode = urlParams.get('ref');
+if (refCode) {
+  showModal('👥 推荐注册', '推荐人: ' + refCode, '🎉');
 }
 
-function confirmStake(){
-    if(!connected){alert('请先连接钱包');return;}
-    var amt=parseFloat(document.getElementById('stAmt').value);
-    if(!amt||amt<=0){alert('请输入数量');return;}
-    if(amt>user.balance){alert('余额不足');return;}
-    user.balance-=amt;
-    user.staked+=amt;
-    updateUI();
-    var rate=stakeDays===30?0.15:stakeDays===60?0.45:0.9;
-    var reward=(amt*rate*stakeDays)/365;
-    alert('质押成功！\n\n数量:'+amt.toLocaleString()+'\n期限:'+stakeDays+'天\n收益:'+reward.toFixed(2)+' PANDA\n\n⚠️ 到期后需Turbo');
-    document.getElementById('stForm').classList.remove('show');
-}
-
-function selectBet(type){
-    betType=type;
-    betNum=0;
-    document.querySelectorAll('.dbet').forEach(function(x){x.classList.remove('selected')});
-    event.target.classList.add('selected');
-    document.querySelectorAll('.dnum').forEach(function(n){n.classList.remove('selected')});
-}
-
-function selectNum(num){
-    betType='num';
-    betNum=num;
-    document.querySelectorAll('.dbet').forEach(function(x){x.classList.remove('selected')});
-    document.querySelectorAll('.dnum').forEach(function(x){x.classList.remove('selected')});
-    event.target.classList.add('selected');
-}
-
-function rollDice(){
-    if(!connected){alert('请先连接钱包');return;}
-    var amt=parseFloat(document.getElementById('dAmt').value);
-    if(!amt||amt<=0){alert('请输入数量');return;}
-    if(amt>user.balance){alert('余额不足');return;}
-    if(!betType){alert('请选择下注类型');return;}
-    user.balance-=amt;
-    var d1=Math.floor(Math.random()*6)+1;
-    var d2=Math.floor(Math.random()*6)+1;
-    var d3=Math.floor(Math.random()*6)+1;
-    var sum=d1+d2+d3;
-    var isTriple=(d1===d2&&d2===d3);
-    // 调整后的骰子规则:
-    // 小(4-9): 36.11% | 大(12-17): 36.11% | 固定数字: 2.78%
-    var isBig=(sum>=12&&!isTriple);
-    var isSmall=(sum<=9&&!isTriple);
-    var win=false;
-    var winAmt=0;
-    // 赔率: 小/大 0.95:1 | 固定数字 8:1
-    if(betType==='big'&&isBig){win=true;winAmt=Math.floor(amt*0.95);}
-    if(betType==='small'&&isSmall){win=true;winAmt=Math.floor(amt*0.95);}
-    if(betType==='num'&&(d1===betNum||d2===betNum||d3===betNum)){win=true;winAmt=amt*8;}
-    if(win){
-        user.balance+=winAmt;
-        alert('🎉 获胜！\n\n骰子:'+d1+' '+d2+' '+d3+'='+sum+'\n\n赢得:'+winAmt.toLocaleString());
-    }else{
-        alert('😢 未中\n\n骰子:'+d1+' '+d2+' '+d3+'='+sum+'\n\n扣除:'+amt.toLocaleString());
-    }
-    updateUI();
-}
-
-setInterval(function(){
-    price=price*(1+(Math.random()-0.4)*0.001);
-    document.getElementById('pDis').innerHTML='$'+price.toFixed(4);
-},3000);
+// 初始化
+updateButtons();
 </script>
 </body>
 </html>
