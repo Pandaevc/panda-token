@@ -116,112 +116,15 @@ function filterAnalysis(type) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js">
 
-function handleCSVImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var text = e.target.result;
-    var positions = parseCSV(text);
-    
-    if (positions.length > 0) {
-      var added = 0;
-      positions.forEach(p => {
-        if (!db.portfolio.find(x => x.code === p.code)) {
-          db.portfolio.push(p);
-          added++;
-        }
-      });
-      saveData();
-      renderPortfolio();
-      alert('成功导入 ' + added + ' 只股票！');
-    } else {
-      alert('未能解析表格，请检查格式');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function parseCSV(text) {
-  var positions = [];
-  // Handle different line endings
-  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-  
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].trim();
-    if (!line || line.length < 5) continue;
-    if (line.indexOf('股票名称') >= 0 || line.indexOf('股票代码') >= 0) continue;
-    
-    // Find 6-digit stock code anywhere in line
-    var m = line.match(/(\d{6})/);
-    if (!m) continue;
-    var code = m[1];
-    
-    // Validate code prefix
-    if (code.indexOf('6') !== 0 && code.indexOf('0') !== 0 && 
-        code.indexOf('3') !== 0 && code.indexOf('68') !== 0) continue;
-    
-    // Find numbers - first is shares, second is price
-    var nums = line.match(/(\d+\.?\d*)/g);
-    if (!nums || nums.length < 2) continue;
-    
-    var shares = parseInt(nums[0]);
-    var price = parseFloat(nums[1]);
-    
-    // Sanity check
-    if (shares < 10) shares = 100;
-    if (price < 1 || price > 10000) price = 10;
-    
-    // Get name (text before code)
-    var name = code;
-    var parts = line.split(code);
-    if (parts.length > 0 && parts[0].length > 0) {
-      name = parts[0].replace(/[,，\t\s]/g, '').substring(0, 10);
-    }
-    
-    positions.push({
-      code: code,
-      name: name,
-      shares: shares,
-      buyPrice: price,
-      sector: '',
-      addTime: Date.now()
-    });
-  }
-  
-  return positions;
-}
 
 
 
-function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
-  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '持仓导入模板.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
+
 
 
 
 var analysisFilter = 'all';
 
-function filterAnalysis(type) {
-  analysisFilter = type;
-  var cards = document.querySelectorAll('#analysisResult .card');
-  cards.forEach(function(card) {
-    if (type === 'all') {
-      card.style.display = 'block';
-    } else {
-      var hasTag = card.innerHTML.includes('>'+type+'推荐');
-      card.style.display = hasTag ? 'block' : 'none';
-    }
-  });
-}
 
 </script>
 <style>
@@ -1029,112 +932,15 @@ function showPage(page) {
 loadData();
 
 
-function handleCSVImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var text = e.target.result;
-    var positions = parseCSV(text);
-    
-    if (positions.length > 0) {
-      var added = 0;
-      positions.forEach(p => {
-        if (!db.portfolio.find(x => x.code === p.code)) {
-          db.portfolio.push(p);
-          added++;
-        }
-      });
-      saveData();
-      renderPortfolio();
-      alert('成功导入 ' + added + ' 只股票！');
-    } else {
-      alert('未能解析表格，请检查格式');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function parseCSV(text) {
-  var positions = [];
-  // Handle different line endings
-  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-  
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].trim();
-    if (!line || line.length < 5) continue;
-    if (line.indexOf('股票名称') >= 0 || line.indexOf('股票代码') >= 0) continue;
-    
-    // Find 6-digit stock code anywhere in line
-    var m = line.match(/(\d{6})/);
-    if (!m) continue;
-    var code = m[1];
-    
-    // Validate code prefix
-    if (code.indexOf('6') !== 0 && code.indexOf('0') !== 0 && 
-        code.indexOf('3') !== 0 && code.indexOf('68') !== 0) continue;
-    
-    // Find numbers - first is shares, second is price
-    var nums = line.match(/(\d+\.?\d*)/g);
-    if (!nums || nums.length < 2) continue;
-    
-    var shares = parseInt(nums[0]);
-    var price = parseFloat(nums[1]);
-    
-    // Sanity check
-    if (shares < 10) shares = 100;
-    if (price < 1 || price > 10000) price = 10;
-    
-    // Get name (text before code)
-    var name = code;
-    var parts = line.split(code);
-    if (parts.length > 0 && parts[0].length > 0) {
-      name = parts[0].replace(/[,，\t\s]/g, '').substring(0, 10);
-    }
-    
-    positions.push({
-      code: code,
-      name: name,
-      shares: shares,
-      buyPrice: price,
-      sector: '',
-      addTime: Date.now()
-    });
-  }
-  
-  return positions;
-}
 
 
 
-function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
-  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '持仓导入模板.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
+
 
 
 
 var analysisFilter = 'all';
 
-function filterAnalysis(type) {
-  analysisFilter = type;
-  var cards = document.querySelectorAll('#analysisResult .card');
-  cards.forEach(function(card) {
-    if (type === 'all') {
-      card.style.display = 'block';
-    } else {
-      var hasTag = card.innerHTML.includes('>'+type+'推荐');
-      card.style.display = hasTag ? 'block' : 'none';
-    }
-  });
-}
 
 </script>
 </body>
