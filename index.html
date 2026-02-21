@@ -3,571 +3,466 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>股票管理系统 - 红熵AI</title>
-<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+<title>熊猫智能电子烟 - PandaToken</title>
+<script src="https://cdn.jsdelivr.net/npm/tronweb@4.3.0/dist/TronWeb.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
-.header{background:#1A1A1A;padding:16px 24px;border-bottom:1px solid #333}
-.logo{font-size:20px;font-weight:700;color:#FF6B35}
-.nav{display:flex;gap:16px;flex-wrap:wrap}
-.nav a{color:#888;text-decoration:none;padding:8px 16px;border-radius:8px;font-size:14px}
-.nav a:hover,.nav a.active{background:#FF6B35;color:#FFF}
-.container{padding:24px;max-width:1400px;margin:0 auto}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat{background:#1A1A1A;padding:20px;border-radius:12px}
-.stat .v{font-size:28px;font-weight:700;color:#FFD700}
-.stat .l{font-size:12px;color:#666;margin-top:4px}
-.card{background:#1A1A1A;border-radius:12px;padding:20px;margin-bottom:20px}
-.card h3{margin-bottom:16px}
-.stock-code{color:#FF6B35;font-weight:600;cursor:pointer}
-.up{color:#FF4757}
-.down{color:#2ED573}
-.btn{padding:10px 20px;background:#FF6B35;border:none;border-radius:8px;color:#FFF;cursor:pointer}
-.btn-outline{background:transparent;border:1px solid #FF6B35;color:#FF6B35}
-.input{width:100%;padding:12px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF}
-.search-box{display:flex;gap:12px;margin-bottom:20px}
-.loading{text-align:center;padding:30px;color:#666}
-.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin-right:4px}
-.tag-green{background:rgba(46,213,115,0.2);color:#2ED573}
-.tag-red{background:rgba(255,71,87,0.2);color:#FF4757}
-.tag-blue{background:rgba(0,150,255,0.2);color:#0096FF}
-.tag-yellow{background:rgba(255,215,0,0.2);color:#FFD700}
+:root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
+body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal.show{display:flex}
-.modal-content{background:#1A1A1A;padding:24px;border-radius:16px;max-width:90%;max-height:90%;overflow:auto}
-.filter-group{background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:12px}
-.sr-result{background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:8px}
-.alert-box{background:linear-gradient(135deg,rgba(255,71,87,0.2),rgba(255,107,53,0.1));border:1px solid rgba(255,71,87,0.3);border-radius:12px;padding:16px;margin-bottom:16px}
-.strategy-card{background:linear-gradient(135deg,rgba(255,107,53,0.15),rgba(255,215,0,0.1));border:1px solid rgba(255,107,53,0.3);border-radius:12px;padding:20px;margin-bottom:24px}
-.strategy-card h3{color:#FF6B35;margin-bottom:12px}
-@media(max-width:1000px){.nav{display:none}}
+.modal-box{background:var(--surface);border-radius:20px;padding:32px;max-width:500px;width:95%;text-align:center;position:relative;max-height:90vh;overflow-y:auto;z-index:1001}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000}
+.modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;background:none;border:none;color:#666;font-size:28px;cursor:pointer}
+.modal-title{font-size:22px;font-weight:700;margin-bottom:20px}
+.modal-btn{padding:14px 24px;background:var(--g);border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer;width:100%;margin-top:12px}
+.modal-btn.secondary{background:#333}
+.modal-btn.success{background:var(--success);color:#000}
+.modal-input{width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;margin:10px 0;font-size:15px}
+.modal-select{width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;margin:10px 0;font-size:15px}
+.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.12),transparent 50%)}
+header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b);z-index:200}
+.c{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700}
+.logo-icon{width:42px;height:42px;background:var(--g);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+nav{display:flex;gap:28px;margin:0 auto}
+nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:15px}
+nav a:hover,nav a.active{color:#fff}
+.header-right{display:flex;align-items:center;gap:16px;margin-left:auto}
+.cart-btn{position:relative;background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.cart-badge{position:absolute;top:-8px;right:-8px;background:var(--primary);color:#fff;font-size:11px;padding:2px 6px;border-radius:10px}
+.user-btn{width:40px;height:40px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:none;color:#fff}
+.hero{padding:140px 24px 60px;text-align:center}
+.badge{display:inline-block;background:rgba(0,230,118,0.15);border:1px solid rgba(0,230,118,0.3);padding:12px 28px;border-radius:30px;font-size:14px;color:var(--success);margin-bottom:28px}
+h1{font-size:48px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:16px;color:#B0B0B0;margin:0 auto 40px}
+.product{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.ecig-display{height:320px;background:linear-gradient(180deg,#1a1a2e,#0d0d1a);border-radius:24px;display:flex;align-items:center;justify-content:center;position:relative}
+.ecig{width:100px;height:260px;background:linear-gradient(135deg,#2a2a3e,#1a1a2e);border-radius:50px;position:relative;transform:perspective(600px) rotateY(-10deg);box-shadow:-20px 10px 40px rgba(0,0,0,0.6)}
+.ecig-screen{position:absolute;top:28px;left:12px;right:12px;height:100px;background:#000;border-radius:16px;overflow:hidden}
+.slot{display:flex;align-items:center;justify-content:center;font-size:32px;gap:4px;animation:slot 0.1s infinite}
+@keyframes slot{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.ecig-led{position:absolute;bottom:35px;left:15px;right:15px;height:22px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:11px;animation:led 2s infinite}
+@keyframes led{0%,100%{opacity:1;box-shadow:0 0 20px var(--primary)}50%{opacity:0.5}}
+.ecig-tip{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:28px;height:42px;background:linear-gradient(180deg,#555,#333);border-radius:8px 8px 0 0}
+.product-info{text-align:left}
+.product-info h2{font-size:32px;margin-bottom:12px}
+.tag{display:inline-block;background:var(--g);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;margin-bottom:16px}
+.desc{color:#888;font-size:15px;line-height:1.7;margin-bottom:20px}
+.flavors{margin:20px 0}
+.flavors label{display:block;font-size:14px;color:#888;margin-bottom:10px}
+.flavor-btns{display:flex;gap:10px;flex-wrap:wrap}
+.flavor-btn{padding:10px 18px;background:var(--dark);border:2px solid rgba(255,255,255,0.1);border-radius:10px;color:#888;cursor:pointer;transition:all 0.3s}
+.flavor-btn.active{border-color:var(--primary);background:rgba(255,107,53,0.1);color:#fff}
+.price{font-size:36px;font-weight:700;color:var(--primary);margin:20px 0}
+.price .original{font-size:18px;color:#666;text-decoration:line-through;margin-left:12px}
+.buy-btn{padding:18px 36px;background:var(--g);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;width:100%;margin-top:20px}
+.buy-btn:hover{transform:scale(1.02)}
+.referral-banner{background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(0,230,118,0.08));border:1px solid rgba(0,230,118,0.3);border-radius:16px;padding:20px;margin-top:30px;text-align:center}
+.referral-banner h3{color:var(--success);margin-bottom:8px}
+footer{padding:40px 24px;border-top:var(--b);text-align:center}
+footer p{color:var(--text-muted);font-size:13px}
+@media(max-width:768px){.product{grid-template-columns:1fr}h1{font-size:32px}}
 </style>
 </head>
 <body>
-<div class="header">
-<div class="logo">🐼 红熵AI股票管理系统</div>
-<nav class="nav">
-<a href="#" class="active" onclick="showPage('dashboard')">📊 仪表盘</a>
-<a href="#" onclick="showPage('screener')">🔍 选股</a>
-<a href="#" onclick="showPage('portfolio')">💼 持仓管理</a>
-<a href="#" onclick="showPage('analysis')">📈 股票分析</a>
-</nav>
+<!-- Login Modal -->
+<div class="modal-overlay" id="loginOverlay" style="display:none"></div>
+<div class="modal" id="loginModal">
+<div class="modal-box">
+<button class="modal-close" onclick="closeLogin()">×</button>
+<div class="modal-title">📱 手机号登录</div>
+<input type="tel" class="modal-input" id="phoneInput" placeholder="请输入手机号 (+86 138 0000 0000)">
+<div style="display:flex;gap:10px;margin:10px 0">
+<input type="text" class="modal-input" id="codeInput" placeholder="验证码" style="flex:1">
+<button class="modal-btn secondary" style="width:auto;margin:10px 0" onclick="sendCode()">发送验证码</button>
+</div>
+<button class="modal-btn" onclick="verifyLogin()">登录</button>
+</div>
 </div>
 
-<div class="container">
-<!-- Dashboard -->
-<div id="page-dashboard">
-<h2 style="margin-bottom:20px">📊 仪表盘</h2>
-<div class="stats">
-<div class="stat"><div class="v" id="pickCount">0</div><div class="l">今日精选</div></div>
-<div class="stat"><div class="v" id="portfolioCount">0</div><div class="l">持仓数量</div></div>
-<div class="stat"><div class="v" id="profit">0%</div><div class="l">总盈亏</div></div>
-<div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
-</div>
-<div class="strategy-card">
-<h3>📊 策略一：AI综合精选（每日1只）</h3>
-<button class="btn" onclick="runStrategy1()">🎯 生成今日推荐</button>
-<div id="strategy1Result" style="margin-top:16px"></div>
-</div>
-<div class="strategy-card">
-<h3>🎯 策略二：强势回调策略（每日3只）</h3>
-<button class="btn" onclick="runStrategy2()">🔍 筛选股票</button>
-<div id="strategy2Result" style="margin-top:16px"></div>
-</div>
-<div class="card" id="alertCard" style="display:none"><h3>⚠️ 持仓提醒</h3><div id="alertList"></div></div>
+<!-- Checkout Modal -->
+<div class="modal-overlay" id="checkoutOverlay" style="display:none"></div>
+<div class="modal" id="checkoutModal">
+<div class="modal-box" style="max-width:600px">
+<button class="modal-close" onclick="closeCheckout()">×</button>
+<div class="modal-title">🛒 确认订单</div>
+
+<div style="background:var(--dark);padding:20px;border-radius:12px;margin:20px 0;text-align:left">
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>商品</span><span>熊猫智能电子烟 Pro</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>口味</span><span id="selectedFlavor">原味</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>代币</span><span style="color:var(--success)">3000 PANDA</span></div>
+<div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:10px;border-top:var(--b)"><span>总计</span><span style="color:var(--primary)">$70 USD</span></div>
 </div>
 
-<!-- Screener -->
-<div id="page-screener" style="display:none">
-<h2 style="margin-bottom:20px">🔍 智能选股</h2>
-<div class="card">
-<h3>📊 条件筛选</h3>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-<div class="filter-group"><label>📈 涨幅</label>
-<select id="filterChange" class="input"><option value="0">不限</option><option value="3">涨幅 > 3%</option><option value="5">涨幅 > 5%</option><option value="8">涨幅 > 8%</option></select></div>
-<div class="filter-group"><label>🔄 换手率</label>
-<select id="filterTurnover" class="input"><option value="0">不限</option><option value="3">换手率 > 3%</option><option value="5">换手率 > 5%</option><option value="10">换手率 > 10%</option></select></div>
-<div class="filter-group"><label>💰 成交额(亿)</label>
-<select id="filterAmount" class="input"><option value="0">不限</option><option value="1">成交额 > 1亿</option><option value="3">成交额 > 3亿</option><option value="5">成交额 > 5亿</option></select></div>
-<div class="filter-group"><label>🏢 市值(亿)</label>
-<select id="filterMarket" class="input"><option value="0">不限</option><option value="500">市值 < 500亿</option><option value="100">市值 < 100亿</option><option value="50">市值 < 50亿</option></select></div>
-<div class="filter-group"><label>💵 资金流向</label>
-<select id="filterMoney" class="input"><option value="0">不限</option><option value="main">主力净流入</option></select></div>
-<div class="filter-group"><label>📊 量价关系</label>
-<select id="filterVolumePrice" class="input"><option value="0">不限</option><option value="up">放量上涨</option><option value="vol">量价齐升</option></select></div>
-<div class="filter-group"><label>🔧 技术形态</label>
-<select id="filterTech" class="input"><option value="0">不限</option><option value="limitup">10日涨停</option></select></div>
-<div class="filter-group"><label>🚫 过滤</label>
-<label><input type="checkbox" id="filterNoST" checked> 去掉ST</label></div>
-</div>
-<button class="btn" style="margin-top:16px;width:100%" onclick="runScreener()">🔍 开始筛选</button>
-</div>
-<div id="screenerResult"></div>
+<h4 style="text-align:left;margin:20px 0 10px">支付方式</h4>
+<div class="flavor-btns" style="margin:15px 0">
+<div class="flavor-btn active" onclick="selectPay('usdt')" id="payUSDT">🔷 USDT (TRC20)</div>
+<div class="flavor-btn" onclick="selectPay('visa')" id="payVISA">💳 Visa</div>
+<div class="flavor-btn" onclick="selectPay('mast')" id="payMAST">💳 Mastercard</div>
 </div>
 
-<!-- Portfolio -->
-<div id="page-portfolio" style="display:none">
-<h2 style="margin-bottom:20px">💼 持仓管理</h2>
-<div class="card">
-<h3>📤 导入持仓</h3>
-<p style="color:#888;font-size:14px;margin-bottom:12px">上传截图或手动输入持仓信息</p>
-<div style="display:flex;gap:12px;flex-wrap:wrap">
-<button class="btn" onclick="document.getElementById('screenshotInput').click()">📸 上传截图</button>
-<input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
-<button class="btn btn-outline" onclick="showManualInput()">✏️ 手动输入</button>
+<!-- USDT支付说明 -->
+<div id="usdtPayment" style="text-align:left;margin:15px 0">
+<div style="font-size:13px;color:#888;margin-bottom:12px">📌 请向以下地址转账 <strong style="color:var(--primary)">70 USDT</strong></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;margin-bottom:10px">TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E</div>
+<div style="font-size:12px;color:var(--success);margin-bottom:15px">✅ 转账后自动确认，无需手动上传哈希</div>
 </div>
-<div id="manualInput" style="display:none;margin-top:16px">
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-<input type="text" id="manualCode" class="input" placeholder="股票代码">
-<input type="text" id="manualName" class="input" placeholder="股票名称">
-<input type="text" id="manualShares" class="input" placeholder="持仓数量">
-<input type="text" id="manualBuyPrice" class="input" placeholder="买入价格">
-<select id="manualSector" class="input">
-<option value="">选择板块</option>
-<option value="科技">科技</option>
-<option value="新能源">新能源</option>
-<option value="医药">医药</option>
-<option value="消费">消费</option>
-<option value="金融">金融</option>
-<option value="军工">军工</option>
-<option value="半导体">半导体</option>
-<option value="AI">AI/人工智能</option>
+
+<h4 style="text-align:left;margin:20px 0 10px">收货信息</h4>
+<input type="text" class="modal-input" id="shipName" placeholder="收货人姓名 *">
+<input type="tel" class="modal-input" id="shipPhone" placeholder="联系电话 *">
+<select class="modal-select" id="shipCountry">
+<option value="">选择国家 *</option>
+<option value="CN">中国</option>
+<option value="US">美国</option>
+<option value="UK">英国</option>
+<option value="DE">德国</option>
+<option value="JP">日本</option>
+<option value="SV">萨尔瓦多</option>
 </select>
-</div>
-<button class="btn" style="margin-top:12px" onclick="addManualPosition()">➕ 添加持仓</button>
-</div>
-</div>
-<div class="card">
-<h3>📊 持仓监控</h3>
-<div id="portfolioMonitor"></div>
-</div>
-<div class="card">
-<h3>🔍 持仓分析</h3>
-<button class="btn" onclick="analyzeAllPositions()">📈 全面分析</button>
-<div id="portfolioAnalysis" style="margin-top:16px"></div>
+<input type="text" class="modal-input" id="shipAddress" placeholder="详细地址 *">
+
+<label style="display:flex;align-items:center;gap:10px;margin:15px 0;text-align:left">
+<input type="checkbox" id="saveAddress"><span style="font-size:13px;color:#888">保存为默认地址</span>
+</label>
+
+<button class="modal-btn" onclick="submitOrder()">✅ 提交订单</button>
 </div>
 </div>
 
-<!-- Analysis -->
-<div id="page-analysis" style="display:none">
-<h2 style="margin-bottom:20px">📈 股票深度分析</h2>
-<div class="search-box">
-<input type="text" id="analyzeCode" placeholder="输入股票代码（如：300449）">
-<button class="btn" onclick="analyzeStock()">🔍 开始分析</button>
+<!-- User Menu -->
+<div class="modal-overlay" id="userOverlay" style="display:none"></div>
+<div class="modal" id="userModal" style="position:fixed;top:70px;right:24px;max-width:280px;padding:20px">
+<div style="text-align:left;padding-bottom:15px;border-bottom:var(--b);margin-bottom:15px">
+<div id="userName" style="font-weight:600"></div>
+<div id="userEmail" style="font-size:12px;color:#888"></div>
 </div>
-<div id="analysisResult"></div>
+<!-- 移除直接链接到后台的入口，改为安全验证 -->
+<button onclick="goToAdmin()" style="display:block;width:100%;padding:10px 0;text-align:left;background:none;border:none;color:var(--accent);cursor:pointer">⚙️ 管理后台</button>
+<button onclick="logout()" style="display:block;width:100%;padding:10px 0;text-align:left;background:none;border:none;color:#ff4757;cursor:pointer">🚪 退出登录</button>
+</div>
+
+<div class="bg"></div>
+<header>
+<div class="c">
+<div class="logo"><div class="logo-icon">🐼</div><div class="logo-text">PandaToken</div></div>
+<nav>
+<a href="#home" class="active">首页</a>
+<a href="#product">产品</a>
+</nav>
+<div class="header-right">
+<button class="cart-btn" onclick="showCheckout()">🛒</button>
+<button class="user-btn" id="userBtn" onclick="toggleUserMenu()">👤</button>
+</div>
+</div>
+</header>
+
+<section class="hero" id="home">
+<div class="badge">🎰 吸烟即挖矿</div>
+<h1>熊猫智能电子烟 Pro</h1>
+<p class="subtitle">全球首款智能老虎机电子烟</p>
+</section>
+
+<section class="product" id="product">
+<div class="ecig-display">
+<div class="ecig">
+<div class="ecig-tip"></div>
+<div class="ecig-screen"><div class="slot" id="slotDisplay">🍒 🍋 🍇</div></div>
+<div class="ecig-led"></div>
+</div>
+</div>
+<div class="product-info">
+<span class="tag">2026 新品</span>
+<h2>熊猫智能电子烟 Pro</h2>
+<p class="desc">全球首款带智能屏幕的电子烟！吸烟时自动触发老虎机，有机会获得PANDA代币密钥！</p>
+
+<div class="flavors">
+<label>选择口味</label>
+<div class="flavor-btns">
+<div class="flavor-btn active" onclick="selectFlavor(this,'原味')">🌿 原味</div>
+<div class="flavor-btn" onclick="selectFlavor(this,'薄荷')">🍃 薄荷</div>
+<div class="flavor-btn" onclick="selectFlavor(this,'芒果')">🥭 芒果</div>
+<div class="flavor-btn" onclick="selectFlavor(this,'葡萄')">🍇 葡萄</div>
 </div>
 </div>
 
-<!-- K线Modal -->
-<div id="klineModal" class="modal">
-<div class="modal-content" style="width:900px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-<h3 id="modalStockName">股票分析</h3>
-<button class="btn" onclick="document.getElementById('klineModal').style.display='none'">✕ 关闭</button>
-</div>
-<div id="modalKline" style="height:350px"></div>
-<div id="modalAnalysis"></div>
+<div class="price">$70 <span class="original">$99</span></div>
+
+<button class="buy-btn" onclick="startBuy()">🛒 立即购买</button>
+
+<div class="referral-banner">
+<h3>👥 邀请好友得代币</h3>
+<p>每邀请1人购买，<strong style="color:var(--success)">立即获得 500 PANDA</strong></p>
 </div>
 </div>
+</section>
+
+<footer><p>© 2026 PandaToken | All Rights Reserved</p></footer>
 
 <script>
-var stockCache = {};
-var db = {portfolio: [], picks: []};
+// ==================== 配置 ====================
+var USDT_ADDRESS = 'TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E'; // 固定收款地址
+var EXPECTED_AMOUNT = 70;
 
-function loadData() {
-  var s = localStorage.getItem('stock_db');
-  if (s) db = JSON.parse(s);
-  renderPortfolio();
-}
+// ==================== 数据 ====================
+var currentUser = JSON.parse(localStorage.getItem('panda_current_user') || 'null');
+var selectedFlavor = '原味';
+var selectedPay = 'usdt';
+var orderPending = false;
 
-function saveData() {
-  localStorage.setItem('stock_db', JSON.stringify(db));
-}
-
-async function getStockData(code) {
-  var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
-  var url = 'https://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f2,f3,f4,f7,f8,f5,f6,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f20,f21,f22,f23,f24,f25,f37,f38,f39,f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f62,f84,f85,f86,f87,f88,f89,f90,f91,f92,f93,f94,f95,f96,f97,f98,f99,f100,f101,f102,f103,f104,f105,f106,f107,f108,f109,f110,f111,f112,f113,f114,f115,f116,f117,f118,f119,f120,f121,f122,f123,f124,f125,f126,f127,f128,f129,f130,f131,f132,f133,f134,f135,f136,f137,f138,f139,f140,f141,f142,f143,f144,f145,f146,f147,f148,f149,f150,f151,f152,f153,f154,f155,f156,f157,f158,f159,f160,f161,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f173,f174,f175,f176,f177,f178,f179,f180,f181,f182,f183,f184,f185,f186,f187,f188,f189,f190,f191,f192,f193,f194,f195,f196,f197,f198,f199,f200,f201,f202,f203,f204,f205,f206,f207,f208,f209,f210,f211,f212,f213,f214,f215,f216,f217,f218,f219,f220,f221,f222,f223,f224,f225&secid=' + secid;
-  try {
-    var res = await fetch(url);
-    var data = await res.json();
-    if (data.data) {
-      var d = data.data;
-      var name = d.f58 || '';
-      return {code: code, name: name, price: d.f43, change: d.f170, volume: d.f47/10000, amount: d.f48/100000000, turnover: d.f50, market: d.f116/100000000, high: d.f44, low: d.f45, open: d.f46, isST: name.includes('ST') || name.includes('*ST'), up: d.f44 === d.f60, mainMoney: d.f184||0, superMoney: d.f185||0, largeMoney: d.f186||0};
-    }
-  } catch(e) {}
-  return null;
-}
-
-async function getStockWithHistory(code) {
-  var stock = await getStockData(code);
-  if (!stock) return null;
-  var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
-  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20250101&end=20260221&lmt=60';
-  try {
-    var res = await fetch(url);
-    var data = await res.json();
-    if (data.data && data.data.klines) {
-      stock.history = data.data.klines.map(function(k) { return k.split(','); });
-    }
-  } catch(e) {}
-  return stock;
-}
-
-var allStocks = [];
-
-async function loadStocks() {
-  if (allStocks.length > 0) return;
-  var codes = [];
-  for (var i = 600000; i < 604000; i++) codes.push(i.toString());
-  for (var i = 300000; i < 303000; i++) codes.push(i.toString());
-  for (var i = 688000; i < 692000; i++) codes.push(i.toString());
-  allStocks = [];
-  for (var i = 0; i < Math.min(codes.length, 180); i += 18) {
-    var promises = codes.slice(i, i+18).map(function(c) { return getStockWithHistory(c); });
-    var results = await Promise.all(promises);
-    results.forEach(function(s) { if (s && s.price > 0) { allStocks.push(s); stockCache[s.code] = s; } });
+// ==================== 用户 ====================
+function toggleUserMenu() {
+  var m = document.getElementById('userModal');
+  var o = document.getElementById('userOverlay');
+  if (m.style.display === 'block') {
+    m.style.display = 'none';
+    o.style.display = 'none';
+  } else {
+    if (!currentUser) {showLogin();return;}
+    m.style.display = 'block';
+    o.style.display = 'block';
+    o.style.position = 'fixed';
+    o.style.inset = '0';
+    o.onclick = function() {toggleUserMenu();};
   }
 }
 
-async function runScreener() {
-  await loadStocks();
-  document.getElementById('screenerResult').innerHTML = '<div class="loading">筛选中...</div>';
-  var changeTh = parseFloat(document.getElementById('filterChange').value);
-  var turnoverTh = parseFloat(document.getElementById('filterTurnover').value);
-  var amountTh = parseFloat(document.getElementById('filterAmount').value);
-  var marketMax = parseFloat(document.getElementById('filterMarket').value);
-  var filterMoney = document.getElementById('filterMoney').value;
-  var volPrice = document.getElementById('filterVolumePrice').value;
-  var tech = document.getElementById('filterTech').value;
-  var noST = document.getElementById('filterNoST').checked;
+// 安全访问后台 - 需要验证
+function goToAdmin() {
+  var adminCode = prompt('请输入管理员验证码:');
+  if (adminCode === 'admin123') {
+    window.location.href = 'shop-admin.html';
+  } else {
+    alert('验证码错误');
+  }
+}
+
+function showLogin() {
+  document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('loginOverlay').style.display = 'block';
+}
+function closeLogin() {
+  document.getElementById('loginModal').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'none';
+}
+
+function sendCode() {
+  var phone = document.getElementById('phoneInput').value;
+  if (!phone) {alert('请输入手机号');return;}
+  alert('验证码已发送! (演示: 123456)');
+}
+function verifyLogin() {
+  var code = document.getElementById('codeInput').value;
+  var phone = document.getElementById('phoneInput').value;
+  if (code !== '123456') {alert('验证码错误 (演示: 123456)');return;}
   
-  var results = allStocks.filter(function(s) {
-    if (noST && s.isST) return false;
-    if (changeTh > 0 && s.change < changeTh) return false;
-    if (turnoverTh > 0 && s.turnover < turnoverTh) return false;
-    if (amountTh > 0 && s.amount < amountTh) return false;
-    if (marketMax > 0 && s.market > marketMax) return false;
-    if (filterMoney === 'main' && s.mainMoney <= 0) return false;
-    if (volPrice !== '0' && s.history && s.history.length >= 2) {
-      var today = s.history[s.history.length-1], yes = s.history[s.history.length-2];
-      var todayVol = parseFloat(today[5]), yesVol = parseFloat(yes[5]);
-      var todayClose = parseFloat(today[2]), yesClose = parseFloat(yes[2]);
-      if (volPrice === 'up' && (todayVol <= yesVol || todayClose <= yesClose)) return false;
-      if (volPrice === 'vol' && (todayVol <= yesVol * 1.2 || todayClose <= yesClose)) return false;
-    }
-    if (tech === 'limitup' && s.history) {
-      var hasLimit = false;
-      for (var j = 0; j < Math.min(s.history.length, 10); j++) {
-        var o = parseFloat(s.history[j][1]), c = parseFloat(s.history[j][2]);
-        if ((c - o) / o * 100 >= 9.9) { hasLimit = true; break; }
-      }
-      if (!hasLimit) return false;
-    }
+  currentUser = {
+    id: Date.now(),
+    phone: phone,
+    name: phone.substr(-4),
+    isAdmin: phone === 'admin', // 特殊账号
+    created: new Date().toISOString()
+  };
+  localStorage.setItem('panda_current_user', JSON.stringify(currentUser));
+  
+  closeLogin();
+  updateUserUI();
+  alert('✅ 登录成功!');
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('panda_current_user');
+  toggleUserMenu();
+  document.getElementById('userBtn').innerText = '👤';
+}
+
+function updateUserUI() {
+  if (currentUser) {
+    document.getElementById('userBtn').innerText = currentUser.name || '👤';
+    document.getElementById('userName').innerText = currentUser.name || '用户';
+    document.getElementById('userEmail').innerText = currentUser.phone || '';
+  }
+}
+
+// ==================== 商品 ====================
+function selectFlavor(btn, flavor) {
+  document.querySelectorAll('.flavor-btn').forEach(function(b) {b.classList.remove('active');});
+  btn.classList.add('active');
+  selectedFlavor = flavor;
+}
+
+// ==================== 购买流程 ====================
+function startBuy() {
+  if (!currentUser) {showLogin();return;}
+  showCheckout();
+}
+
+function showCheckout() {
+  if (!currentUser) {showLogin();return;}
+  
+  document.getElementById('checkoutModal').style.display = 'flex';
+  document.getElementById('checkoutOverlay').style.display = 'block';
+  document.getElementById('selectedFlavor').innerText = selectedFlavor;
+  
+  var savedAddr = JSON.parse(localStorage.getItem('panda_default_address') || 'null');
+  if (savedAddr) {
+    document.getElementById('shipName').value = savedAddr.name || '';
+    document.getElementById('shipPhone').value = savedAddr.phone || '';
+    document.getElementById('shipCountry').value = savedAddr.country || '';
+    document.getElementById('shipAddress').value = savedAddr.address || '';
+  }
+}
+function closeCheckout() {
+  document.getElementById('checkoutModal').style.display = 'none';
+  document.getElementById('checkoutOverlay').style.display = 'none';
+}
+
+function selectPay(method) {
+  selectedPay = method;
+  document.querySelectorAll('.flavor-btn').forEach(function(b) {b.classList.remove('active');});
+  document.getElementById('pay' + method.toUpperCase()).classList.add('active');
+  document.getElementById('usdtPayment').style.display = method === 'usdt' ? 'block' : 'none';
+}
+
+function submitOrder() {
+  var name = document.getElementById('shipName').value.trim();
+  var phone = document.getElementById('shipPhone').value.trim();
+  var country = document.getElementById('shipCountry').value;
+  var address = document.getElementById('shipAddress').value.trim();
+  
+  if (!name || !phone || !country || !address) {alert('请填写完整收货信息');return;}
+  
+  if (document.getElementById('saveAddress').checked) {
+    localStorage.setItem('panda_default_address', JSON.stringify({name, phone, country, address}));
+  }
+  
+  // 创建订单
+  var order = {
+    id: 'ORD' + Date.now(),
+    userId: currentUser.id,
+    userPhone: currentUser.phone,
+    flavor: selectedFlavor,
+    amount: 70,
+    tokens: 3000,
+    payMethod: selectedPay,
+    usdtAddress: USDT_ADDRESS,
+    ship: {name, phone, country, address},
+    status: selectedPay === 'usdt' ? 'pending_payment' : 'pending_payment',
+    created: new Date().toISOString()
+  };
+  
+  // 保存订单
+  var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
+  orders.push(order);
+  localStorage.setItem('panda_orders', JSON.stringify(orders));
+  localStorage.setItem('panda_pending_order', JSON.stringify(order));
+  
+  closeCheckout();
+  orderPending = true;
+  
+  if (selectedPay === 'usdt') {
+    alert('✅ 订单已创建!\n\n订单号: ' + order.id + '\n\n请向以下地址转账 $70 USDT:\n' + USDT_ADDRESS + '\n\n⏳ 转账后自动确认 (约1-3分钟)');
+    startUSDTMonitoring(order.id);
+  } else {
+    alert('✅ 订单已创建!\n\n订单号: ' + order.id + '\n金额: $70\n\n我们尽快处理您的支付');
+  }
+}
+
+// ==================== USDT 自动监听 ====================
+var tronWeb;
+async function initTron() {
+  if (typeof TronWeb !== 'undefined') {
+    tronWeb = new TronWeb({
+      fullHost: 'https://api.trongrid.io'
+    });
     return true;
-  }).sort(function(a, b) { return b.change - a.change; }).slice(0, 30);
-  
-  if (results.length === 0) {
-    document.getElementById('screenerResult').innerHTML = '<div style="color:#666;text-align:center;padding:40px">没有符合条件的股票</div>';
-    return;
   }
-  document.getElementById('screenerResult').innerHTML = results.map(function(s) {
-    var money = (s.mainMoney + s.superMoney) / 10000;
-    return '<div class="sr-result" style="cursor:pointer" onclick="showKLine(\''+s.code+'\')"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" style="font-size:18px">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="'+(s.change>=0?'up':'down')+'" style="font-size:20px;font-weight:700">'+(s.change||0).toFixed(2)+'%</span></div><div style="margin-top:8px;display:flex;gap:16px;font-size:12px;color:#666"><span>换手率:'+(s.turnover||0).toFixed(1)+'%</span><span>成交额:'+(s.amount||0).toFixed(1)+'亿</span><span>主力净流入:'+(money>=0?'+':'')+money.toFixed(0)+'万</span></div></div>';
-  }).join('');
+  return false;
 }
 
-async function runStrategy1() {
-  await loadStocks();
-  document.getElementById('strategy1Result').innerHTML = '<div class="loading">AI分析中...</div>';
-  var results = allStocks.filter(function(s) { return !s.isST && s.change > 0; }).map(function(s) {
-    var score = 0;
-    score += Math.min(s.change, 10);
-    var money = (s.mainMoney + s.superMoney + s.largeMoney) / 10000;
-    if (money > 0) score += Math.min(money / 100, 5);
-    score += Math.min(s.turnover / 2, 5);
-    if (s.history && s.history.length >= 3) {
-      var today = s.history[s.history.length - 1], yesterday = s.history[s.history.length - 2];
-      if (parseFloat(today[5]) > parseFloat(yesterday[5]) * 1.2 && parseFloat(today[2]) > parseFloat(yesterday[2])) score += 5;
+async function startUSDTMonitoring(orderId) {
+  await initTron();
+  
+  var checkCount = 0;
+  var maxChecks = 60; // 最多检查60次 (约5分钟)
+  
+  var statusDiv = document.createElement('div');
+  statusDiv.id = 'paymentStatus';
+  statusDiv.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--surface);padding:16px 24px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:1000';
+  statusDiv.innerHTML = '<div style="margin-bottom:8px">🔄 等待USDT转账确认...</div><div style="font-size:12px;color:#888">请向 ' + USDT_ADDRESS.substring(0,10) + '... 转账70 USDT</div><div style="margin-top:10px;font-size:12px;color:var(--primary)" id="checkCount">检查中 0/' + maxChecks + '</div>';
+  document.body.appendChild(statusDiv);
+  
+  var checkInterval = setInterval(async function() {
+    checkCount++;
+    document.getElementById('checkCount').innerText = '检查中 ' + checkCount + '/' + maxChecks;
+    
+    try {
+      // 查询USDT转账交易
+      var transactions = await tronWeb.trx.getTransactionsRelated(USDT_ADDRESS, 'all', 0, 20);
+      
+      if (transactions && transactions.data) {
+        for (var i = 0; i < transactions.data.length; i++) {
+          var tx = transactions.data[i];
+          if (tx.txID && tx.block_timestamp) {
+            var now = Date.now();
+            var txTime = tx.block_timestamp;
+            var amount = 0;
+            
+            // 解析交易数据
+            if (tx.raw_data && tx.raw_data.contract) {
+              var contract = tx.raw_data.contract[0];
+              if (contract.parameter && contract.parameter.value) {
+                var value = contract.parameter.value.amount || 0;
+                amount = value / 1000000; // 转换为USDT
+              }
+            }
+            
+            // 检查是否是向我们的地址转账70 USDT
+            if (amount >= EXPECTED_AMOUNT && (now - txTime) < 3600000) { // 1小时内
+              // 找到转账!
+              clearInterval(checkInterval);
+              statusDiv.innerHTML = '<div style="color:var(--success);font-size:18px">✅ 支付已确认!</div><div style="font-size:12px;color:#888;margin-top:8px">订单: ' + orderId + '</div>';
+              setTimeout(function() {statusDiv.remove();}, 3000);
+              
+              // 更新订单状态
+              var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
+              var order = orders.find(function(o) {return o.id === orderId;});
+              if (order) {
+                order.status = 'paid';
+                order.paidAt = new Date().toISOString();
+                localStorage.setItem('panda_orders', JSON.stringify(orders));
+              }
+              
+              orderPending = false;
+              alert('🎉 支付已确认!\n\n您的订单 ' + orderId + ' 已支付成功\n\n我们将尽快为您发货!');
+              return;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.log('检查失败:', e.message);
     }
-    return {stock: s, score: score};
-  });
-  results.sort(function(a, b) { return b.score - a.score; });
-  var top = results[0];
-  if (top) {
-    var s = top.stock;
-    document.getElementById('strategy1Result').innerHTML = '<div style="background:#0D0D0D;padding:20px;border-radius:12px"><div style="display:flex;justify-content:space-between"><div><span class="stock-code" style="font-size:24px" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="font-size:18px;color:#888">'+s.name+'</span></div><span class="up" style="font-size:28px;font-weight:700">'+(s.change||0).toFixed(2)+'%</span></div></div>';
-  }
-}
-
-async function runStrategy2() {
-  await loadStocks();
-  document.getElementById('strategy2Result').innerHTML = '<div class="loading">AI分析中...</div>';
-  var results = [];
-  for (var s of allStocks) {
-    if (s.isST || !s.history || s.history.length < 3) continue;
-    var h = s.history;
-    var hasLimitUp = false;
-    for (var j = 0; j < Math.min(h.length, 10); j++) {
-      if ((parseFloat(h[j][2]) - parseFloat(h[j][1])) / parseFloat(h[j][1]) * 100 >= 9.9) { hasLimitUp = true; break; }
+    
+    if (checkCount >= maxChecks) {
+      clearInterval(checkInterval);
+      statusDiv.innerHTML = '<div style="color:var(--warning)">⚠️ 未检测到转账</div><div style="font-size:12px;color:#888;margin-top:8px">如已转账，请联系客服</div><button onclick="this.parentElement.remove()" style="margin-top:10px;padding:8px 16px;background:var(--g);border:none;border-radius:6px;color:#fff;cursor:pointer">关闭</button>';
     }
-    if (!hasLimitUp) continue;
-    var d3 = h[h.length-1], d2 = h[h.length-2], d1 = h[h.length-3];
-    var d2Pct = (parseFloat(d3[2]) - parseFloat(d3[1])) / parseFloat(d3[1]) * 100;
-    var d2Shadow = (parseFloat(d2[3]) - parseFloat(d2[2])) / parseFloat(d2[2]) * 100;
-    var d2Vol = parseFloat(d2[5]), d1Vol = parseFloat(d1[5]);
-    if (d2Pct < 9.9 || d2Vol <= d1Vol * 1.2 || d2Shadow > 2) continue;
-    var d3Vol = parseFloat(d3[5]), d3Close = parseFloat(d3[2]), d2Close = parseFloat(d2[2]);
-    if (d3Vol > d2Vol * 0.5 || d3Close < d2Close) continue;
-    results.push(s);
-    if (results.length >= 3) break;
-  }
-  if (results.length === 0) {
-    document.getElementById('strategy2Result').innerHTML = '<div style="color:#666">没有符合条件的股票</div>';
-    return;
-  }
-  document.getElementById('strategy2Result').innerHTML = results.map(function(s, i) {
-    return '<div style="background:#0D0D0D;padding:16px;border-radius:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><div><span style="color:#FF6B35;font-weight:700;margin-right:8px">'+(i+1)+'</span><span class="stock-code" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="up">'+(s.change||0).toFixed(2)+'%</span></div></div>';
-  }).join('');
+  }, 5000); // 每5秒检查一次
 }
 
-function showManualInput() {
-  var el = document.getElementById('manualInput');
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
+// ==================== 初始化 ====================
+updateUserUI();
 
-function addManualPosition() {
-  var code = document.getElementById('manualCode').value.trim();
-  var name = document.getElementById('manualName').value.trim();
-  var shares = parseFloat(document.getElementById('manualShares').value);
-  var buyPrice = parseFloat(document.getElementById('manualBuyPrice').value);
-  var sector = document.getElementById('manualSector').value;
-  if (!code || !shares || !buyPrice) { alert('请填写完整信息'); return; }
-  db.portfolio.push({code: code, name: name, shares: shares, buyPrice: buyPrice, sector: sector, addTime: Date.now()});
-  saveData();
-  renderPortfolio();
-  document.getElementById('manualCode').value = '';
-  document.getElementById('manualName').value = '';
-  document.getElementById('manualShares').value = '';
-  document.getElementById('manualBuyPrice').value = '';
-}
-
-function handleScreenshot(input) {
-  alert('截图上传功能开发中，请先使用手动输入添加持仓');
-}
-
-async function renderPortfolio() {
-  document.getElementById('portfolioCount').innerText = db.portfolio.length;
-  for (var p of db.portfolio) {
-    if (!stockCache[p.code]) {
-      var s = await getStockWithHistory(p.code);
-      if (s) { stockCache[p.code] = s; p.currentPrice = s.price; p.change = s.change; }
-    } else {
-      p.currentPrice = stockCache[p.code].price;
-      p.change = stockCache[p.code].change;
-    }
-  }
-  var totalProfit = 0;
-  var alerts = [];
-  var html = db.portfolio.map(function(p) {
-    var s = stockCache[p.code];
-    if (!s) return '';
-    var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
-    totalProfit += profit;
-    var levels = calcSupportResistance(s);
-    if (p.currentPrice < levels.support) {
-      alerts.push({code: p.code, name: p.name, price: p.currentPrice, support: levels.support, type: 'break'});
-    }
-    return '<div class="sr-result"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(p.sector?'<span class="tag tag-blue">'+p.sector+'</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'股</div><div>买价:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(2):'-')+'</div></div></div>';
-  }).join('');
-  document.getElementById('portfolioMonitor').innerHTML = html || '<div style="color:#666;text-align:center">暂无持仓</div>';
-  document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
-  document.getElementById('needAction').innerText = alerts.length;
-  if (alerts.length > 0) {
-    document.getElementById('alertCard').style.display = 'block';
-    document.getElementById('alertList').innerHTML = alerts.map(function(a) {
-      return '<div class="alert-box"><span class="stock-code">'+a.code+'</span> '+a.name+' 已跌破支撑位 <span class="down">'+a.support.toFixed(2)+'</span>，当前价:'+a.price+'</div>';
-    }).join('');
-  } else {
-    document.getElementById('alertCard').style.display = 'none';
-  }
-}
-
-function calcSupportResistance(s) {
-  if (!s.history || s.history.length < 20) return {support: s.price * 0.95, resistance: s.price * 1.05};
-  var highs = s.history.map(function(h) { return parseFloat(h[3]); });
-  var lows = s.history.map(function(h) { return parseFloat(h[4]); });
-  var recentHighs = highs.slice(-20);
-  var recentLows = lows.slice(-20);
-  var max = Math.max.apply(null, recentHighs);
-  var min = Math.min.apply(null, recentLows);
-  return {support: min, resistance: max};
-}
-
-function analyzeStockTech(s, pos) {
-  var signals = [];
-  var score = 0;
-  if (!s.history || s.history.length < 5) {
-    return {signals: [{type: '⚠️', desc: '数据不足'}], rating: '中'};
-  }
-  var h = s.history;
-  var today = h[h.length - 1], yesterday = h[h.length - 2];
-  var todayClose = parseFloat(today[2]), todayOpen = parseFloat(today[1]), todayHigh = parseFloat(today[3]), todayLow = parseFloat(today[4]);
-  var yesClose = parseFloat(yesterday[2]);
-  var todayVol = parseFloat(today[5]), yesVol = parseFloat(yesterday[5]);
-  
-  // 1. 量价关系
-  if (todayVol > yesVol * 1.2 && todayClose > yesClose) {
-    signals.push({type: '📊 量价', desc: '放量上涨 - 主力积极', value: true});
-    score += 2;
-  } else if (todayVol < yesVol * 0.5 && todayClose < yesClose) {
-    signals.push({type: '📊 量价', desc: '缩量下跌 - 观望', value: false});
-    score -= 1;
-  }
-  
-  // 2. 资金流向
-  var money = (s.mainMoney + s.superMoney) / 10000;
-  if (money > 0) {
-    signals.push({type: '💵 资金', desc: '主力净流入 +' + money.toFixed(0) + '万', value: true});
-    score += 2;
-  } else {
-    signals.push({type: '💵 资金', desc: '主力净流出 ' + money.toFixed(0) + '万', value: false});
-    score -= 2;
-  }
-  
-  // 3. 突破压力位
-  var levels = calcSupportResistance(s);
-  if (todayClose > levels.resistance) {
-    signals.push({type: '🚀 突破', desc: '突破压力位 ' + levels.resistance.toFixed(2), value: true});
-    score += 3;
-  }
-  
-  // 4. 支撑位站稳
-  if (todayClose > levels.support && todayClose < levels.resistance) {
-    signals.push({type: '✅ 支撑', desc: '站稳支撑位 ' + levels.support.toFixed(2), value: true});
-    score += 1;
-  }
-  
-  // 5. 缺口分析 (Boss提到的)
-  if (h.length >= 2) {
-    var gap = todayOpen - yesClose;
-    var gapPct = gap / yesClose * 100;
-    if (gapPct > 3) {
-      signals.push({type: '⚠️ 缺口', desc: '上方缺口 ' + gapPct.toFixed(2) + '% (建议等回补)', value: false});
-      score -= 2;
-    } else if (gapPct < -3) {
-      signals.push({type: '✅ 缺口', desc: '下方缺口 ' + Math.abs(gapPct).toFixed(2) + '% (可能支撑)', value: true});
-      score += 1;
-    }
-  }
-  
-  // 6. 二波上攻形态 (Boss提到的600410类型)
-  if (h.length >= 20) {
-    var recent = h.slice(-20);
-    var firstHalf = recent.slice(0, 10);
-    var secondHalf = recent.slice(10);
-    var firstAvg = firstHalf.reduce(function(a,b){return a+parseFloat(b[2])},0)/10;
-    var secondAvg = secondHalf.reduce(function(a,b){return a+parseFloat(b[2])},0)/10;
-    if (secondAvg > firstAvg * 1.1 && todayClose > parseFloat(secondHalf[secondHalf.length-1][1])) {
-      signals.push({type: '🌊 二波', desc: '二波上攻形态 - 强势信号', value: true});
-      score += 3;
-    }
-  }
-  
-  // 7. 主力坚决度 (Boss提到的300499)
-  var avgVol = h.slice(-5).reduce(function(a,b){return a+parseFloat(b[5])},0)/5;
-  if (todayVol > avgVol * 1.5) {
-    signals.push({type: '💪 坚决', desc: '成交量放大 主力可能行动', value: true});
-    score += 1;
-  } else if (todayVol < avgVol * 0.5) {
-    signals.push({type: '😰 犹豫', desc: '缩量 主力不坚决', value: false});
-    score -= 1;
-  }
-  
-  var rating = score >= 5 ? '强' : score >= 0 ? '中' : '弱';
-  return {signals: signals, rating: rating, support: levels.support, resistance: levels.resistance};
-}
-
-async function analyzeAllPositions() {
-  if (db.portfolio.length === 0) { alert('请先添加持仓'); return; }
-  document.getElementById('portfolioAnalysis').innerHTML = '<div class="loading">分析中...</div>';
-  var analysis = [];
-  for (var p of db.portfolio) {
-    var s = stockCache[p.code];
-    if (!s) { s = await getStockWithHistory(p.code); if (s) stockCache[p.code] = s; }
-    if (!s || !s.history) continue;
-    var result = analyzeStockTech(s, p);
-    analysis.push({code: p.code, name: p.name, ...result});
-  }
-  document.getElementById('portfolioAnalysis').innerHTML = analysis.map(function(a) {
-    return '<div class="sr-result"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><span class="stock-code" style="font-size:16px">'+a.code+'</span> <span class="tag tag-'+(a.rating==='强'?'green':a.rating==='中'?'yellow':'red')+'">'+a.rating+'推荐</span></div>'+a.signals.map(function(s){return '<div style="padding:4px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>'+s.type+'</span><span class="'+(s.value?'up':'down')+'">'+s.desc+'</span></div>';}).join('')+'</div>';
-  }).join('');
-}
-
-async function analyzeStock() {
-  var code = document.getElementById('analyzeCode').value.trim();
-  if (!code) { alert('请输入股票代码'); return; }
-  document.getElementById('analysisResult').innerHTML = '<div class="loading">深度分析中...</div>';
-  var s = await getStockWithHistory(code);
-  if (!s) { document.getElementById('analysisResult').innerHTML = '<div style="color:#666">未找到该股票</div>'; return; }
-  stockCache[code] = s;
-  var result = analyzeStockTech(s, {buyPrice: s.price});
-  var html = '<div class="card"><h3>'+s.code+' '+s.name+'</h3>';
-  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">';
-  html += '<div class="stat"><div class="v">'+s.price+'</div><div class="l">现价</div></div>';
-  html += '<div class="stat"><div class="v '+(s.change>=0?'up':'down')+'">'+(s.change||0).toFixed(2)+'%</div><div class="l">涨跌幅</div></div>';
-  html += '<div class="stat"><div class="v">'+(s.turnover||0).toFixed(1)+'%</div><div class="l">换手率</div></div>';
-  html += '<div class="stat"><div class="v">'+(s.market||0).toFixed(0)+'亿</div><div class="l">市值</div></div>';
-  html += '</div>';
-  html += '<div style="margin-bottom:16px"><span class="tag tag-'+(result.rating==='强'?'green':result.rating==='中'?'yellow':'red')+'" style="font-size:16px;padding:8px 16px">'+result.rating+'推荐</span></div>';
-  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px">';
-  html += '<div style="padding:8px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>支撑位</span><span class="up">'+(result.support?result.support.toFixed(2):'-')+'</span></div>';
-  html += '<div style="padding:8px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>压力位</span><span class="down">'+(result.resistance?result.resistance.toFixed(2):'-')+'</span></div>';
-  html += result.signals.map(function(sg){return '<div style="padding:8px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>'+sg.type+'</span><span class="'+(sg.value?'up':'down')+'">'+sg.desc+'</span></div>';}).join('');
-  html += '</div></div>';
-  html += '<button class="btn" style="margin-top:16px;width:100%" onclick="showKLine(\''+s.code+'\')">📊 查看K线图</button>';
-  document.getElementById('analysisResult').innerHTML = html;
-}
-
-async function showKLine(code) {
-  var s = stockCache[code];
-  if (!s) { s = await getStockWithHistory(code); if (s) stockCache[code] = s; }
-  document.getElementById('modalStockName').innerText = s.code + ' ' + s.name;
-  document.getElementById('klineModal').style.display = 'flex';
-  var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
-  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20250101&end=20260221&lmt=60';
-  try {
-    var res = await fetch(url);
-    var data = await res.json();
-    if (data.data && data.data.klines) {
-      var klines = data.data.klines;
-      var dates = [], closes = [], volumes = [];
-      klines.forEach(function(kl) {
-        var arr = kl.split(',');
-        dates.push(arr[0]);
-        closes.push(parseFloat(arr[2]));
-        volumes.push(parseFloat(arr[5]));
-      });
-      Plotly.newPlot('modalKline', [
-        {x: dates, y: closes, type: 'scatter', mode: 'lines', line: {color: '#FF6B35'}, name: '收盘价'},
-        {x: dates, y: volumes, type: 'bar', yaxis: 'y2', marker: {color: 'rgba(255,107,53,0.5)'}, name: '成交量'}
-      ], {paper_bgcolor: '#0D0D0D', plot_bgcolor: '#0D0D0D', xaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222'}, yaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222'}, yaxis2: {tickcolor: '#333', tickfont: {color: '#888'}, overlaying: 'y', side: 'right'}}, {responsive: true});
-    }
-  } catch(e) {}
-  var money = ((s.mainMoney||0)+(s.superMoney||0))/10000;
-  document.getElementById('modalAnalysis').innerHTML = '<div style="margin-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">现价</div><div style="font-weight:600">'+(s.price||'-')+'</div></div><div style="padding:12px;background:#0D;border-radius:80D0Dpx;text-align:center"><div style="color:#888;font-size:12px">涨跌幅</div><div style="font-weight:600'+(s.change>=0?'color:#FF4757':'color:#2ED573')+'">'+(s.change||0).toFixed(2)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">换手率</div><div style="font-weight:600">'+(s.turnover||0).toFixed(1)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div></div>';
-}
-
-function showPage(page) {
-  document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active');});
-  event.target.classList.add('active');
-  document.querySelectorAll('#page-dashboard,#page-screener,#page-portfolio,#page-analysis').forEach(function(p){p.style.display='none';});
-  document.getElementById('page-'+page).style.display = 'block';
-}
-
-loadData();
+setInterval(function() {
+  var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
+  var s = symbols[Math.floor(Math.random() * symbols.length)];
+  var el = document.getElementById('slotDisplay');
+  if (el) el.innerHTML = s + ' ' + s + ' ' + s;
+}, 200);
 </script>
 </body>
 </html>
