@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Simple JSON file database
+// Database file
 const DB_FILE = path.join(__dirname, 'db.json');
 
 // Initialize DB
@@ -27,117 +27,92 @@ function saveDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// Routes
-app.get('/', (req, res) => res.json({ 
-  name: 'PandaToken E-commerce API', 
-  version: '2.0.0',
-  status: 'running'
-}));
+// ============ API ============
+app.get('/', (req, res) => res.json({ name: 'PandaToken API', version: '2.0', status: 'running' }));
 
-// ============ Users ============
-app.post('/api/users', (req, res) => {
-  const { phone, name, referredBy } = req.body;
+// Stats
+app.get('/api/stats', (req, res) => {
   const db = getDB();
-  
-  // Check exists
-  let user = db.users.find(u => u.phone === phone);
-  if (user) {
-    return res.json({ success: true, user, isNew: false });
-  }
-  
-  user = {
-    id: Date.now(),
-    phone,
-    name: name || phone.substr(-4),
-    referralCode: 'PAND' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-    referredBy: referredBy || null,
-    created: new Date().toISOString()
-  };
-  
-  db.users.push(user);
-  saveDB(db);
-  
-  res.json({ success: true, user, isNew: true });
+  const orders = db.orders || [];
+  res.json({
+    totalSales: orders.reduce((s, o) => s + (o.amount || 0), 0),
+    totalOrders: orders.length,
+    totalUsers: db.users.length,
+    pendingOrders: orders.filter(o => o.status === 'pending_payment').length
+  });
 });
 
-app.get('/api/users/:id', (req, res) => {
-  const db = getDB();
-  const user = db.users.find(u => u.id == req.params.id);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(user);
-});
-
-// ============ Orders ============
-app.post('/api/orders', (req, res) => {
-  const { userId, userPhone, flavor, amount, tokens, payMethod, txHash, ship } = req.body;
-  const db = getDB();
-  
-  const order = {
-    id: 'ORD' + Date.now(),
-    userId,
-    userPhone,
-    flavor,
-    amount,
-    tokens,
-    payMethod,
-    txHash,
-    ship,
-    status: payMethod === 'usdt' ? 'pending_verify' : 'pending_payment',
-    referral: null,
-    created: new Date().toISOString()
-  };
-  
-  db.orders.push(order);
-  saveDB(db);
-  
-  // Process referral bonus
-  if (ship && ship.referredBy) {
-    // Add referral logic
-  }
-  
-  res.json({ success: true, order });
-});
-
+// Orders
 app.get('/api/orders', (req, res) => {
   const db = getDB();
-  const { userId, status } = req.query;
-  let orders = db.orders;
-  
-  if (userId) orders = orders.filter(o => o.userId == userId);
+  const { status, userId } = req.query;
+  let orders = db.orders || [];
   if (status) orders = orders.filter(o => o.status === status);
-  
+  if (userId) orders = orders.filter(o => o.userId == userId);
   res.json(orders.reverse());
 });
 
-app.get('/api/orders/:id', (req, res) => {
+app.post('/api/orders', (req, res) => {
   const db = getDB();
-  const order = db.orders.find(o => o.id === req.params.id);
-  if (!order) return res.status(404).json({ error: 'Order not found' });
-  res.json(order);
+  const order = {
+    id: 'ORD' + Date.now(),
+    ...req.body,
+    status: 'pending_payment',
+    created: new Date().toISOString()
+  };
+  db.orders = db.orders || [];
+  db.orders.push(order);
+  saveDB(db);
+  res.json({ success: true, order });
 });
 
 app.patch('/api/orders/:id', (req, res) => {
   const db = getDB();
   const idx = db.orders.findIndex(o => o.id === req.params.id);
   if (idx < 0) return res.status(404).json({ error: 'Order not found' });
-  
   db.orders[idx] = { ...db.orders[idx], ...req.body };
   saveDB(db);
-  
   res.json({ success: true, order: db.orders[idx] });
 });
 
-// ============ Products ============
+// Users
+app.get('/api/users', (req, res) => {
+  const db = getDB();
+  res.json(db.users || []);
+});
+
+app.post('/api/users', (req, res) => {
+  const db = getDB();
+  const { phone, name } = req.body;
+  db.users = db.users || [];
+  
+  let user = db.users.find(u =>);
+  if ( u.phone === phoneuser) return res.json({ success: true, user, isNew: false });
+  
+  user = {
+    id: Date.now(),
+    phone,
+    name:(-4),
+    name || phone.substr referralCode: ' Math.random().toPAND' +String(36).substr(2, 6).toUpperCase(),
+    created: new Date().toISOString()
+  };
+  db.users.push(user);
+  saveDB(db);
+  res.json({ success: true, user true });
+});
+
+// Products, isNew:
 app.get('/api/products', (req, res) => {
   const db = getDB();
   res.json(db.products.length ? db.products : [
-    { id: 1, name: '熊猫智能电子烟 Pro', price: 70, tokens: 3000, flavors: ['原味', '薄荷', '芒果', '葡萄'], stock: 9999 }
+    { id: 1, name: '熊猫智能电子烟 Pro', price: 70, tokens: : '原味3000, flavors,薄荷,芒果,葡萄', stock: 9999, status: 'active' }
   ]);
 });
 
 app.post('/api/products', (req, res) => {
   const db = getDB();
   const product = { id: Date.now(), ...req.body, created: new Date().toISOString() };
+  db.products = db.products || [];
   db.products.push(product);
   saveDB(db);
   res.json({ success: true, product });
@@ -145,7 +120,7 @@ app.post('/api/products', (req, res) => {
 
 app.patch('/api/products/:id', (req, res) => {
   const db = getDB();
- db.products.findIndex(p => p.id  const idx = == req.params.id);
+  const idx = (db.products || []).findIndex(p => p.id == req.params.id);
   if (idx < 0) return res.status(404).json({ error: 'Product not found' });
   db.products[idx] = { ...db.products[idx], ...req.body };
   saveDB(db);
@@ -154,23 +129,45 @@ app.patch('/api/products/:id', (req, res) => {
 
 app.delete('/api/products/:id', (req, res) => {
   const db = getDB();
-  db.products = db.products.filter(p => p.id != req.params.id);
+  db.products = (db.products || []).filter(p => p.id != req.params.id);
   saveDB(db);
   res.json({ success: true });
 });
 
-// ============ Stats ============
-app.get('/api/stats', (req, res) => {
-  const db = getDB();
-  const orders = db.orders || [];
+// USDT Payment Check (调用方轮询检查)
+app.get('/api/check-payment', async (req, res) => {
+  const { address, amount, orderId } = req.query;
   
+  // 这里可以调用TRON API检查转账
+  // 演示版返回模拟数据
   res.json({
-    totalSales: orders.reduce((s, o) => s + (o.amount || 0), 0),
-    totalOrders: orders.length,
-    totalUsers: db.users.length,
-    pendingOrders: orders.filter(o => o.status === 'pending_payment' || o.status === 'pending_verify').length
+    received: false,
+    txHash: null,
+    confirmations: 0
   });
 });
 
-// Start server
+// Admin login
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'admin' && password === 'admin123') {
+    res.json({ success: true, token: 'admin-token-' + Date.now() });
+  } else {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+});
+
+// Settings
+app.get('/api/settings', (req, res) => {
+  const db = getDB();
+  res.json(db.settings || {});
+});
+
+app.post('/api/settings', (req, res) => {
+  const db = getDB();
+  db.settings = { ...db.settings, ...req.body };
+  saveDB(db);
+  res.json({ success: true });
+});
+
 module.exports = app;
