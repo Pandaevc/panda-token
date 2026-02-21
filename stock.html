@@ -39,45 +39,36 @@ function parseCSV(text) {
   
   lines.forEach(line => {
     line = line.trim();
-    if (!line) return;
+    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
     
     var parts = line.split(/[,，\t]/);
     if (parts.length < 2) return;
     
-    // Extract code - look for 6 digits
-    var codeMatch = line.match(/(\d{6})/);
-    if (!codeMatch) return;
-    var code = codeMatch[1];
+    // Format: 股票名称,股票代码,持股数量,成本价
+    var name = '', code = '', shares = 100, buyPrice = 10;
     
-    // Validate code
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    // Extract shares and price
-    var shares = 100;
-    var buyPrice = 10;
-    var name = code;
-    var sector = '';
-    
-    parts.forEach(p => {
+    parts.forEach((p, i) => {
       p = p.trim();
       var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      if (!isNaN(num)) {
-        if (num > 10 && num < 1000 && shares === 100) shares = num;
-        else if (num > 1 && num < 10000 && buyPrice === 10) buyPrice = num;
+      
+      if (i === 0) name = p;  // First col: name
+      else if (i === 1) {      // Second col: code
+        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
       }
-      // Check for sector keywords
-      if (p.includes('科技') || p.includes('新能源') || p.includes('医药') || p.includes('消费') || 
-          p.includes('金融') || p.includes('军工') || p.includes('半导体') || p.includes('AI')) {
-        sector = p;
-      }
+      else if (i === 2 && num > 10) shares = num;  // shares
+      else if (i === 3 && num > 0) buyPrice = num;  // price
     });
+    
+    // Validate code
+    if (!code) return;
+    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
     
     positions.push({
       code: code,
-      name: name,
-      shares: shares || 100,
-      buyPrice: buyPrice || 10,
-      sector: sector || '',
+      name: name || code,
+      shares: shares,
+      buyPrice: buyPrice,
+      sector: '',
       addTime: Date.now()
     });
   });
@@ -88,7 +79,7 @@ function parseCSV(text) {
 
 
 function downloadTemplate() {
-  var template = "股票代码,股票名称,持仓数量,买入价格,板块\n300449,汉邦高科,1000,15.50,科技\n600410,北京雅克,500,8.20,科技\n300499,科大智能,800,12.00,AI";
+  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
   var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
@@ -134,45 +125,36 @@ function parseCSV(text) {
   
   lines.forEach(line => {
     line = line.trim();
-    if (!line) return;
+    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
     
     var parts = line.split(/[,，\t]/);
     if (parts.length < 2) return;
     
-    // Extract code - look for 6 digits
-    var codeMatch = line.match(/(\d{6})/);
-    if (!codeMatch) return;
-    var code = codeMatch[1];
+    // Format: 股票名称,股票代码,持股数量,成本价
+    var name = '', code = '', shares = 100, buyPrice = 10;
     
-    // Validate code
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    // Extract shares and price
-    var shares = 100;
-    var buyPrice = 10;
-    var name = code;
-    var sector = '';
-    
-    parts.forEach(p => {
+    parts.forEach((p, i) => {
       p = p.trim();
       var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      if (!isNaN(num)) {
-        if (num > 10 && num < 1000 && shares === 100) shares = num;
-        else if (num > 1 && num < 10000 && buyPrice === 10) buyPrice = num;
+      
+      if (i === 0) name = p;  // First col: name
+      else if (i === 1) {      // Second col: code
+        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
       }
-      // Check for sector keywords
-      if (p.includes('科技') || p.includes('新能源') || p.includes('医药') || p.includes('消费') || 
-          p.includes('金融') || p.includes('军工') || p.includes('半导体') || p.includes('AI')) {
-        sector = p;
-      }
+      else if (i === 2 && num > 10) shares = num;  // shares
+      else if (i === 3 && num > 0) buyPrice = num;  // price
     });
+    
+    // Validate code
+    if (!code) return;
+    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
     
     positions.push({
       code: code,
-      name: name,
-      shares: shares || 100,
-      buyPrice: buyPrice || 10,
-      sector: sector || '',
+      name: name || code,
+      shares: shares,
+      buyPrice: buyPrice,
+      sector: '',
       addTime: Date.now()
     });
   });
@@ -183,7 +165,7 @@ function parseCSV(text) {
 
 
 function downloadTemplate() {
-  var template = "股票代码,股票名称,持仓数量,买入价格,板块\n300449,汉邦高科,1000,15.50,科技\n600410,北京雅克,500,8.20,科技\n300499,科大智能,800,12.00,AI";
+  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
   var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
@@ -616,7 +598,8 @@ async function renderPortfolio() {
     var tag = qa.rating === '强' ? 'tag-green' : qa.rating === '弱' ? 'tag-red' : 'tag-yellow';
     var alertHtml = qa.alerts.length > 0 ? '<div style="margin-top:8px;font-size:11px;color:#FF4757">⚠️ ' + qa.alerts.join(', ') + '</div>' : '';
     
-    return '<div class="sr-result"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(p.sector?'<span class="tag tag-blue">'+p.sector+'</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'股</div><div>买价:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(2):'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="tag '+tag+'">'+qa.rating+'推荐</span><span style="font-size:11px;color:#888">'+qa.summary+'</span></div>'+alertHtml+'</div>';
+    var profitAmt = (p.currentPrice - p.buyPrice) * p.shares;
+    return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'% ('+(profitAmt>=0?'+':'')+profitAmt.toFixed(0)+')</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持股:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(1):'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="tag '+tag+'">'+qa.rating+'</span><span style="font-size:11px;color:#888">'+qa.summary+'</span></div>'+alertHtml+'</div>';
   }).join('');
   document.getElementById('portfolioMonitor').innerHTML = html || '<div style="color:#666;text-align:center">暂无持仓</div>';
   // Calculate total investment
@@ -626,7 +609,8 @@ async function renderPortfolio() {
   });
   db.totalInvestment = totalInvest;
   document.getElementById('totalInvest').innerText = (totalInvest / 10000).toFixed(1);
-  document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
+  var avgProfit = db.portfolio.length ? totalProfit / db.portfolio.length : 0;
+  document.getElementById('profit').innerText = (avgProfit >= 0 ? '+' : '') + avgProfit.toFixed(1) + '%';
   document.getElementById('needAction').innerText = alerts.length;
   if (alerts.length > 0) {
     document.getElementById('alertCard').style.display = 'block';
@@ -883,45 +867,36 @@ function parseCSV(text) {
   
   lines.forEach(line => {
     line = line.trim();
-    if (!line) return;
+    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
     
     var parts = line.split(/[,，\t]/);
     if (parts.length < 2) return;
     
-    // Extract code - look for 6 digits
-    var codeMatch = line.match(/(\d{6})/);
-    if (!codeMatch) return;
-    var code = codeMatch[1];
+    // Format: 股票名称,股票代码,持股数量,成本价
+    var name = '', code = '', shares = 100, buyPrice = 10;
     
-    // Validate code
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    // Extract shares and price
-    var shares = 100;
-    var buyPrice = 10;
-    var name = code;
-    var sector = '';
-    
-    parts.forEach(p => {
+    parts.forEach((p, i) => {
       p = p.trim();
       var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      if (!isNaN(num)) {
-        if (num > 10 && num < 1000 && shares === 100) shares = num;
-        else if (num > 1 && num < 10000 && buyPrice === 10) buyPrice = num;
+      
+      if (i === 0) name = p;  // First col: name
+      else if (i === 1) {      // Second col: code
+        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
       }
-      // Check for sector keywords
-      if (p.includes('科技') || p.includes('新能源') || p.includes('医药') || p.includes('消费') || 
-          p.includes('金融') || p.includes('军工') || p.includes('半导体') || p.includes('AI')) {
-        sector = p;
-      }
+      else if (i === 2 && num > 10) shares = num;  // shares
+      else if (i === 3 && num > 0) buyPrice = num;  // price
     });
+    
+    // Validate code
+    if (!code) return;
+    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
     
     positions.push({
       code: code,
-      name: name,
-      shares: shares || 100,
-      buyPrice: buyPrice || 10,
-      sector: sector || '',
+      name: name || code,
+      shares: shares,
+      buyPrice: buyPrice,
+      sector: '',
       addTime: Date.now()
     });
   });
@@ -932,7 +907,7 @@ function parseCSV(text) {
 
 
 function downloadTemplate() {
-  var template = "股票代码,股票名称,持仓数量,买入价格,板块\n300449,汉邦高科,1000,15.50,科技\n600410,北京雅克,500,8.20,科技\n300499,科大智能,800,12.00,AI";
+  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
   var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
