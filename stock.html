@@ -411,6 +411,7 @@ function addManualPosition() {
   if (!code || !shares || !buyPrice) { alert('请填写完整信息'); return; }
   db.portfolio.push({code: code, name: name, shares: shares, buyPrice: buyPrice, sector: sector, addTime: Date.now()});
   saveData();
+      renderPortfolio();
   renderPortfolio();
   document.getElementById('manualCode').value = '';
   document.getElementById('manualName').value = '';
@@ -749,7 +750,6 @@ function handleCSVImport(input) {
       // If shares is small (<=100), make it bigger (probably wrong)
       if (shares <= 100) shares = shares * 100;
       
-      debug.push(code + ": " + shares + "股, " + price + "元");
       
       // Check if exists
       var exists = false;
@@ -771,6 +771,7 @@ function handleCSVImport(input) {
     
     if (added > 0) {
       saveData();
+      renderPortfolio();
       alert("成功导入 " + added + " 只股票！");
     } else {
       alert("未找到新股票\n格式：名称,代码,数量,价格");
@@ -783,6 +784,7 @@ function clearPortfolio() {
   if (confirm("确定清空所有持仓？")) {
     db.portfolio = [];
     saveData();
+      renderPortfolio();
     renderPortfolio();
     alert("已清空");
   }
@@ -792,6 +794,7 @@ function deleteStock(code) {
   if (confirm("确定删除 " + code + "？")) {
     db.portfolio = db.portfolio.filter(function(p){return p.code !== code;});
     saveData();
+      renderPortfolio();
     renderPortfolio();
   }
 }
@@ -807,6 +810,7 @@ function editStock(code) {
     p.shares = parseInt(newShares) || p.shares;
     p.buyPrice = parseFloat(newPrice) || p.buyPrice;
     saveData();
+      renderPortfolio();
     renderPortfolio();
   }
 }
