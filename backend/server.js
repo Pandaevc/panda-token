@@ -171,3 +171,65 @@ app.post('/api/settings', (req, res) => {
 });
 
 module.exports = app;
+
+// ============ Stock Portfolio API ============
+const STOCK_FILE = path.join(__dirname, 'stock-data.json');
+
+function loadStockData() {
+  try {
+    if (fs.existsSync(STOCK_FILE)) {
+      return JSON.parse(fs.readFileSync(STOCK_FILE, 'utf8'));
+    }
+  } catch(e) {}
+  return { portfolio: [], history: [] };
+}
+
+function saveStockData(data) {
+  fs.writeFileSync(STOCK_FILE, JSON.stringify(data, null, 2));
+}
+
+// Get portfolio
+app.get('/api/stock/portfolio', (req, res) => {
+  const data = loadStockData();
+  res.json(data.portfolio || []);
+});
+
+// Add stock
+app.post('/api/stock/portfolio', (req, res) => {
+  const data = loadStockData();
+  const item = req.body;
+  const exists = data.portfolio.some(p => p.code === item.code);
+  if (!exists) {
+    item.addTime = new Date().toISOString();
+    data.portfolio.push(item);
+    saveStockData(data);
+  }
+  res.json({ success: true });
+});
+
+// Delete stock
+app.delete('/api/stock/portfolio/:code', (req, res) => {
+  const data = loadStockData();
+  data.portfolio = data.portfolio.filter(p => p.code !== req.params.code);
+  saveStockData(data);
+  res.json({ success: true });
+});
+
+// Update stock
+app.put('/api/stock/portfolio/:code', (req, res) => {
+  const data = loadStockData();
+  const idx = data.portfolio.findIndex(p => p.code === req.params.code);
+  if (idx >= 0) {
+    data.portfolio[idx] = { ...data.portfolio[idx], ...req.body };
+    saveStockData(data);
+  }
+  res.json({ success: true });
+});
+
+// Clear all
+app.delete('/api/stock/portfolio', (req, res) => {
+  saveStockData({ portfolio: [], history: [] });
+  res.json({ success: true });
+});
+
+console.log('✅ Stock API loaded');
