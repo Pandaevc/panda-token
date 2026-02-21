@@ -436,11 +436,12 @@ async function renderPortfolio() {
       p.change = stockCache[p.code].change;
     }
   }
-  console.log('stockCache:', stockCache);
+  console.log('stockCache after fetch:', stockCache);
   var totalProfit = 0;
   var alerts = [];
   var html = db.portfolio.map(function(p) {
     var s = stockCache[p.code];
+    console.log('Mapping:', p.code, 's:', s, 'currentPrice:', p.currentPrice);
     if (!s) return '';
     var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
     totalProfit += profit;
