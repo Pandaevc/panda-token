@@ -424,7 +424,6 @@ function handleScreenshot(input) {
 }
 
 async function renderPortfolio() {
-  alert("db: " + JSON.stringify(db));
   for (var p of db.portfolio) {
     if (!stockCache[p.code]) {
       var s = await getStockWithHistory(p.code);
