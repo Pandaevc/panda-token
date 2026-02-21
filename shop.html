@@ -4,71 +4,69 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>熊猫智能电子烟 - PandaToken</title>
+<script src="https://cdn.jsdelivr.net/npm/tronweb@4.3.0/dist/TronWeb.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
 body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal.show{display:flex}
-.modal-box{background:var(--surface);border-radius:16px;padding:28px;max-width:360px;width:90%;text-align:center;position:relative}
-.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;background:none;border:none;color:#666;font-size:24px;cursor:pointer}
-.modal-icon{font-size:48px;margin-bottom:16px}
-.modal-title{font-size:20px;font-weight:700;margin-bottom:12px}
-.modal-msg{font-size:14px;color:#AAA;margin-bottom:20px;line-height:1.6;white-space:pre-line}
-.modal-btn{padding:12px 32px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer}
-.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%)}
-header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
-.c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
-.logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700}
-.logo-icon{width:38px;height:38px;background:var(--g);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.modal-box{background:var(--surface);border-radius:20px;padding:32px;max-width:420px;width:90%;text-align:center;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;background:none;border:none;color:#666;font-size:28px;cursor:pointer}
+.modal-icon{font-size:56px;margin-bottom:16px}
+.modal-title{font-size:22px;font-weight:700;margin-bottom:16px}
+.modal-msg{font-size:14px;color:#AAA;margin-bottom:24px;line-height:1.6;white-space:pre-line}
+.modal-btn{padding:14px 36px;background:var(--g);border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer;width:100%;margin-top:10px}
+.modal-btn.secondary{background:#333}
+.social-btns{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;border-radius:12px;border:none;font-weight:600;cursor:pointer;width:100%}
+.social-btn.google{background:#fff;color:#333}
+.social-btn.facebook{background:#1877F2;color:#fff}
+.social-btn.whatsapp{background:#25D366;color:#fff}
+.social-btn.apple{background:#000;color:#fff}
+.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.12),transparent 50%),radial-gradient(circle at 70% 80%,rgba(255,215,0,0.08),transparent 50%)}
+header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b);z-index:200}
+.c{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700}
+.logo-icon{width:42px;height:42px;background:var(--g);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
 .logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-nav{display:flex;gap:20px;margin:0 auto}
-nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:14px}
-nav a:hover{color:#fff}
-.header-right{display:flex;align-items:center;gap:12px;margin-left:auto}
-.btn{padding:8px 18px;border-radius:20px;font-weight:600;font-size:13px;cursor:pointer;border:none}
-.btn-primary{background:var(--g);color:#fff}
-.btn-outline{background:0;border:1px solid var(--primary);color:var(--primary)}
+nav{display:flex;gap:28px;margin:0 auto}
+nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:15px;transition:color 0.3s}
+nav a:hover,nav a.active{color:#fff}
+.header-right{display:flex;align-items:center;gap:16px;margin-left:auto}
+.cart-btn{position:relative;background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.cart-badge{position:absolute;top:-8px;right:-8px;background:var(--primary);color:#fff;font-size:11px;padding:2px 6px;border-radius:10px}
+.user-btn{width:40px;height:40px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
 .hero{padding:140px 24px 60px;text-align:center}
-.badge{display:inline-block;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:10px 24px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
-h1{font-size:42px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.subtitle{font-size:16px;color:#B0B0B0;margin:0 auto 40px}
-.product{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
-.ecig{width:100%;max-width:280px;height:380px;background:linear-gradient(180deg,#1a1a2e,#0f0f1a);border-radius:28px;position:relative;margin:0 auto;box-shadow:0 30px 60px rgba(0,0,0,0.5)}
-.screen{position:absolute;top:28px;left:18px;right:18px;height:160px;background:#000;border-radius:14px}
-.screen-content{display:flex;align-items:center;justify-content:center;font-size:42px;gap:6px}
-.led{position:absolute;bottom:24px;left:18px;right:18px;height:24px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:8px;animation:led 2s infinite}
-@keyframes led{0%,100%{opacity:1}50%{opacity:0.6}}
-.product-info h2{font-size:36px;margin-bottom:14px}
-.tag{display:inline-block;background:var(--g);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;margin-bottom:14px}
-.desc{color:#AAA;font-size:16px;line-height:1.7;margin-bottom:20px}
-.features{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
-.feature{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:10px 16px;border-radius:10px;font-size:13px}
-.buy-card{background:var(--surface);border:var(--b);border-radius:20px;padding:28px}
-.price{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.price .c{font-size:42px;font-weight:700;color:var(--primary)}
-.price .o{font-size:18px;color:#666;text-decoration:line-through}
-.token{background:rgba(255,215,0,0.1);color:var(--accent);padding:14px;border-radius:12px;margin:18px 0;font-weight:600}
-.referral{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);padding:14px;border-radius:12px;margin:18px 0}
-.buy-btn{width:100%;padding:18px;background:var(--g);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
-.pay{max-width:800px;margin:0 auto;padding:60px 24px}
-.pay h2{text-align:center;font-size:32px;margin-bottom:40px}
-.mets{display:flex;gap:12px;margin-bottom:28px}
-.met{flex:1;padding:16px;text-align:center;background:var(--surface);border:2px solid rgba(255,255,255,0.08);border-radius:12px;cursor:pointer;font-weight:600}
-.met.active{border-color:var(--primary);background:rgba(255,107,53,0.1)}
-.chk{background:var(--surface);border-radius:20px;padding:32px}
-.chk h3{font-size:20px;margin-bottom:24px}
-.form{margin-bottom:20px}
-.form label{display:block;margin-bottom:8px;font-weight:500;font-size:14px}
-.form input,.form select{width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff}
-.summ{background:var(--dark);padding:20px;border-radius:12px;margin:20px 0}
-.summ .r{display:flex;justify-content:space-between;padding:10px 0;border-bottom:var(--b)}
-.summ .r:last-child{border:none}
-.summ .r.t{font-size:20px;font-weight:700;color:var(--primary);padding-top:14px}
-.btn-chk{width:100%;padding:18px;background:var(--g);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+.badge{display:inline-block;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.3);padding:12px 28px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
+h1{font-size:52px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.subtitle{font-size:18px;color:#B0B0B0;margin:0 auto 50px}
+.product-section{padding:60px 24px;max-width:1400px;margin:0 auto}
+.product-section h2{text-align:center;font-size:32px;margin-bottom:40px}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:28px}
+.product-card{background:var(--surface);border-radius:20px;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s}
+.product-card:hover{transform:translateY(-8px);box-shadow:0 20px 40px rgba(0,0,0,0.4)}
+.ecig-3d{height:280px;background:linear-gradient(180deg,#1a1a2e,#0d0d1a);position:relative;display:flex;align-items:center;justify-content:center;perspective:800px}
+.ecig-body{width:100px;height:240px;background:linear-gradient(135deg,#2a2a3e,#1a1a2e);border-radius:50px 50px 40px 40px;position:relative;transform:rotateY(-5deg);box-shadow:-20px 10px 30px rgba(0,0,0,0.5)}
+.ecig-screen{position:absolute;top:25px;left:12px;right:12px;height:100px;background:#000;border-radius:16px;overflow:hidden}
+.slot{display:flex;align-items:center;justify-content:center;font-size:28px;gap:4px;animation:slotSpin 0.1s infinite}
+@keyframes slotSpin{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.ecig-led{position:absolute;bottom:30px;left:15px;right:15px;height:20px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:10px;animation:ledPulse 2s infinite}
+@keyframes ledPulse{0%,100%{opacity:1;box-shadow:0 0 20px var(--primary)}50%{opacity:0.6;box-shadow:0 0 10px var(--primary)}}
+.ecig-tip{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:30px;height:40px;background:linear-gradient(180deg,#444,#222);border-radius:8px 8px 0 0}
+.product-info{padding:24px}
+.product-info h3{font-size:18px;margin-bottom:8px}
+.product-info .tag{display:inline-block;background:var(--g);color:#fff;padding:4px 12px;border-radius:20px;font-size:11px;margin-bottom:12px}
+.product-info .desc{color:#888;font-size:13px;line-height:1.6;margin-bottom:16px}
+.specs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.spec{background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:8px;font-size:12px}
+.price-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+.price{font-size:28px;font-weight:700;color:var(--primary)}
+.price .original{font-size:16px;color:#666;text-decoration:line-through;margin-left:8px}
+.buy-btn{padding:14px 28px;background:var(--g);border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer}
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
-@media(max-width:768px){.product{grid-template-columns:1fr}}
+@media(max-width:768px){nav{display:none}h1{font-size:36px}.products{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -78,7 +76,31 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="modal-icon" id="modalIcon">⏳</div>
 <div class="modal-title" id="modalTitle">处理中</div>
 <div class="modal-msg" id="modalMsg">请稍候...</div>
-<button class="modal-btn" onclick="closeModal()">确定</button>
+<div id="modalBtns"><button class="modal-btn" onclick="closeModal()">确定</button></div>
+</div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal" id="loginModal">
+<div class="modal-box">
+<button class="modal-close" onclick="closeLogin()">×</button>
+<div class="modal-icon">🔐</div>
+<div class="modal-title">登录 / 注册</div>
+<div class="modal-msg">选择登录方式</div>
+<div class="social-btns">
+<button class="social-btn google" onclick="socialLogin('google')">
+<img src="https://www.google.com/favicon.ico" width="20"> Google 账号登录
+</button>
+<button class="social-btn whatsapp" onclick="socialLogin('whatsapp')">
+📱 WhatsApp 登录
+</button>
+<button class="social-btn apple" onclick="socialLogin('apple')">
+🍎 Apple ID 登录
+</button>
+<button class="social-btn facebook" onclick="socialLogin('facebook')">
+📘 Facebook 登录
+</button>
+</div>
 </div>
 </div>
 
@@ -87,84 +109,72 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="c">
 <div class="logo"><div class="logo-icon">🐼</div><div class="logo-text">PandaToken</div></div>
 <nav>
-<a href="#product">产品</a>
-<a href="#pay">购买</a>
-<a href="index.html">DApp</a>
+<a href="#home" class="active">首页</a>
+<a href="#products">产品</a>
+<a href="#about">关于</a>
 </nav>
 <div class="header-right">
-<a href="index.html" class="btn btn-outline">DApp</a>
+<button class="cart-btn" onclick="showCart()">🛒<span class="cart-badge" id="cartCount">0</span></button>
+<button class="user-btn" id="userBtn" onclick="toggleUserMenu()">👤</button>
 </div>
 </div>
 </header>
 
-<section class="hero">
+<section class="hero" id="home">
 <div class="badge">🎰 全球首创</div>
 <h1>熊猫智能电子烟 Pro</h1>
-<p class="subtitle">全球首款带智能老虎机的电子烟</p>
+<p class="subtitle">全球首款带智能老虎机的电子烟 · 吸烟即挖矿</p>
 </section>
 
-<section class="product" id="product">
-<div style="text-align:center">
-<div class="ecig">
-<div class="screen"><div class="screen-content" id="slotDisplay">🍒 🍒 🍒</div></div>
-<div class="led"></div>
-</div>
-</div>
-<div class="product-info">
-<span class="tag">2026 新品</span>
-<h2>熊猫智能电子烟 Pro</h2>
-<p class="desc">全球首款带智能屏幕的电子烟！每次吸烟时老虎机自动转动，有机会获得PANDA代币密钥！</p>
-<div class="features">
-<span class="feature">🎰 智能老虎机</span>
-<span class="feature">🔊 中奖提示</span>
-<span class="feature">🔑 3000代币</span>
-<span class="feature">🔋 超长续航</span>
-</div>
-<div class="buy-card">
-<div class="price"><span class="c">$70</span><span class="o">$99</span></div>
-<div class="token">🎰 包含 3000 PANDA 代币密钥</div>
-<div class="referral">
-<div style="font-size:13px;color:var(--success)">👥 推荐奖励</div>
-<div style="font-size:20px;font-weight:700;color:var(--accent)">邀请1人购买 +500 PANDA</div>
-</div>
-<button class="buy-btn" onclick="scrollToPay()">🛒 立即购买</button>
-</div>
-</div>
-</section>
-
-<section class="pay" id="pay">
-<h2>💳 购买支付</h2>
-<div class="mets">
-<div class="met active" onclick="selectPay('usdt')">🔷 USDT</div>
-<div class="met" onclick="selectPay('visa')">💳 Visa</div>
-<div class="met" onclick="selectPay('mc')">💳 Mastercard</div>
-</div>
-<div class="chk">
-<h3>📝 订单信息</h3>
-<div class="form"><label>收货人 *</label><input type="text" id="name" placeholder="姓名"></div>
-<div class="form"><label>电话 *</label><input type="tel" id="phone" placeholder="电话"></div>
-<div class="form"><label>国家 *</label><select id="country"><option value="">选择国家</option><option value="CN">中国</option><option value="US">美国</option><option value="UK">英国</option><option value="DE">德国</option><option value="JP">日本</option></select></div>
-<div class="form"><label>地址 *</label><input type="text" id="address" placeholder="详细地址"></div>
-<div class="form"><label>USDT地址 (TRC20)</label><select id="usdtAddr"><option value="TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E">地址1 (推荐)</option></select></div>
-<div class="form"><label>交易哈希 *</label><input type="text" id="txHash" placeholder="USDT转账后的哈希"></div>
-<div class="form"><label>领代币钱包地址 *</label><input type="text" id="walletAddr" placeholder="TRC20钱包地址"></div>
-<div class="summ">
-<div class="r"><span>熊猫智能电子烟 Pro</span><span>$70</span></div>
-<div class="r"><span>代币密钥</span><span>3000 PANDA</span></div>
-<div class="r"><span>推荐奖励</span><span>+500 PANDA</span></div>
-<div class="r t"><span>总计</span><span>$70 USD</span></div>
-</div>
-<button class="btn-chk" onclick="submitOrder()">✅ 确认订单</button</div>
+<section class="product-section" id="products">
+<h2>🔥 热销产品</h2>
+<div class="products" id="productList">
+<!-- Products will be rendered by JS -->
 </div>
 </section>
 
 <footer><p>© 2026 PandaToken | All Rights Reserved</p></footer>
 
 <script>
-const API_URL = 'https://panda-token-d6bckkwli-pandaevc.vercel.app';
+// Product Data
+var products = [
+{
+id: 1,
+name: "熊猫智能电子烟 Pro",
+tag: "2026新品",
+desc: "全球首款带智能屏幕的电子烟，吸烟自动触发老虎机",
+price: 70,
+originalPrice: 99,
+pandaTokens: 3000,
+specs: ["🎰 智能老虎机", "🔊 中奖提示", "🔋 5000口", "🔑 3000代币"],
+image: "pro"
+},
+{
+id: 2,
+name: "熊猫智能电子烟 Lite",
+tag: "性价比",
+desc: "简约版智能电子烟，同样享受代币奖励",
+price: 49,
+originalPrice: 69,
+pandaTokens: 1500,
+specs: ["🎰 智能屏幕", "🔋 3000口", "🔑 1500代币"],
+image: "lite"
+},
+{
+id: 3,
+name: "熊猫电子烟套装",
+tag: "超值套装",
+desc: "Pro主机 + 3颗烟弹 + 代币大礼包",
+price: 129,
+originalPrice: 199,
+pandaTokens: 5000,
+specs: ["🎰 智能老虎机", "🫁 3颗烟弹", "🔑 5000代币",("+500推荐")],
+image: "bundle"
+}
+];
 
-var payMethod = 'usdt';
-var referral = '';
+var cart = [];
+var currentUser = null;
 
 function $(id) {return document.getElementById(id);}
 
@@ -179,79 +189,120 @@ function closeModal() {
   $('modal').classList.remove('show');
 }
 
-function selectPay(method) {
-  payMethod = method;
-  document.querySelectorAll('.met').forEach(function(m) { m.classList.remove('active'); });
-  event.target.classList.add('active');
+function showLogin() {
+  $('loginModal').classList.add('show');
 }
 
-function scrollToPay() {
-  $('pay').scrollIntoView({behavior: 'smooth'});
+function closeLogin() {
+  $('loginModal').classList.remove('show');
 }
 
-var urlParams = new URLSearchParams(window.location.search);
-referral = urlParams.get('ref') || '';
-
-if (referral) {
-  showModal('👥 推荐注册', '推荐人: ' + referral, '🎉');
+function socialLogin(provider) {
+  var email = prompt("请输入您的邮箱地址:");
+  if (email) {
+    // Simulate login
+    currentUser = {provider: provider, email: email, name: email.split('@')[0]};
+    localStorage.setItem('panda_user', JSON.stringify(currentUser));
+    closeLogin();
+    showModal('✅ 登录成功', '欢迎 ' + currentUser.name + '!', '🎉');
+    updateUserUI();
+  }
 }
 
-async function submitOrder() {
-  var name = $('name').value.trim();
-  var phone = $('phone').value.trim();
-  var country = $('country').value;
-  var address = $('address').value.trim();
-  var txHash = $('txHash').value.trim();
-  var wallet = $('walletAddr').value.trim();
-  
-  if (!name || !phone || !country || !address) {
-    showModal('⚠️ 填写不完整', '请填写完整收货信息', '⚠️');
-    return;
+function toggleUserMenu() {
+  if (!currentUser) {
+    showLogin();
+  } else {
+    var menu = document.createElement('div');
+    menu.style.cssText = 'position:fixed;top:70px;right:24px;background:var(--surface);border-radius:12px;padding:16px;z-index:300';
+    menu.innerHTML = '<div style="margin-bottom:12px">' + currentUser.name + '</div>' +
+      '<a href="shop-admin.html" style="display:block;padding:8px 0;color:var(--accent)">管理后台</a>' +
+      '<button onclick="logout()" style="background:none;border:none;color:#ff4757;cursor:pointer">退出登录</button>';
+    document.body.appendChild(menu);
+    setTimeout(() => menu.remove(), 5000);
   }
-  if (payMethod === 'usdt' && !txHash) {
-    showModal('⚠️ 缺少信息', '请填写USDT交易哈希', '⚠️');
-    return;
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('panda_user');
+  showModal('👋 已退出', '欢迎下次再来', '👋');
+  updateUserUI();
+}
+
+function updateUserUI() {
+  if (currentUser) {
+    $('userBtn').innerText = currentUser.name[0].toUpperCase();
   }
-  if (!wallet) {
-    showModal('⚠️ 缺少信息', '请填写领币钱包地址', '⚠️');
-    return;
-  }
+}
+
+function renderProducts() {
+  var list = $('productList');
+  list.innerHTML = products.map(function(p) {
+    return '<div class="product-card">' +
+      '<div class="ecig-3d">' +
+        '<div class="ecig-body">' +
+          '<div class="ecig-tip"></div>' +
+          '<div class="ecig-screen"><div class="slot" id="slot' + p.id + '">🍒 🍋 🍇</div></div>' +
+          '<div class="ecig-led"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="product-info">' +
+        '<span class="tag">' + p.tag + '</span>' +
+        '<h3>' + p.name + '</h3>' +
+        '<p class="desc">' + p.desc + '</p>' +
+        '<div class="specs">' + p.specs.map(function(s) { return '<span class="spec">' + s + '</span>'; }).join('') + '</div>' +
+        '<div class="price-row">' +
+          '<div class="price">$' + p.price + '<span class="original">$' + p.originalPrice + '</span></div>' +
+          '<button class="buy-btn" onclick="addToCart(' + p.id + ')">🛒 购买</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
   
-  showModal('⏳ 提交订单', '正在提交...', '⏳');
-  
-  try {
-    var response = await fetch(API_URL + '/api/orders', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        name: name,
-        phone: phone,
-        country: country,
-        address: address,
-        wallet: wallet,
-        txHash: txHash,
-        referral: referral
-      })
+  // Animate slots
+  setInterval(function() {
+    products.forEach(function(p) {
+      var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
+      var s = symbols[Math.floor(Math.random() * symbols.length)];
+      var el = $('slot' + p.id);
+      if (el) el.innerHTML = s + ' ' + s + ' ' + s;
     });
-    
-    var result = await response.json();
-    
-    if (result.success) {
-      var refMsg = referral ? '\n推荐人: ' + referral + '\n推荐奖励: 500 PANDA' : '\n(无推荐人)';
-      showModal('🎉 订单提交成功!', '订单号: ' + result.order.id + '\n密钥: ' + result.order.key + refMsg, '✅');
-    } else {
-      showModal('❌ 提交失败', result.error || '请重试', '❌');
-    }
-  } catch (e) {
-    showModal('❌ 网络错误', '请检查网络后重试', '❌');
-  }
+  }, 200);
 }
 
-setInterval(function() {
-  var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
-  var s = symbols[Math.floor(Math.random() * symbols.length)];
-  $('slotDisplay').innerHTML = s + ' ' + s + ' ' + s;
-}, 2000);
+function addToCart(productId) {
+  if (!currentUser) {
+    showLogin();
+    return;
+  }
+  
+  var product = products.find(function(p) { return p.id === productId; });
+  cart.push(product);
+  $('cartCount').innerText = cart.length;
+  showModal('✅ 已加入购物车', product.name + '\n价格: $' + product.price, '🛒');
+}
+
+function showCart() {
+  if (cart.length === 0) {
+    showModal('🛒 购物车', '购物车是空的', '🛒');
+    return;
+  }
+  
+  var total = cart.reduce(function(sum, p) { return sum + p.price; }, 0);
+  var list = cart.map(function(p, i) { return (i+1) + '. ' + p.name + ' - $' + p.price; }).join('\n');
+  
+  showModal('🛒 购物车\n\n' + list + '\n\n总计: $' + total + '\n\n是否结算?', '🎉');
+}
+
+// Load user
+var savedUser = localStorage.getItem('panda_user');
+if (savedUser) {
+  currentUser = JSON.parse(savedUser);
+  updateUserUI();
+}
+
+renderProducts();
 </script>
 </body>
 </html>
