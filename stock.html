@@ -424,7 +424,7 @@ function handleScreenshot(input) {
 }
 
 async function renderPortfolio() {
-  document.getElementById('portfolioCount').innerText = db.portfolio.length;
+  alert("db: " + JSON.stringify(db));
   for (var p of db.portfolio) {
     if (!stockCache[p.code]) {
       var s = await getStockWithHistory(p.code);
