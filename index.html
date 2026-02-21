@@ -21,7 +21,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .card{background:#1A1A1A;border-radius:12px;padding:20px;margin-bottom:20px}
 .card h3{margin-bottom:16px}
 .stock-code{color:#FF6B35;font-weight:600;cursor:pointer}
-.stock-code:hover{text-decoration:underline}
 .up{color:#FF4757}
 .down{color:#2ED573}
 .btn{padding:10px 20px;background:#FF6B35;border:none;border-radius:8px;color:#FFF;cursor:pointer}
@@ -40,12 +39,9 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin-right:4px}
 .tag-green{background:rgba(46,213,115,0.2);color:#2ED573}
 .tag-red{background:rgba(255,71,87,0.2);color:#FF4757}
-.tag-yellow{background:rgba(255,215,0,0.2);color:#FFD700}
 .tag-blue{background:rgba(0,150,255,0.2);color:#0096FF}
-.sector-tag{display:inline-block;padding:6px 12px;background:#FF6B35;border-radius:20px;font-size:13px;margin:4px;cursor:pointer}
-.sector-tag:hover{background:#FF8C5A}
 .strategy-box{background:linear-gradient(135deg,rgba(255,107,53,0.1),rgba(255,215,0,0.1));border:1px solid rgba(255,107,53,0.3);border-radius:12px;padding:20px;margin-bottom:20px}
-.strategy-box h3{color:#FF6B35;margin-bottom:12px}
+.sector-tag{display:inline-block;padding:6px 12px;background:#FF6B35;border-radius:20px;font-size:13px;margin:4px;cursor:pointer}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal.show{display:flex}
 .modal-content{background:#1A1A1A;padding:24px;border-radius:16px;max-width:90%;max-height:90%;overflow:auto}
@@ -72,14 +68,12 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="card">
 <h3>📝 每日精选选股条件</h3>
 <div class="strategy-box">
-<h4>🎯 核心策略（你的条件 + 我学到的）</h4>
+<h4>🎯 核心策略（强者恒强）</h4>
 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
 <span class="tag tag-green">去掉ST股</span>
 <span class="tag tag-green">市值>50亿</span>
-<span class="tag tag-green">10日涨停</span>
-<span class="tag tag-green">CCI上移</span>
-<span class="tag tag-green">资金净流入</span>
-<span class="tag tag-yellow">量价齐升</span>
+<span class="tag tag-green">涨幅>3%</span>
+<span class="tag tag-green">换手率>3%</span>
 </div>
 </div>
 <button class="btn" onclick="generatePicks()">🔄 重新生成精选</button>
@@ -91,90 +85,45 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
 </div>
 <div class="card">
-<h3>🔥 今日精选股票</h3>
+<h3>🔥 今日精选股票 <span id="picksTime" style="color:#666;font-size:12px;font-weight:normal"></span></h3>
 <div id="picksList"></div>
 </div>
 <div class="card"><h3>⚠️ 持仓提醒</h3><div id="alertList"></div></div>
 </div>
 
-<!-- Strategy Page -->
+<!-- Strategy -->
 <div id="page-strategy" style="display:none">
 <h2 style="margin-bottom:20px">📖 选股策略说明</h2>
-
 <div class="strategy-box">
-<h3>🎯 2025年回测验证的策略</h3>
-<p style="color:#888;margin-bottom:16px">基于2025年涨幅前50股票的数据分析</p>
-
+<h3>🏆 强者恒强策略</h3>
+<p style="color:#888;margin:12px 0">基于2025年回测数据优化</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
 <div style="background:#0D0D0D;padding:16px;border-radius:8px">
-<h4 style="color:#2ED573">📈 激进策略</h4>
+<h4 style="color:#2ED573">推荐条件</h4>
 <ul style="color:#888;margin-top:8px;padding-left:20px;line-height:2">
-<li>60日涨幅 > 30%</li>
-<li>30日涨幅 > 10%</li>
-<li>主力资金净流入</li>
+<li>去掉ST股</li>
 <li>市值 50-500亿</li>
+<li>涨幅 > 3%</li>
+<li>换手率 > 3%</li>
 </ul>
 </div>
 <div style="background:#0D0D0D;padding:16px;border-radius:8px">
-<h4 style="color:#FFD700">🛡️ 稳健策略</h4>
+<h4 style="color:#FFD700">稳健条件</h4>
 <ul style="color:#888;margin-top:8px;padding-left:20px;line-height:2">
-<li>10日涨停过</li>
+<li>去掉ST股</li>
+<li>市值 > 50亿</li>
 <li>涨幅 > 0</li>
 <li>资金净流入</li>
-<li>市值 > 50亿</li>
 </ul>
 </div>
 </div>
 </div>
-
 <div class="card">
-<h3>📚 我学到的指标</h3>
-
-<div style="margin-bottom:20px">
-<h4 style="color:#FF6B35;margin-bottom:8px">1. CCI指标 (顺势指标)</h4>
-<div style="background:#0D0D0D;padding:12px;border-radius:8px;color:#888;font-size:13px;line-height:1.8">
-CCI > 100: 超买，可能回调<br>
-CCI < -100: 超卖，可能反弹<br>
-<b>CCI上移: 上涨趋势确认</b>
-</div>
-</div>
-
-<div style="margin-bottom:20px">
-<h4 style="color:#FF6B35;margin-bottom:8px">2. 筹码集中度 ⚠️ 需要付费数据</h4>
-<div style="background:#0D0D0D;padding:12px;border-radius:8px;color:#888;font-size:13px;line-height:1.8">
-90%筹码集中度 11-15%: 高度集中<br>
-70%筹码集中度 4-10%: 中等集中<br>
-<b>集中度上移: 主力建仓信号</b><br>
-<span style="color:#FF4757">⚠️ 免费数据暂无，需Tushare 500积分</span>
-</div>
-</div>
-
-<div style="margin-bottom:20px">
-<h4 style="color:#FF6B35;margin-bottom:8px">3. 资金流向</h4>
-<div style="background:#0D0D0D;padding:12px;border-radius:8px;color:#888;font-size:13px;line-height:1.8">
-主力净流入 = 超大单 + 大单买入<br>
-<b>连续3天净流入: 强烈买入信号</b>
-</div>
-</div>
-
-<div style="margin-bottom:20px">
-<h4 style="color:#FF6B35;margin-bottom:8px">4. 量价关系 📊</h4>
-<div style="background:#0D0D0D;padding:12px;border-radius:8px;color:#888;font-size:13px;line-height:1.8">
-量在价先：成交量放大往往是价格启动的前兆<br>
-<b>量价齐升: 放量上涨 = 健康的上涨趋势</b><br>
-缩量下跌：可能见底信号
-</div>
-</div>
-
-<div>
-<h4 style="color:#FF6B35;margin-bottom:8px">5. 热点板块 🔥 最重要！</h4>
-<div style="background:#0D0D0D;padding:12px;border-radius:8px;color:#888;font-size:13px;line-height:1.8">
-技术指标只有在<b>对的板块</b>才能发挥作用！<br>
-<b>选股顺序：</b><br>
-1. 先看热点板块（政策/业绩/概念）<br>
-2. 再从板块中选技术形态好的股票<br>
-3. 最后验证基本面
-</div>
+<h3>⚠️ 关于筹码集中度</h3>
+<div style="background:#0D0D0D;padding:16px;border-radius:8px;color:#888;line-height:2">
+<p>筹码集中度(90%/70%)需要付费数据。</p>
+<p>当前用<strong style="color:#FF6B35">资金净流入</strong>作为替代指标。</p>
+<p>如需开通，请联系Tushare客服。</p>
 </div>
 </div>
 </div>
@@ -182,33 +131,26 @@ CCI < -100: 超卖，可能反弹<br>
 <!-- Screener -->
 <div id="page-screener" style="display:none">
 <h2 style="margin-bottom:20px">🔍 智能选股</h2>
-
 <div class="card">
 <h3>🎯 选择筛选条件</h3>
 <div class="criteria-box">
 <div style="margin-bottom:16px"><strong style="color:#FF6B35">基础条件</strong></div>
 <div class="criteria-row">
 <div class="criteria-item active" onclick="toggleCriteria(this,'noST')" data-name="noST"><div class="name">去掉ST股</div><div class="value">过滤风险</div></div>
-<div class="criteria-item active" onclick="toggleCriteria(this,'market50')" data-name="market50"><div class="name">市值>50亿</div><div class="value">大盘股</div></div>
-<div class="criteria-item active" onclick="toggleCriteria(this,'limitUp10')" data-name="limitUp10"><div class="name">10日涨停</div><div class="value">近期强势</div></div>
+<div class="criteria-item" onclick="toggleCriteria(this,'market50')" data-name="market50"><div class="name">市值>50亿</div><div class="value">大盘股</div></div>
 </div>
 
 <div style="margin:16px 0"><strong style="color:#FF6B35">技术指标</strong></div>
 <div class="criteria-row">
 <div class="criteria-item active" onclick="toggleCriteria(this,'rise')" data-name="rise"><div class="name">涨幅>0</div><div class="value">上涨</div></div>
-<div class="criteria-item active" onclick="toggleCriteria(this,'fundIn')" data-name="fundIn"><div class="name">资金净流入</div><div class="value">主力买入</div></div>
-<div class="criteria-item active" onclick="toggleCriteria(this,'cciUp')" data-name="cciUp"><div class="name">CCI上移</div><div class="value">趋势上涨</div></div>
+<div class="criteria-item" onclick="toggleCriteria(this,'strong')" data-name="strong"><div class="name">涨幅>3%</div><div class="value">强势</div></div>
+<div class="criteria-item" onclick="toggleCriteria(this,'fundIn')" data-name="fundIn"><div class="name">资金净流入</div><div class="value">主力买入</div></div>
 </div>
 
-<div style="margin:16px 0"><strong style="color:#FF6B35">量价关系</strong></div>
+<div style="margin:16px 0"><strong style="color:#FF6B35">活跃度</strong></div>
 <div class="criteria-row">
-<div class="criteria-item" onclick="toggleCriteria(this,'volumeUp')" data-name="volumeUp"><div class="name">放量上涨</div><div class="value">量价齐升</div></div>
-</div>
-
-<div style="margin:16px 0"><strong style="color:#FF6B35">激进条件</strong></div>
-<div class="criteria-row">
-<div class="criteria-item" onclick="toggleCriteria(this,'strong')" data-name="strong"><div class="name">涨幅>5%</div><div class="value">强势股</div></div>
-<div class="criteria-item" onclick="toggleCriteria(this,'limitUp')" data-name="limitUp"><div class="name">今日涨停</div><div class="value">涨停</div></div>
+<div class="criteria-item" onclick="toggleCriteria(this,'turnover')" data-name="turnover"><div class="name">换手率>3%</div><div class="value">交易活跃</div></div>
+<div class="criteria-item" onclick="toggleCriteria(this,'limitUp')" data-name="limitUp"><div class="name">涨停</div><div class="value">涨停股</div></div>
 </div>
 </div>
 <button class="btn" onclick="runScreener()">🔍 开始筛选</button>
@@ -223,15 +165,10 @@ CCI < -100: 超卖，可能反弹<br>
 <!-- Hot Sectors -->
 <div id="page-sectors" style="display:none">
 <h2 style="margin-bottom:20px">🔥 热点板块</h2>
-
 <div class="card">
-<h3>📰 今日热点板块</h3>
-<div id="sectorList" class="loading">加载中...</div>
-</div>
-
-<div class="card">
-<h3>📈 板块内强势股</h3>
-<div id="sectorStocks"></div>
+<h3>📰 今日热点</h3>
+<div id="sectorList" class="loading">点击下方按钮加载...</div>
+<button class="btn" onclick="loadSectors()" style="margin-top:16px">🔄 加载热点板块</button>
 </div>
 </div>
 
@@ -261,7 +198,7 @@ CCI < -100: 超卖，可能反弹<br>
 <div class="modal-content" style="width:800px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
 <h3 id="modalStockName">股票分析</h3>
-<button class="btn" onclick="document.getElementById('klineModal').style.display='✕ 关闭none'"></button>
+<button class="btn" onclick="document.getElementById('klineModal').style.display='none'">✕ 关闭</button>
 </div>
 <div id="modalKline" style="height:400px"></div>
 <div id="modalAnalysis"></div>
@@ -269,18 +206,7 @@ CCI < -100: 超卖，可能反弹<br>
 </div>
 
 <script>
-// 选股条件
-var criteriaConfig = {
-  noST: {active: true, name: '去掉ST股'},
-  market50: {active: true, name: '市值>50亿'},
-  limitUp10: {active: true, name: '10日涨停'},
-  rise: {active: true, name: '涨幅>0'},
-  fundIn: {active: true, name: '资金净流入'},
-  cciUp: {active: true, name: 'CCI上移'},
-  volumeUp: {active: false, name: '放量上涨'},
-  strong: {active: false, name: '涨幅>5%'},
-  limitUp: {active: false, name: '今日涨停'}
-};
+var criteriaConfig = {noST: {active: true, name: '去掉ST股'}, market50: {active: false, name: '市值>50亿'}, rise: {active: true, name: '涨幅>0'}, strong: {active: false, name: '涨幅>3%'}, fundIn: {active: false, name: '资金净流入'}, turnover: {active: false, name: '换手率>3%'}, limitUp: {active: false, name: '涨停'}};
 
 function toggleCriteria(el, key) {
   criteriaConfig[key].active = !criteriaConfig[key].active;
@@ -289,112 +215,40 @@ function toggleCriteria(el, key) {
 
 var allStocks = [];
 var stockCache = {};
-var sectors = ['新能源', '人工智能', '半导体', '医药', '白酒', '汽车', '军工'];
 
 async function getStockData(code) {
   var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
   var url = 'https://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f20,f21,f22,f23,f24,f25,f37,f38,f39,f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f62,f84,f85,f86,f87,f88,f89,f90,f91,f92,f93,f94,f95,f96,f97,f98,f99,f100,f101,f102,f103,f104,f105,f106,f107,f108,f109,f110,f111,f112,f113,f114,f115,f116,f117,f118,f119,f120,f121,f122,f123,f124,f125,f126,f127,f128,f129,f130,f131,f132,f133,f134,f135,f136,f137,f138,f139,f140,f141,f142,f143,f144,f145,f146,f147,f148,f149,f150,f151,f152,f153,f154,f155,f156,f157,f158,f159,f160,f161,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f173,f174,f175,f176,f177,f178,f179,f180,f181,f182,f183,f184,f185,f186,f187,f188,f189,f190,f191,f192,f193,f194,f195,f196,f197,f198,f199,f200,f201,f202,f203,f204,f205,f206,f207,f208,f209,f210,f211,f212,f213,f214,f215,f216,f217,f218,f219,f220,f221,f222,f223,f224,f225&secid=' + secid;
-  
   try {
     var res = await fetch(url);
     var data = await res.json();
     if (data.data) {
       var d = data.data;
       var name = d.f58 || '';
-      return {
-        code: code, name: name, price: d.f43, change: d.f170,
-        volume: d.f47 / 10000, amount: d.f48 / 100000000, turnover: d.f50,
-        pe: d.f162, market: d.f116 / 100000000,
-        high: d.f44, low: d.f45, open: d.f46,
-        isST: name.includes('ST') || name.includes('*ST'),
-        up: d.f44 === d.f60,
-        mainMoney: d.f184 || 0, superMoney: d.f185 || 0, largeMoney: d.f186 || 0,
-      };
+      return {code: code, name: name, price: d.f43, change: d.f170, volume: d.f47/10000, amount: d.f48/100000000, turnover: d.f50, market: d.f116/100000000, high: d.f44, low: d.f45, open: d.f46, isST: name.includes('ST') || name.includes('*ST'), up: d.f44 === d.f60, mainMoney: d.f184||0, superMoney: d.f185||0, largeMoney: d.f186||0};
     }
   } catch(e) {}
   return null;
 }
 
-async function getStockWithCCI(code) {
-  var stock = await getStockData(code);
-  if (!stock) return null;
-  
-  var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
-  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20260101&end=20260221&lmt=30';
-  
-  try {
-    var res = await fetch(url);
-    var data = await res.json();
-    if (data.data && data.data.klines) {
-      var klines = data.data.klines;
-      var highs = [], lows = [], closes = [], volumes = [];
-      
-      for (var kl of klines) {
-        var arr = kl.split(',');
-        highs.push(parseFloat(arr[3]));
-        lows.push(parseFloat(arr[4]));
-        closes.push(parseFloat(arr[2]));
-        volumes.push(parseFloat(arr[5]));
-      }
-      
-      // 计算CCI
-      if (closes.length >= 14) {
-        var tp = [];
-        for (var i = 0; i < highs.length; i++) {
-          tp.push((highs[i] + lows[i] + closes[i]) / 3);
-        }
-        
-        var sma = [], md = [];
-        for (var i = 13; i < tp.length; i++) {
-          var sum = 0;
-          for (var j = i - 13; j <= i; j++) sum += tp[j];
-          sma.push(sum / 14);
-          
-          var mad = 0;
-          for (var j = i - 13; j <= i; j++) mad += Math.abs(tp[j] - sma[sma.length - 1]);
-          md.push(mad / 14);
-        }
-        
-        if (sma.length >= 2) {
-          stock.cci = (tp[tp.length - 1] - sma[sma.length - 1]) / (0.015 * md[md.length - 1]);
-          stock.cciPrev = (tp[tp.length - 2] - sma[sma.length - 2]) / (0.015 * md[md.length - 2]);
-          stock.cciUp = stock.cci > stock.cciPrev;
-        }
-      }
-      
-      // 10日涨停
-      stock.hasLimitUp = false;
-      for (var i = Math.max(0, klines.length - 10); i < klines.length; i++) {
-        var arr = klines[i].split(',');
-        var open = parseFloat(arr[1]), close = parseFloat(arr[2]);
-        if (open > 0 && ((close - open) / open * 100) >= 9.9) {
-          stock.hasLimitUp = true;
-          break;
-        }
-      }
-      
-      // 量价关系 - 放量上涨
-      if (volumes.length >= 5) {
-        var avgVol = volumes.slice(0, -1).reduce((a, b) => a + b, 0) / (volumes.length - 1);
-        stock.volumeUp = volumes[volumes.length - 1] > avgVol * 1.2 && closes[closes.length - 1] > closes[closes.length - 2];
-      }
-    }
-  } catch(e) {}
-  
-  return stock;
-}
-
 async function loadAllStocks() {
-  document.getElementById('screenerList').innerHTML = '<div class="loading">正在获取股票数据并计算CCI...</div>';
+  document.getElementById('screenerList').innerHTML = '<div class="loading">正在获取全部A股数据...</div>';
   
   var codes = [];
+  // 主板
   for (var i = 600000; i < 604000; i++) codes.push(i.toString());
-  for (var i = 0; i < 5000; i++) codes.push(i.toString().padStart(6, '0'));
+  // 创业板
+  for (var i = 300000; i < 303000; i++) codes.push(i.toString());
+  // 科创板
+  for (var i = 688000; i < 692000; i++) codes.push(i.toString());
+  // 深圳主板
+  for (var i = 0; i < 3000; i++) codes.push(i.toString().padStart(6,'0'));
   
   allStocks = [];
   
-  for (var i = 0; i < Math.min(codes.length, 80); i += 10) {
-    var promises = codes.slice(i, i + 10).map(c => getStockWithCCI(c));
+  // 批量获取所有股票
+  for (var i = 0; i < Math.min(codes.length, 300); i += 30) {
+    var promises = codes.slice(i, i+30).map(c => getStockData(c));
     var results = await Promise.all(promises);
     results.forEach(function(s) {
       if (s && s.price > 0) {
@@ -413,35 +267,22 @@ function runScreener() {
   
   var results = allStocks.filter(function(s) {
     var pass = true, cfg = criteriaConfig;
-    
     if (cfg.noST.active) pass = pass && !s.isST;
     if (cfg.market50.active) pass = pass && s.market > 50;
-    if (cfg.limitUp10.active) pass = pass && s.hasLimitUp;
     if (cfg.rise.active) pass = pass && s.change > 0;
-    if (cfg.strong.active) pass = pass && s.change > 5;
+    if (cfg.strong.active) pass = pass && s.change > 3;
     if (cfg.limitUp.active) pass = pass && s.up;
-    if (cfg.fundIn.active) pass = pass && ((s.mainMoney||0) + (s.superMoney||0) + (s.largeMoney||0)) > 0;
-    if (cfg.cciUp.active) pass = pass && s.cciUp;
-    if (cfg.volumeUp.active) pass = pass && s.volumeUp;
-    
+    if (cfg.turnover.active) pass = pass && (s.turnover||0) > 3;
+    if (cfg.fundIn.active) pass = pass && ((s.mainMoney||0)+(s.superMoney||0)+(s.largeMoney||0)) > 0;
     return pass;
   });
   
-  results.sort(function(a, b) { 
-    var aMoney = (a.mainMoney||0) + (a.superMoney||0) + (a.largeMoney||0);
-    var bMoney = (b.mainMoney||0) + (b.superMoney||0) + (b.largeMoney||0);
-    return bMoney - aMoney;
-  });
+  results.sort(function(a, b) { return (b.change||0) - (a.change||0); });
   
   document.getElementById('resultCount').innerText = ' (' + results.length + '只)';
-  document.getElementById('screenerList').innerHTML = results.length ? results.slice(0, 30).map(function(s) {
-    var money = ((s.mainMoney||0) + (s.superMoney||0) + (s.largeMoney||0)) / 10000;
-    var tags = '';
-    if (s.cciUp) tags += '<span class="tag tag-green">CCI↑</span>';
-    if (s.hasLimitUp) tags += '<span class="tag tag-green">10日涨停</span>';
-    if (s.volumeUp) tags += '<span class="tag tag-blue">放量上涨</span>';
-    
-    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLineModal(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><div class="'+(s.change>=0?'up':'down')+'" style="font-size:16px;font-weight:600">'+(s.change||0).toFixed(2)+'%</div></div><div style="margin-top:8px">'+tags+'</div><button class="btn btn-sm" style="margin-top:8px" onclick="addToPortfolio(\''+s.code+'\')">➕ 添加</button></div>';
+  document.getElementById('screenerList').innerHTML = results.length ? results.slice(0, 50).map(function(s) {
+    var money = ((s.mainMoney||0)+(s.superMoney||0)+(s.largeMoney||0))/10000;
+    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLineModal(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><div style="text-align:right"><span class="'+(s.change>=0?'up':'down')+'" style="font-size:16px;font-weight:600">'+(s.change||0).toFixed(2)+'%</span><br><span style="font-size:12px;color:#666">换手'+(s.turnover||0).toFixed(1)+'%</span></div></div>';
   }).join('') : '<div style="color:#666;text-align:center;padding:30px">没有符合条件的股票</div>';
 }
 
@@ -454,11 +295,10 @@ function loadData() {
 }
 
 async function loadAll() {
-  var codes = [...new Set([...db.portfolio.map(p => p.code), ...db.picks.map(p => p.code), ...db.watchlist, '600519', '000858', '300750', '002594'])];
-  
+  var codes = [...new Set([...db.portfolio.map(p=>p.code),...db.picks.map(p=>p.code),...db.watchlist,'600519','000858','300750'])];
   for (var code of codes) {
     if (!stockCache[code]) {
-      var data = await getStockWithCCI(code);
+      var data = await getStockData(code);
       if (data) stockCache[code] = data;
     }
   }
@@ -481,10 +321,15 @@ function render() {
   });
   document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
   
+  // 显示精选时间和股票
+  if (db.picks.length > 0) {
+    document.getElementById('picksTime').innerText = '(已更新)';
+  }
+  
   document.getElementById('picksList').innerHTML = db.picks.length ? db.picks.map(function(p,i) {
     var s = stockCache[p.code];
-    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px"><span class="stock-code" onclick="showKLineModal(\''+p.code+'\')">'+(i+1)+'. '+p.code+'</span> '+(s?s.name:'')+' '+(s?'<span class="'+(s.change>=0?'up':'down')+'">'+(s.change||0).toFixed(2)+'%</span>':'')+'</div>';
-  }).join('') : '<div style="color:#666;text-align:center;padding:30px">暂无精选</div>';
+    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLineModal(\''+p.code+'\')">'+(i+1)+'. '+p.code+'</span> <span style="color:#888">'+(s?s.name:'')+'</span></div>'+(s?'<span class="'+(s.change>=0?'up':'down')+'">'+(s.change||0).toFixed(2)+'%</span>':'')+'</div>';
+  }).join('') : '<div style="color:#666;text-align:center;padding:30px">暂无精选，点击上方按钮生成</div>';
   
   document.getElementById('portfolioList').innerHTML = db.portfolio.length ? db.portfolio.map(function(p) {
     var s = stockCache[p.code];
@@ -516,52 +361,38 @@ function showPage(page) {
   event.target.classList.add('active');
   document.querySelectorAll('#page-dashboard,#page-strategy,#page-screener,#page-sectors,#page-portfolio,#page-watchlist').forEach(function(p){p.style.display='none'});
   document.getElementById('page-'+page).style.display = 'block';
-  
   if (page === 'screener' && allStocks.length === 0) loadAllStocks();
-  if (page === 'sectors') loadSectors();
 }
 
-async function loadSectors() {
-  document.getElementById('sectorList').innerHTML = '<div class="loading">加载热点板块...</div>';
-  
-  // 模拟热点板块（实际需要专业数据）
-  var hotSectors = ['人工智能', '新能源车', '半导体', '医药', '白酒', '光伏', '军工'];
-  
-  document.getElementById('sectorList').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:12px">' + 
-    hotSectors.map(function(s) {
-      return '<span class="sector-tag" onclick="filterBySector(\''+s+'\')">' + s + '</span>';
-    }).join('') + '</div>';
-  
-  document.getElementById('sectorStocks').innerHTML = '<div style="color:#666;text-align:center;padding:20px">点击板块查看相关股票</div>';
+function loadSectors() {
+  var sectors = ['人工智能', '新能源', '半导体', '医药', '白酒', '汽车', '光伏', '军工'];
+  document.getElementById('sectorList').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:12px">' + sectors.map(function(s) { return '<span class="sector-tag" onclick="filterBySector(\''+s+'\')">'+s+'</span>'; }).join('') + '</div>';
 }
 
 function filterBySector(sector) {
-  document.getElementById('sectorStocks').innerHTML = '<div class="loading">查找' + sector + '板块股票...</div>';
-  
-  // 筛选涨势好的股票作为板块代表
-  var results = allStocks.filter(function(s) { return s.change > 0; }).slice(0, 10);
-  
-  document.getElementById('sectorStocks').innerHTML = results.map(function(s) {
-    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between"><div><span class="stock-code" onclick="showKLineModal(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="up">'+(s.change||0).toFixed(2)+'%</span></div></div>';
+  var results = allStocks.filter(function(s) { return s.change > 0; }).sort(function(a,b){return b.change-a.change}).slice(0,10);
+  document.getElementById('sectorList').innerHTML = '<h4 style="margin-bottom:12px">'+sector+' 板块强势股</h4>' + results.map(function(s) {
+    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between"><div><span class="stock-code" onclick="showKLineModal(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="up">'+s.change.toFixed(2)+'%</span></div>';
   }).join('');
 }
 
 async function generatePicks() {
   if (allStocks.length === 0) await loadAllStocks();
   
+  // 强者恒强策略
   var picks = allStocks.filter(function(s) {
-    return !s.isST && s.market > 50 && s.change > 0 && s.hasLimitUp && s.cciUp;
-  }).slice(0, 3);
+    return !s.isST && s.market > 50 && s.change > 3 && (s.turnover||0) > 3;
+  }).sort(function(a,b){return b.change - a.change;}).slice(0, 3);
   
   db.picks = picks.map(function(s) { return {code: s.code, name: s.name}; });
   saveData();
-  alert('已生成! 条件: ST过滤+市值50亿+10日涨停+CCI上移');
+  alert('已生成今日精选! 条件: 非ST + 市值>50亿 + 涨幅>3% + 换手率>3%');
 }
 
 function addPortfolio() {
   var code = document.getElementById('addStock').value.trim();
   if (!code) return;
-  getStockWithCCI(code).then(function(s) {
+  getStockData(code).then(function(s) {
     if (s) {
       var price = prompt('买入价格:', s.price);
       if (price) {
@@ -573,39 +404,22 @@ function addPortfolio() {
   });
 }
 
-function addToPortfolio(code) {
-  var s = stockCache[code];
-  if (s) {
-    var price = prompt('买入价格:', s.price);
-    if (price) {
-      db.portfolio.push({code: code, name: s.name, buyPrice: parseFloat(price)});
-      saveData();
-    }
-  }
-}
-
 function addWatch() {
   var code = document.getElementById('watchCode').value.trim();
   if (code && !db.watchlist.includes(code)) {
     db.watchlist.push(code);
-    getStockWithCCI(code).then(function(s) { if (s) stockCache[code] = s; render(); });
+    getStockData(code).then(function(s) { if (s) stockCache[code] = s; render(); });
     saveData();
   }
 }
 
 async function showKLineModal(code) {
   var s = stockCache[code];
-  if (!s) { s = await getStockWithCCI(code); if (s) stockCache[code] = s; }
+  if (!s) { s = await getStockData(code); if (s) stockCache[code] = s; }
   
   document.getElementById('modalStockName').innerText = s.code + ' ' + s.name;
   document.getElementById('klineModal').style.display = 'flex';
-  await showKLine('modalKline', code);
   
-  var money = ((s.mainMoney||0) + (s.superMoney||0) + (s.largeMoney||0)) / 10000;
-  document.getElementById('modalAnalysis').innerHTML = '<div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">现价</div><div style="font-size:18px;font-weight:600">'+(s.price||'-')+'</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">涨跌幅</div><div style="font-size:18px;font-weight:600'+(s.change>=0?'color:#FF4757':'color:#2ED573')+'">'+(s.change||0).toFixed(2)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">CCI</div><div style="font-size:18px;font-weight:600'+(s.cciUp?'color:#2ED573':'color:#FF4757')+'">'+(s.cci?s.cci.toFixed(1):'N/A')+'</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-size:18px;font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div></div><button class="btn" style="margin-top:16px;width:100%" onclick="addToPortfolio(\''+code+'\')">➕ 添加到持仓</button>';
-}
-
-async function showKLine(containerId, code) {
   var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
   var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20250101&end=20260221&lmt=90';
   
@@ -622,17 +436,26 @@ async function showKLine(containerId, code) {
         volumes.push(parseFloat(arr[5]));
       });
       
-      Plotly.newPlot(containerId, [
+      Plotly.newPlot('modalKline', [
         {x: dates, y: closes, type: 'scatter', mode: 'lines', line: {color: '#FF6B35'}, name: '收盘价'},
         {x: dates, y: volumes, type: 'bar', yaxis: 'y2', marker: {color: 'rgba(255,107,53,0.5)'}, name: '成交量'}
-      ], {
-        paper_bgcolor: '#0D0D0D', plot_bgcolor: '#0D0D0D',
-        xaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222'},
-        yaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222', title: '价格'},
-        yaxis2: {tickcolor: '#333', tickfont: {color: '#888'}, overlaying: 'y', side: 'right', title: '成交量'}
-      }, {responsive: true});
+      ], {paper_bgcolor: '#0D0D0D', plot_bgcolor: '#0D0D0D', xaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222'}, yaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222'}, yaxis2: {tickcolor: '#333', tickfont: {color: '#888'}, overlaying: 'y', side: 'right'}}, {responsive: true});
     }
   } catch(e) {}
+  
+  var money = ((s.mainMoney||0)+(s.superMoney||0)+(s.largeMoney||0))/10000;
+  document.getElementById('modalAnalysis').innerHTML = '<div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">现价</div><div style="font-size:18px;font-weight:600">'+(s.price||'-')+'</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">涨跌幅</div><div style="font-size:18px;font-weight:600'+(s.change>=0?'color:#FF4757':'color:#2ED573')+'">'+(s.change||0).toFixed(2)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">换手率</div><div style="font-size:18px;font-weight:600">'+(s.turnover||0).toFixed(1)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-size:18px;font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div></div><button class="btn" style="margin-top:16px;width:100%" onclick="addToPortfolio(\''+code+'\')">➕ 添加到持仓</button>';
+}
+
+function addToPortfolio(code) {
+  var s = stockCache[code];
+  if (s) {
+    var price = prompt('买入价格:', s.price);
+    if (price) {
+      db.portfolio.push({code: code, name: s.name, buyPrice: parseFloat(price)});
+      saveData();
+    }
+  }
 }
 
 loadData();
