@@ -432,6 +432,15 @@ function handleScreenshot(input) {
 }
 
 async function renderPortfolio() {
+  // Fallback if getQuickAnalysis is not defined (GitHub Pages cache issue)
+  if (typeof getQuickAnalysis === 'undefined') {
+    window.getQuickAnalysis = function(s) {
+      var rating = '中';
+      if (s.change > 3) rating = '强';
+      else if (s.change < -3) rating = '弱';
+      return { rating: rating };
+    };
+  }
   console.log('renderPortfolio called, portfolio length:', db.portfolio.length);
   for (var p of db.portfolio) {
     console.log('Fetching data for:', p.code);
