@@ -6,216 +6,55 @@
 <title>股票管理系统 - 红熵AI</title>
 <script src="https://cdn.plot.ly/plotly-2.24.1.min.js">
 
-function handleCSVImport(input) {
-  var file = input.files[0];
-  if (!file) return;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var text = e.target.result;
-    var positions = parseCSV(text);
-    
-    if (positions.length > 0) {
-      var added = 0;
-      positions.forEach(p => {
-        if (!db.portfolio.find(x => x.code === p.code)) {
-          db.portfolio.push(p);
-          added++;
-        }
-      });
-      saveData();
-      renderPortfolio();
-      alert('成功导入 ' + added + ' 只股票！');
-    } else {
-      alert('未能解析表格，请检查格式');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function parseCSV(text) {
-  var positions = [];
-  var lines = text.split('\n');
-  
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
-    
-    var parts = line.split(/[,，\t]/);
-    if (parts.length < 2) return;
-    
-    // Format: 股票名称,股票代码,持股数量,成本价
-    var name = '', code = '', shares = 100, buyPrice = 10;
-    
-    parts.forEach((p, i) => {
-      p = p.trim();
-      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      
-      if (i === 0) name = p;  // First col: name
-      else if (i === 1) {      // Second col: code
-        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
-      }
-      else if (i === 2 && num > 10) shares = num;  // shares
-      else if (i === 3 && num > 0) buyPrice = num;  // price
-    });
-    
-    // Validate code
-    if (!code) return;
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    positions.push({
-      code: code,
-      name: name || code,
-      shares: shares,
-      buyPrice: buyPrice,
-      sector: '',
-      addTime: Date.now()
-    });
-  });
-  
-  return positions.slice(0, 20);
-}
-
-
-
 function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
-  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '持仓导入模板.csv';
+  var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
+  var blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "持仓模板.csv";
   a.click();
-  URL.revokeObjectURL(url);
 }
-
-
-
-var analysisFilter = 'all';
-
-function filterAnalysis(type) {
-  analysisFilter = type;
-  var cards = document.querySelectorAll('#analysisResult .card');
-  cards.forEach(function(card) {
-    if (type === 'all') {
-      card.style.display = 'block';
-    } else {
-      var hasTag = card.innerHTML.includes('>'+type+'推荐');
-      card.style.display = hasTag ? 'block' : 'none';
-    }
-  });
-}
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js">
 
 function handleCSVImport(input) {
   var file = input.files[0];
   if (!file) return;
-  
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    var positions = parseCSV(text);
-    
-    if (positions.length > 0) {
-      var added = 0;
-      positions.forEach(p => {
-        if (!db.portfolio.find(x => x.code === p.code)) {
-          db.portfolio.push(p);
-          added++;
-        }
-      });
-      saveData();
-      renderPortfolio();
-      alert('成功导入 ' + added + ' 只股票！');
-    } else {
-      alert('未能解析表格，请检查格式');
+    var lines = text.split(/[\n\r]+/);
+    var added = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line || line.indexOf("股票") >= 0) continue;
+      var m = line.match(/(\d{6})/);
+      if (!m) continue;
+      var code = m[1];
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0) continue;
+      var nums = line.match(/(\d+)/g);
+      if (!nums || nums.length < 2) continue;
+      var shares = parseInt(nums[0]);
+      var price = parseFloat(nums[1]);
+      if (shares < 10) shares = 100;
+      if (price < 1) price = 10;
+      var exists = db.portfolio.some(function(p){return p.code === code});
+      if (!exists) {
+        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        added++;
+      }
     }
+    saveData();
+    renderPortfolio();
+    alert("成功导入 " + added + " 只股票！");
   };
   reader.readAsText(file);
 }
-
-function parseCSV(text) {
-  var positions = [];
-  var lines = text.split('\n');
-  
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
-    
-    var parts = line.split(/[,，\t]/);
-    if (parts.length < 2) return;
-    
-    // Format: 股票名称,股票代码,持股数量,成本价
-    var name = '', code = '', shares = 100, buyPrice = 10;
-    
-    parts.forEach((p, i) => {
-      p = p.trim();
-      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      
-      if (i === 0) name = p;  // First col: name
-      else if (i === 1) {      // Second col: code
-        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
-      }
-      else if (i === 2 && num > 10) shares = num;  // shares
-      else if (i === 3 && num > 0) buyPrice = num;  // price
-    });
-    
-    // Validate code
-    if (!code) return;
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    positions.push({
-      code: code,
-      name: name || code,
-      shares: shares,
-      buyPrice: buyPrice,
-      sector: '',
-      addTime: Date.now()
-    });
-  });
-  
-  return positions.slice(0, 20);
-}
-
-
-
-function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
-  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '持仓导入模板.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-
-
-var analysisFilter = 'all';
-
-function filterAnalysis(type) {
-  analysisFilter = type;
-  var cards = document.querySelectorAll('#analysisResult .card');
-  cards.forEach(function(card) {
-    if (type === 'all') {
-      card.style.display = 'block';
-    } else {
-      var hasTag = card.innerHTML.includes('>'+type+'推荐');
-      card.style.display = hasTag ? 'block' : 'none';
-    }
-  });
-}
-
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
 .header{background:#1A1A1A;padding:16px 24px;border-bottom:1px solid #333}
 .logo{font-size:20px;font-weight:700;color:#FF6B35}
-.nav{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-left:auto;margin-right:auto}
+.nav{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:0 auto}
 .nav a{color:#888;text-decoration:none;padding:8px 16px;border-radius:8px;font-size:14px}
 .nav a:hover,.nav a.active{background:#FF6B35;color:#FFF}
 .container{padding:24px;max-width:1400px;margin:0 auto}
@@ -268,7 +107,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="stat"><div class="v" id="pickCount">0</div><div class="l">今日精选</div></div>
 <div class="stat"><div class="v" id="portfolioCount">0</div><div class="l">持仓数量</div></div>
 <div class="stat"><div class="v" id="profit">0%</div><div class="l">总盈亏</div></div>
-<div class="stat"><div class="v" id="totalInvest">0</div><div class="l">总投入(万)</div></div>
 <div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
 </div>
 <div class="strategy-card">
@@ -322,8 +160,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <button class="btn" onclick="document.getElementById('screenshotInput').click()">📸 上传截图</button>
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动输入</button>
-<button class="btn btn-outline" onclick="downloadTemplate()">📥 下载模板</button>
-<button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 表格导入</button>
+<button class="btn btn-outline" onclick="downloadTemplate()">📥 模板</button>
+<button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 导入</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
 </div>
 <div id="manualInput" style="display:none;margin-top:16px">
@@ -349,17 +187,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 </div>
 <div class="card">
 <h3>📊 持仓监控</h3>
-<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-<button class="btn btn-sm" onclick="renderPortfolio(\'profit\')">按盈利排序</button>
-<button class="btn btn-sm" onclick="renderPortfolio(\'rating\')">按强度排序</button>
-<button class="btn btn-sm" onclick="renderPortfolio(\'code\')">按代码排序</button>
-<select id="filterRating" onchange="renderPortfolio(\''\')" style="padding:8px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF">
-<option value="">全部</option>
-<option value="强">强推荐</option>
-<option value="中">中推荐</option>
-<option value="弱">弱推荐</option>
-</select>
-</div>
 <div id="portfolioMonitor"></div>
 </div>
 <div class="card">
@@ -373,14 +200,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div id="page-analysis" style="display:none">
 <h2 style="margin-bottom:20px">📈 股票深度分析</h2>
 <div class="search-box">
-<input type="text" id="analyzeCode" placeholder="输入股票代码或名称（如：300449）">
+<input type="text" id="analyzeCode" placeholder="输入股票代码（如：300449）">
 <button class="btn" onclick="analyzeStock()">🔍 开始分析</button>
-</div>
-<div style="display:flex;gap:12px;margin-bottom:16px">
-<button class="btn btn-sm" onclick="filterAnalysis('all')">全部</button>
-<button class="btn btn-sm" onclick="filterAnalysis('强')" style="background:#2ED573">强推荐</button>
-<button class="btn btn-sm" onclick="filterAnalysis('中')" style="background:#FFD700;color:#000">中推荐</button>
-<button class="btn btn-sm" onclick="filterAnalysis('弱')" style="background:#FF4757">弱推荐</button>
 </div>
 <div id="analysisResult"></div>
 </div>
@@ -400,7 +221,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 
 <script>
 var stockCache = {};
-var db = {portfolio: [], picks: [], totalInvestment: 0};
+var db = {portfolio: [], picks: []};
 
 function loadData() {
   var s = localStorage.getItem('stock_db');
@@ -412,70 +233,6 @@ function saveData() {
   localStorage.setItem('stock_db', JSON.stringify(db));
 }
 
-
-// Sector mapping
-var sectorKeywords = {
-  '科技': ['科技','AI','人工智能','云计算','大数据','软件','互联网','5G','芯片','半导体'],
-  '新能源': ['新能源','光伏','风电','锂电','电池','储能','电动车','汽车','比亚迪','宁德'],
-  '医药': ['医药','医疗','中药','疫苗','生物','创新药','医疗器械','CRO','疫苗'],
-  '消费': ['消费','食品','饮料','白酒','啤酒','家电','纺织','服装','零售','免税'],
-  '金融': ['银行','保险','证券','信托','期货','金融','地产','房地产'],
-  '军工': ['军工','航天','航空','船舶','兵器','核','国防'],
-  '半导体': ['半导体','芯片','集成电路','光刻','CPU','GPU','存储'],
-  'AI': ['AI','人工智能','大模型','算力','算法','ChatGPT','AIGC']
-};
-
-function getSectorFromConcept(d) {
-  // Try to get from concept data
-  var concepts = d.f140 || '';
-  if (!concepts) {
-    // Map by code prefix
-    if (d.f12 && d.f12.startsWith('68')) return '科创板';
-    if (d.f12 && d.f12.startsWith('30')) return '创业板';
-  }
-  return concepts || '其他';
-}
-
-function isHotSector(sector) {
-  var hot = ['AI','科技','新能源','半导体','医药'];
-  return hot.includes(sector) || sector.includes('AI') || sector.includes('科技') || sector.includes('新能源');
-}
-
-// Operation recommendation
-function getOperationRecommendation(s, profit) {
-  var qa = getQuickAnalysis(s);
-  var rec = {action: '持有', color: '#FFD700', reason: []};
-  
-  // Strong buy
-  if (qa.rating === '强' && profit < 5) {
-    rec.action = '加仓'; rec.color = '#FF4757'; rec.reason.push('形态强势');
-  }
-  // Take profit
-  else if (profit > 20) {
-    rec.action = '减仓'; rec.color = '#FF4757'; rec.reason.push('盈利丰厚');
-  }
-  // Stop loss
-  else if (profit < -8) {
-    rec.action = '清仓'; rec.color = '#FF4757'; rec.reason.push('亏损过大');
-  }
-  // Hold
-  else if (qa.rating === '中') {
-    rec.action = '持有'; rec.color = '#FFD700'; rec.reason.push('震荡整理');
-  }
-  // Weak
-  else if (qa.rating === '弱') {
-    rec.action = '减仓'; rec.color = '#FF4757'; rec.reason.push('走势较弱');
-  }
-  
-  // Hot sector bonus
-  if (s.hotConcept && rec.action === '持有') {
-    rec.action = '持有'; rec.color = '#2ED573'; rec.reason.push('热门赛道');
-  }
-  
-  return rec;
-}
-
-
 async function getStockData(code) {
   var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
   var url = 'https://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f2,f3,f4,f7,f8,f5,f6,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f20,f21,f22,f23,f24,f25,f37,f38,f39,f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f62,f84,f85,f86,f87,f88,f89,f90,f91,f92,f93,f94,f95,f96,f97,f98,f99,f100,f101,f102,f103,f104,f105,f106,f107,f108,f109,f110,f111,f112,f113,f114,f115,f116,f117,f118,f119,f120,f121,f122,f123,f124,f125,f126,f127,f128,f129,f130,f131,f132,f133,f134,f135,f136,f137,f138,f139,f140,f141,f142,f143,f144,f145,f146,f147,f148,f149,f150,f151,f152,f153,f154,f155,f156,f157,f158,f159,f160,f161,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f173,f174,f175,f176,f177,f178,f179,f180,f181,f182,f183,f184,f185,f186,f187,f188,f189,f190,f191,f192,f193,f194,f195,f196,f197,f198,f199,f200,f201,f202,f203,f204,f205,f206,f207,f208,f209,f210,f211,f212,f213,f214,f215,f216,f217,f218,f219,f220,f221,f222,f223,f224,f225&secid=' + secid;
@@ -485,10 +242,7 @@ async function getStockData(code) {
     if (data.data) {
       var d = data.data;
       var name = d.f58 || '';
-      // Get sector info from concept
-  var sectorName = getSectorFromConcept(d);
-  
-  return {code: code, name: name, price: d.f43, change: d.f170, volume: d.f47/10000, amount: d.f48/100000000, turnover: d.f50, market: d.f116/100000000, high: d.f44, low: d.f45, open: d.f46, isST: name.includes('ST') || name.includes('*ST'), up: d.f44 === d.f60, mainMoney: d.f184||0, superMoney: d.f185||0, largeMoney: d.f186||0, sectorName: sectorName, hotConcept: isHotSector(sectorName)};
+      return {code: code, name: name, price: d.f43, change: d.f170, volume: d.f47/10000, amount: d.f48/100000000, turnover: d.f50, market: d.f116/100000000, high: d.f44, low: d.f45, open: d.f46, isST: name.includes('ST') || name.includes('*ST'), up: d.f44 === d.f60, mainMoney: d.f184||0, superMoney: d.f185||0, largeMoney: d.f186||0};
     }
   } catch(e) {}
   return null;
@@ -648,43 +402,10 @@ function addManualPosition() {
 }
 
 function handleScreenshot(input) {
-  var file = input.files[0];
-  if (!file) return;
-  document.getElementById('portfolioMonitor').innerHTML = '<div class="loading">🔍 识别中，请稍候...</div>';
-  Tesseract.recognize(file, 'chi_sim+eng', { logger: m => console.log(m) })
-    .then(({ data: { text } }) => {
-      var positions = parsePositionsFromText(text);
-      if (positions.length > 0) {
-        positions.forEach(p => {
-          if (!db.portfolio.find(x => x.code === p.code)) db.portfolio.push(p);
-        });
-        saveData();
-        renderPortfolio();
-        alert('成功识别 ' + positions.length + ' 只股票！');
-      } else {
-        alert('未能识别到股票，请手动输入');
-        renderPortfolio();
-      }
-    })
-    .catch(err => { alert('识别失败: ' + err.message); renderPortfolio(); });
+  alert('截图上传功能开发中，请先使用手动输入添加持仓');
 }
 
-function parsePositionsFromText(text) {
-  var positions = [];
-  var codeMatch = text.match(/(\d{6})/g);
-  if (!codeMatch) return positions;
-  codeMatch = [...new Set(codeMatch)];
-  codeMatch.forEach(code => {
-    if (code.startsWith('6') || code.startsWith('0') || code.startsWith('3') || code.startsWith('68')) {
-      positions.push({code: code, name: code, shares: 100, buyPrice: 10, sector: '', addTime: Date.now()});
-    }
-  });
-  return positions.slice(0, 10);
-}
-
-var sortBy = 'profit';
-
-async function renderPortfolio(sort) {
+async function renderPortfolio() {
   document.getElementById('portfolioCount').innerText = db.portfolio.length;
   for (var p of db.portfolio) {
     if (!stockCache[p.code]) {
@@ -696,40 +417,8 @@ async function renderPortfolio(sort) {
     }
   }
   var totalProfit = 0;
-  // Sort if needed
-  if (sort) sortBy = sort;
-  var filterRating = document.getElementById('filterRating') ? document.getElementById('filterRating').value : '';
-  
-  if (sortBy === 'profit') {
-    db.portfolio.sort(function(a, b) {
-      var sa = stockCache[a.code], sb = stockCache[b.code];
-      var pa = sa ? (sa.price - a.buyPrice) / a.buyPrice * 100 : 0;
-      var pb = sb ? (sb.price - b.buyPrice) / b.buyPrice * 100 : 0;
-      return pb - pa;
-    });
-  } else if (sortBy === 'rating') {
-    db.portfolio.sort(function(a, b) {
-      var sa = stockCache[a.code], sb = stockCache[b.code];
-      var ra = sa ? getQuickAnalysis(sa).rating : '中';
-      var rb = sb ? getQuickAnalysis(sb).rating : '中';
-      var score = {强: 3, 中: 2, 弱: 1};
-      return (score[rb] || 0) - (score[ra] || 0);
-    });
-  }
-  
-  // Filter by rating
-  if (filterRating) {
-    // Will be applied in rendering
-  }
   var alerts = [];
-  // Get quick analysis for each stock
-    var quickAnalysis = getQuickAnalysis(s);
-    var analysisTag = '';
-    if (quickAnalysis.rating === '强') analysisTag = '<span class="tag tag-green">强推荐</span>';
-    else if (quickAnalysis.rating === '弱') analysisTag = '<span class="tag tag-red">观望</span>';
-    else analysisTag = '<span class="tag tag-yellow">中性</span>';
-    
-    var html = db.portfolio.map(function(p) {
+  var html = db.portfolio.map(function(p) {
     var s = stockCache[p.code];
     if (!s) return '';
     var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
@@ -738,26 +427,10 @@ async function renderPortfolio(sort) {
     if (p.currentPrice < levels.support) {
       alerts.push({code: p.code, name: p.name, price: p.currentPrice, support: levels.support, type: 'break'});
     }
-    
-    var qa = getQuickAnalysis(s);
-    var tag = qa.rating === '强' ? 'tag-green' : qa.rating === '弱' ? 'tag-red' : 'tag-yellow';
-    var alertHtml = qa.alerts.length > 0 ? '<div style="margin-top:8px;font-size:11px;color:#FF4757">⚠️ ' + qa.alerts.join(', ') + '</div>' : '';
-    
-    var profitAmt = (p.currentPrice - p.buyPrice) * p.shares;
-    var rec = getOperationRecommendation(s, profit);
-    var reasonText = qa.reasons ? qa.reasons.slice(0,2).join(', ') : qa.summary;
-    return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLine(\''+p.code+'\')">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(s.hotConcept?'<span class="tag tag-red" style="margin-left:4px">🔥热点</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'% ('+(profitAmt>=0?'+':'')+profitAmt.toFixed(0)+')</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持股:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>'+(s.sectorName?'板块:'+s.sectorName:'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(1):'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="tag '+tag+'" style="padding:4px 12px;font-size:13px">'+qa.rating+'推荐</span><span style="background:'+rec.color+';color:#000;padding:2px 10px;border-radius:4px;font-size:12px;font-weight:600">'+rec.action+'</span></div><div style="margin-top:4px;font-size:11px;color:#888">'+reasonText+'</div>'+alertHtml+'</div>';
+    return '<div class="sr-result"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(p.sector?'<span class="tag tag-blue">'+p.sector+'</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'股</div><div>买价:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(2):'-')+'</div></div></div>';
   }).join('');
   document.getElementById('portfolioMonitor').innerHTML = html || '<div style="color:#666;text-align:center">暂无持仓</div>';
-  // Calculate total investment
-  var totalInvest = 0;
-  db.portfolio.forEach(function(p) {
-    totalInvest += p.shares * p.buyPrice;
-  });
-  db.totalInvestment = totalInvest;
-  document.getElementById('totalInvest').innerText = (totalInvest / 10000).toFixed(1);
-  var avgProfit = db.portfolio.length ? totalProfit / db.portfolio.length : 0;
-  document.getElementById('profit').innerText = (avgProfit >= 0 ? '+' : '') + avgProfit.toFixed(1) + '%';
+  document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
   document.getElementById('needAction').innerText = alerts.length;
   if (alerts.length > 0) {
     document.getElementById('alertCard').style.display = 'block';
@@ -778,76 +451,6 @@ function calcSupportResistance(s) {
   var max = Math.max.apply(null, recentHighs);
   var min = Math.min.apply(null, recentLows);
   return {support: min, resistance: max};
-}
-
-
-
-function getQuickAnalysis(s) {
-  // Sort if needed
-  if (sort) sortBy = sort;
-  var filterRating = document.getElementById('filterRating') ? document.getElementById('filterRating').value : '';
-  
-  if (sortBy === 'profit') {
-    db.portfolio.sort(function(a, b) {
-      var sa = stockCache[a.code], sb = stockCache[b.code];
-      var pa = sa ? (sa.price - a.buyPrice) / a.buyPrice * 100 : 0;
-      var pb = sb ? (sb.price - b.buyPrice) / b.buyPrice * 100 : 0;
-      return pb - pa;
-    });
-  } else if (sortBy === 'rating') {
-    db.portfolio.sort(function(a, b) {
-      var sa = stockCache[a.code], sb = stockCache[b.code];
-      var ra = sa ? getQuickAnalysis(sa).rating : '中';
-      var rb = sb ? getQuickAnalysis(sb).rating : '中';
-      var score = {强: 3, 中: 2, 弱: 1};
-      return (score[rb] || 0) - (score[ra] || 0);
-    });
-  }
-  
-  // Filter by rating
-  if (filterRating) {
-    // Will be applied in rendering
-  }
-  var alerts = [];
-  var score = 0;
-  if (!s.history || s.history.length < 5) return {rating: '中', summary: '数据不足', alerts: []};
-  
-  var h = s.history;
-  var today = h[h.length-1], yesterday = h[h.length-2];
-  var todayVol = parseFloat(today[5]), yesVol = parseFloat(yesterday[5]);
-  var todayClose = parseFloat(today[2]), yesClose = parseFloat(yesterday[2]);
-  
-  // Volume/price
-  if (todayVol > yesVol * 1.2 && todayClose > yesClose) { score += 2; }
-  else if (todayVol < yesVol * 0.5 && todayClose < yesClose) { score -= 1; alerts.push('缩量下跌'); }
-  
-  // Money flow
-  var money = (s.mainMoney + s.superMoney) / 10000;
-  if (money > 0) score += 2;
-  else { score -= 2; alerts.push('主力流出'); }
-  
-  // Support/Resistance
-  var levels = calcSupportResistance(s);
-  if (todayClose < levels.support) { score -= 2; alerts.push('跌破支撑'); }
-  else if (todayClose > levels.resistance) { score += 3; alerts.push('突破压力'); }
-  
-  // Gap
-  var gap = parseFloat(today[1]) - yesClose;
-  var gapPct = gap / yesClose * 100;
-  if (gapPct > 3) { score -= 2; alerts.push('上方缺口'); }
-  
-  var rating = score >= 4 ? '强' : score >= 0 ? '中' : '弱';
-  var reasons = [];
-  if (todayVol > yesVol * 1.2 && todayClose > yesClose) reasons.push('放量上涨');
-  if (money > 0) reasons.push('主力流入');
-  else reasons.push('主力流出');
-  if (todayClose > levels.resistance) reasons.push('突破压力');
-  else if (todayClose < levels.support) reasons.push('跌破支撑');
-  if (gapPct > 3) reasons.push('有缺口');
-  
-  var summary = score >= 4 ? '形态良好' : score >= 0 ? '震荡整理' : '走势较弱';
-  
-  return {rating: rating, summary: summary, alerts: alerts, reasons: reasons};
 }
 
 function analyzeStockTech(s, pos) {
@@ -965,8 +568,7 @@ async function analyzeStock() {
   html += '<div class="stat"><div class="v">'+(s.turnover||0).toFixed(1)+'%</div><div class="l">换手率</div></div>';
   html += '<div class="stat"><div class="v">'+(s.market||0).toFixed(0)+'亿</div><div class="l">市值</div></div>';
   html += '</div>';
-  var rec = getOperationRecommendation(s, (s.price - pos.buyPrice) / pos.buyPrice * 100);
-  html += '<div style="margin-bottom:16px;display:flex;gap:12px;align-items:center"><span class="tag tag-'+(result.rating==='强'?'green':result.rating==='中'?'yellow':'red')+'" style="font-size:16px;padding:8px 16px">'+result.rating+'推荐</span><span style="background:'+rec.color+';color:#000;padding:6px 16px;border-radius:6px;font-weight:600">'+rec.action+'</span></div>';
+  html += '<div style="margin-bottom:16px"><span class="tag tag-'+(result.rating==='强'?'green':result.rating==='中'?'yellow':'red')+'" style="font-size:16px;padding:8px 16px">'+result.rating+'推荐</span></div>';
   html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px">';
   html += '<div style="padding:8px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>支撑位</span><span class="up">'+(result.support?result.support.toFixed(2):'-')+'</span></div>';
   html += '<div style="padding:8px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>压力位</span><span class="down">'+(result.resistance?result.resistance.toFixed(2):'-')+'</span></div>';
@@ -1015,106 +617,48 @@ function showPage(page) {
 loadData();
 
 
+function downloadTemplate() {
+  var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
+  var blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "持仓模板.csv";
+  a.click();
+}
+
 function handleCSVImport(input) {
   var file = input.files[0];
   if (!file) return;
-  
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    var positions = parseCSV(text);
-    
-    if (positions.length > 0) {
-      var added = 0;
-      positions.forEach(p => {
-        if (!db.portfolio.find(x => x.code === p.code)) {
-          db.portfolio.push(p);
-          added++;
-        }
-      });
-      saveData();
-      renderPortfolio();
-      alert('成功导入 ' + added + ' 只股票！');
-    } else {
-      alert('未能解析表格，请检查格式');
+    var lines = text.split(/[\n\r]+/);
+    var added = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line || line.indexOf("股票") >= 0) continue;
+      var m = line.match(/(\d{6})/);
+      if (!m) continue;
+      var code = m[1];
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0) continue;
+      var nums = line.match(/(\d+)/g);
+      if (!nums || nums.length < 2) continue;
+      var shares = parseInt(nums[0]);
+      var price = parseFloat(nums[1]);
+      if (shares < 10) shares = 100;
+      if (price < 1) price = 10;
+      var exists = db.portfolio.some(function(p){return p.code === code});
+      if (!exists) {
+        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        added++;
+      }
     }
+    saveData();
+    renderPortfolio();
+    alert("成功导入 " + added + " 只股票！");
   };
   reader.readAsText(file);
 }
-
-function parseCSV(text) {
-  var positions = [];
-  var lines = text.split('\n');
-  
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line || line.includes('股票名称') || line.includes('股票代码')) return;
-    
-    var parts = line.split(/[,，\t]/);
-    if (parts.length < 2) return;
-    
-    // Format: 股票名称,股票代码,持股数量,成本价
-    var name = '', code = '', shares = 100, buyPrice = 10;
-    
-    parts.forEach((p, i) => {
-      p = p.trim();
-      var num = parseFloat(p.replace(/[^0-9.]/g, ''));
-      
-      if (i === 0) name = p;  // First col: name
-      else if (i === 1) {      // Second col: code
-        if (/\d{6}/.test(p)) code = p.match(/\d{6}/)[0];
-      }
-      else if (i === 2 && num > 10) shares = num;  // shares
-      else if (i === 3 && num > 0) buyPrice = num;  // price
-    });
-    
-    // Validate code
-    if (!code) return;
-    if (!code.startsWith('6') && !code.startsWith('0') && !code.startsWith('3') && !code.startsWith('68')) return;
-    
-    positions.push({
-      code: code,
-      name: name || code,
-      shares: shares,
-      buyPrice: buyPrice,
-      sector: '',
-      addTime: Date.now()
-    });
-  });
-  
-  return positions.slice(0, 20);
-}
-
-
-
-function downloadTemplate() {
-  var template = "股票名称,股票代码,持股数量,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20\n科大智能,300499,800,12.00";
-  var blob = new Blob([template], {type: 'text/csv;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '持仓导入模板.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-
-
-var analysisFilter = 'all';
-
-function filterAnalysis(type) {
-  analysisFilter = type;
-  var cards = document.querySelectorAll('#analysisResult .card');
-  cards.forEach(function(card) {
-    if (type === 'all') {
-      card.style.display = 'block';
-    } else {
-      var hasTag = card.innerHTML.includes('>'+type+'推荐');
-      card.style.display = hasTag ? 'block' : 'none';
-    }
-  });
-}
-
 </script>
 </body>
 </html>
