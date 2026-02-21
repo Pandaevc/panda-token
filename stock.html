@@ -800,9 +800,12 @@ function parsePositionsFromText(text) {
 
 var sortBy = 'profit';
 
+console.log('Rendering portfolio, count:', db.portfolio.length);
+
 async function renderPortfolio(sort) {
   document.getElementById('portfolioCount').innerText = db.portfolio.length;
   for (var p of db.portfolio) {
+    console.log('Fetching data for:', p.code);
     if (!stockCache[p.code]) {
       var s = await getStockWithHistory(p.code);
       if (s) { stockCache[p.code] = s; p.currentPrice = s.price; p.change = s.change; }
