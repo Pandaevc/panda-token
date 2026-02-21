@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>股票管理系统 - 红熵AI</title>
 <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
@@ -355,7 +356,38 @@ function addManualPosition() {
 }
 
 function handleScreenshot(input) {
-  alert('截图上传功能开发中，请先使用手动输入添加持仓');
+  var file = input.files[0];
+  if (!file) return;
+  document.getElementById('portfolioMonitor').innerHTML = '<div class="loading">🔍 识别中，请稍候...</div>';
+  Tesseract.recognize(file, 'chi_sim+eng', { logger: m => console.log(m) })
+    .then(({ data: { text } }) => {
+      var positions = parsePositionsFromText(text);
+      if (positions.length > 0) {
+        positions.forEach(p => {
+          if (!db.portfolio.find(x => x.code === p.code)) db.portfolio.push(p);
+        });
+        saveData();
+        renderPortfolio();
+        alert('成功识别 ' + positions.length + ' 只股票！');
+      } else {
+        alert('未能识别到股票，请手动输入');
+        renderPortfolio();
+      }
+    })
+    .catch(err => { alert('识别失败: ' + err.message); renderPortfolio(); });
+}
+
+function parsePositionsFromText(text) {
+  var positions = [];
+  var codeMatch = text.match(/(\d{6})/g);
+  if (!codeMatch) return positions;
+  codeMatch = [...new Set(codeMatch)];
+  codeMatch.forEach(code => {
+    if (code.startsWith('6') || code.startsWith('0') || code.startsWith('3') || code.startsWith('68')) {
+      positions.push({code: code, name: code, shares: 100, buyPrice: 10, sector: '', addTime: Date.now()});
+    }
+  });
+  return positions.slice(0, 10);
 }
 
 async function renderPortfolio() {
@@ -371,7 +403,14 @@ async function renderPortfolio() {
   }
   var totalProfit = 0;
   var alerts = [];
-  var html = db.portfolio.map(function(p) {
+  // Get quick analysis for each stock
+    var quickAnalysis = getQuickAnalysis(s);
+    var analysisTag = '';
+    if (quickAnalysis.rating === '强') analysisTag = '<span class="tag tag-green">强推荐</span>';
+    else if (quickAnalysis.rating === '弱') analysisTag = '<span class="tag tag-red">观望</span>';
+    else analysisTag = '<span class="tag tag-yellow">中性</span>';
+    
+    var html = db.portfolio.map(function(p) {
     var s = stockCache[p.code];
     if (!s) return '';
     var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
@@ -380,7 +419,12 @@ async function renderPortfolio() {
     if (p.currentPrice < levels.support) {
       alerts.push({code: p.code, name: p.name, price: p.currentPrice, support: levels.support, type: 'break'});
     }
-    return '<div class="sr-result"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(p.sector?'<span class="tag tag-blue">'+p.sector+'</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'股</div><div>买价:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(2):'-')+'</div></div></div>';
+    
+    var qa = getQuickAnalysis(s);
+    var tag = qa.rating === '强' ? 'tag-green' : qa.rating === '弱' ? 'tag-red' : 'tag-yellow';
+    var alertHtml = qa.alerts.length > 0 ? '<div style="margin-top:8px;font-size:11px;color:#FF4757">⚠️ ' + qa.alerts.join(', ') + '</div>' : '';
+    
+    return '<div class="sr-result"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span>'+(p.sector?'<span class="tag tag-blue">'+p.sector+'</span>':'')+'</div><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'股</div><div>买价:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>支撑:'+(levels.support?levels.support.toFixed(2):'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="tag '+tag+'">'+qa.rating+'推荐</span><span style="font-size:11px;color:#888">'+qa.summary+'</span></div>'+alertHtml+'</div>';
   }).join('');
   document.getElementById('portfolioMonitor').innerHTML = html || '<div style="color:#666;text-align:center">暂无持仓</div>';
   document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
@@ -404,6 +448,43 @@ function calcSupportResistance(s) {
   var max = Math.max.apply(null, recentHighs);
   var min = Math.min.apply(null, recentLows);
   return {support: min, resistance: max};
+}
+
+
+
+function getQuickAnalysis(s) {
+  var alerts = [];
+  var score = 0;
+  if (!s.history || s.history.length < 5) return {rating: '中', summary: '数据不足', alerts: []};
+  
+  var h = s.history;
+  var today = h[h.length-1], yesterday = h[h.length-2];
+  var todayVol = parseFloat(today[5]), yesVol = parseFloat(yesterday[5]);
+  var todayClose = parseFloat(today[2]), yesClose = parseFloat(yesterday[2]);
+  
+  // Volume/price
+  if (todayVol > yesVol * 1.2 && todayClose > yesClose) { score += 2; }
+  else if (todayVol < yesVol * 0.5 && todayClose < yesClose) { score -= 1; alerts.push('缩量下跌'); }
+  
+  // Money flow
+  var money = (s.mainMoney + s.superMoney) / 10000;
+  if (money > 0) score += 2;
+  else { score -= 2; alerts.push('主力流出'); }
+  
+  // Support/Resistance
+  var levels = calcSupportResistance(s);
+  if (todayClose < levels.support) { score -= 2; alerts.push('跌破支撑'); }
+  else if (todayClose > levels.resistance) { score += 3; alerts.push('突破压力'); }
+  
+  // Gap
+  var gap = parseFloat(today[1]) - yesClose;
+  var gapPct = gap / yesClose * 100;
+  if (gapPct > 3) { score -= 2; alerts.push('上方缺口'); }
+  
+  var rating = score >= 4 ? '强' : score >= 0 ? '中' : '弱';
+  var summary = score >= 4 ? '形态良好' : score >= 0 ? '震荡整理' : '走势较弱';
+  
+  return {rating: rating, summary: summary, alerts: alerts};
 }
 
 function analyzeStockTech(s, pos) {
