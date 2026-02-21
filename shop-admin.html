@@ -214,14 +214,17 @@ var db = {products:[{id:1,name:'熊猫电子烟Pro',price:70,tokens:3000,flavors
 var currentPayType = 'usdt';
 
 function adminLogin() {
-  if (document.getElementById('adminUser').value === 'admin' && document.getElementById('adminPass').value === 'admin123') {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('sidebar').style.display = 'block';
-    document.getElementById('mainContent').style.display = 'block';
+  var user = document.getElementById("adminUser").value;
+  var pass = document.getElementById("adminPass").value;
+  if (user === "admin" && pass === "admin123") {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("sidebar").style.display = "block";
+    document.getElementById("mainContent").style.display = "block";
     loadData();
-  } else {alert('账号或密码错误');}
+  } else {
+    alert("账号或密码错误\n\n演示账号: admin\n密码: admin123");
+  }
 }
-
 function loadData() {
   var saved = localStorage.getItem('panda_admin_data');
   if (saved) {var p = JSON.parse(saved); db = {...db, ...p};}
