@@ -771,7 +771,6 @@ function handleCSVImport(input) {
     
     if (added > 0) {
       saveData();
-      renderPortfolio();
       alert("成功导入 " + added + " 只股票！");
     } else {
       alert("未找到新股票\n格式：名称,代码,数量,价格");
