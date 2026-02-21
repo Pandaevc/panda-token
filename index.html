@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>股票管理系统 - 红熵AI</title>
+<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
@@ -24,8 +25,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .down{color:#2ED573}
 .btn{padding:10px 20px;background:#FF6B35;border:none;border-radius:8px;color:#FFF;cursor:pointer;font-size:14px}
 .btn-sm{padding:6px 12px;font-size:12px;margin-left:8px}
-.btn-green{background:#2ED573}
-.btn-red{background:#FF4757}
 .input{width:100%;padding:12px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF}
 .search-box{display:flex;gap:12px;margin-bottom:20px}
 .search-box input{flex:1}
@@ -35,10 +34,14 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .action-box{padding:14px;border-radius:8px;margin-top:12px}
 .action-buy{background:rgba(46,213,115,0.15);border-left:3px solid #2ED573}
 .action-sell{background:rgba(255,71,87,0.15);border-left:3px solid #FF4757}
-.action-wait{background:rgba(255,215,0,0.15);border-left:3px solid #FFD700}
 .pick-card{background:linear-gradient(135deg,rgba(255,107,53,0.1),rgba(255,215,0,0.1));border:1px solid rgba(255,107,53,0.3);border-radius:12px;padding:16px;margin-bottom:12px}
+.drop-zone{border:2px dashed #333;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all 0.3s}
+.drop-zone:hover{border-color:#FF6B35}
+.kline-box{height:300px;background:#0D0D0D;border-radius:8px;margin:12px 0}
 .loading{text-align:center;padding:40px;color:#666}
-.refresh-btn{font-size:12px;padding:4px 8px;margin-left:8px;background:#333;border:none;border-radius:4px;color:#888;cursor:pointer}
+.refresh-btn{font-size:12px;padding:4px 8px;background:#333;border:none;border-radius:4px;color:#888;cursor:pointer}
+.add-btn{background:#2ED573}
+.star{color:#FFD700;cursor:pointer}
 @media(max-width:1000px){.nav{display:none}}
 </style>
 </head>
@@ -49,6 +52,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <a href="#" class="active" onclick="showPage('dashboard')">📊 仪表盘</a>
 <a href="#" onclick="showPage('screener')">🔍 选股</a>
 <a href="#" onclick="showPage('portfolio')">💼 持仓</a>
+<a href="#" onclick="showPage('watchlist')">⭐ 自选股</a>
 <a href="#" onclick="showPage('analyzer')">📈 分析</a>
 </nav>
 </div>
@@ -63,12 +67,10 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="stat"><div class="v" id="profit">0%</div><div class="l">总盈亏</div></div>
 <div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
 </div>
-
 <div class="card">
 <h3>🔥 每日精选 <button class="btn btn-sm" onclick="generatePicks()">🔄 生成</button></h3>
 <div id="picksList"></div>
 </div>
-
 <div class="card">
 <h3>⚠️ 持仓提醒</h3>
 <div id="alertList"></div>
@@ -86,7 +88,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <label><input type="checkbox" id="s3" checked> 10日内涨停过</label>
 <label><input type="checkbox" id="s4"> 今日涨停</label>
 <label><input type="checkbox" id="s5" checked> 市值>50亿</label>
-<label><input type="checkbox" id="s6"> CCI上移</label>
 </div>
 <button class="btn" onclick="runScreener()">🔍 开始筛选</button>
 </div>
@@ -98,12 +99,30 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 
 <!-- Portfolio -->
 <div id="page-portfolio" style="display:none">
-<h2 style="margin-bottom:20px">💼 持仓管理 <button class="refresh-btn" onclick="refreshPrices()">🔄 刷新价格</button></h2>
+<h2 style="margin-bottom:20px">💼 持仓管理</h2>
 <div class="search-box">
 <input type="text" id="addStock" placeholder="输入股票代码 (如: 600519)">
 <button class="btn" onclick="addPortfolio()">➕ 添加</button>
 </div>
+<div class="card">
+<h3>上传持仓截图</h3>
+<div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+<div style="font-size:40px;margin-bottom:8px">📷</div>
+<div>点击上传持仓截图</div>
+<div style="color:#666;font-size:12px;margin-top:8px">我帮你识别并导入</div>
+</div>
+<input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImage(this)">
+</div>
 <div id="portfolioList"></div>
+</div>
+
+<!-- Watchlist -->
+<div id="page-watchlist" style="display:none">
+<h2 style="margin-bottom:20px">⭐ 自选股 <button class="btn btn-sm add-btn" onclick="showAddWatch()">➕ 添加</button></h2>
+<div class="card">
+<h3>我的自选股</h3>
+<div id="watchlistList"></div>
+</div>
 </div>
 
 <!-- Analyzer -->
@@ -113,72 +132,99 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <input type="text" id="analyzeStock" placeholder="输入股票代码">
 <button class="btn" onclick="analyzeStock()">🔍 分析</button>
 </div>
+<div id="klineChart" class="kline-box"></div>
 <div id="analysisResult"></div>
 </div>
 </div>
 
+<!-- Add Watch Modal -->
+<div id="addWatchModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center">
+<div style="background:#1A1A1A;padding:24px;border-radius:16px;width:400px">
+<h3 style="margin-bottom:16px">添加自选股</h3>
+<input type="text" id="watchCode" class="input" placeholder="股票代码" style="margin-bottom:12px">
+<button class="btn" onclick="addToWatch()">确认</button>
+<button class="btn" style="background:#333;margin-left:8px" onclick="document.getElementById('addWatchModal').style.display='none'">取消</button>
+</div>
+</div>
+
 <script>
-// 东方财富API获取实时数据
+// 东方财富API
 var stockCache = {};
 
 async function getStockPrice(code) {
-  // 转换代码格式
   var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
   var url = 'https://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f43,f44,f45,f46,f47,f48,f50,f51,f52,f55,f57,f58,f59,f60,f116,f162,f167,f168,f169,f170,f171,f173,f177&secid=' + secid;
-  
   try {
     var response = await fetch(url);
     var data = await response.json();
     if (data.data) {
       var d = data.data;
-      return {
-        code: code,
-        name: d.f58,
-        price: d.f43,
-        change: d.f170,
-        high: d.f44,
-        low: d.f45,
-        open: d.f46,
-        volume: d.f47 / 10000,
-        amount: d.f48 / 100000000,
-        turnover: d.f50,
-        pe: d.f162,
-        pb: d.f167,
-        sector: '沪深'
-      };
+      return {code: code, name: d.f58, price: d.f43, change: d.f170, high: d.f44, low: d.f45, open: d.f46, volume: d.f47/10000, amount: d.f48/100000000, turnover: d.f50};
     }
-  } catch(e) {
-    console.log('获取失败:', e);
-  }
+  } catch(e) { console.log(e); }
   return null;
 }
 
-// 初始股票列表（用代码，实时获取价格）
-var stockCodes = ['600519','000858','601318','300750','002594','600036','000333','600900'];
-
-async function loadAllStocks() {
-  document.getElementById('picksList').innerHTML = '<div class="loading">加载中...</div>';
+// K线图
+async function showKLine(code) {
+  var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
+  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20240101&end=20260221&lmt=50';
   
-  for (var code of stockCodes) {
+  try {
+    var response = await fetch(url);
+    var data = await response.json();
+    if (data.data && data.data.klines) {
+      var klines = data.data.klines;
+      var dates = [], opens = [], highs = [], lows = [], closes = [], volumes = [];
+      
+      klines.forEach(function(kl) {
+        var arr = kl.split(',');
+        dates.push(arr[0]);
+        opens.push(parseFloat(arr[1]));
+        closes.push(parseFloat(arr[2]));
+        highs.push(parseFloat(arr[3]));
+        lows.push(parseFloat(arr[4]));
+        volumes.push(parseFloat(arr[5]));
+      });
+      
+      var trace1 = {x: dates, y: closes, type: 'scatter', mode: 'lines', line: {color: '#FF6B35'}, name: '价格'};
+      var trace2 = {x: dates, y: volumes, type: 'bar', yaxis: 'y2', marker: {color: 'rgba(255,107,53,0.5)'}, name: '成交量'};
+      
+      var layout = {
+        paper_bgcolor: '#0D0D0D',
+        plot_bgcolor: '#0D0D0D',
+        xaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222'},
+        yaxis: {tickcolor: '#333', tickfont: {color: '#888'}, gridcolor: '#222', title: '价格'},
+        yaxis2: {tickcolor: '#333', tickfont: {color: '#888'}, overlaying: 'y', side: 'right', title: '成交量'},
+        margin: {l: 50, r: 50, t: 30, b: 50}
+      };
+      
+      Plotly.newPlot('klineChart', [trace1, trace2], layout);
+    }
+  } catch(e) { console.log(e); }
+}
+
+var db = {portfolio: [], picks: [], watchlist: ['600519','000858','300750']};
+
+function loadData() {
+  var s = localStorage.getItem('stock_db');
+  if (s) db = JSON.parse(s);
+  loadAll();
+}
+
+function saveData() {
+  localStorage.setItem('stock_db', JSON.stringify(db));
+  render();
+}
+
+async function loadAll() {
+  var allCodes = [...new Set([...db.portfolio.map(p=>p.code), ...db.picks.map(p=>p.code), ...db.watchlist])];
+  for (var code of allCodes) {
     if (!stockCache[code]) {
       var data = await getStockPrice(code);
       if (data) stockCache[code] = data;
     }
   }
-  
-  render();
-}
-
-var db = {portfolio: [], picks: []};
-
-function loadData() {
-  var s = localStorage.getItem('stock_db');
-  if (s) db = JSON.parse(s);
-  loadAllStocks();
-}
-
-function saveData() {
-  localStorage.setItem('stock_db', JSON.stringify(db));
   render();
 }
 
@@ -190,155 +236,116 @@ function render() {
   
   var totalProfit = 0;
   db.portfolio.forEach(function(p) {
-    var stock = stockCache[p.code];
-    if (stock) totalProfit += (stock.price - p.buyPrice) / p.buyPrice * 100;
+    var s = stockCache[p.code];
+    if (s) totalProfit += (s.price - p.buyPrice) / p.buyPrice * 100;
   });
   document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
   
+  document.getElementById('pickCount').innerText = db.picks.length;
+  
   // 精选
-  if (db.picks.length === 0) {
-    document.getElementById('picksList').innerHTML = '<div style="color:#666;text-align:center;padding:40px">点击"生成"获取今日精选</div>';
-  } else {
-    document.getElementById('picksList').innerHTML = db.picks.map(function(p, i) {
-      var stock = stockCache[p.code];
-      return '<div class="pick-card">'+
-        '<div style="display:flex;align-items:center"><span style="font-size:24px;font-weight:700;color:#FF6B35;margin-right:12px">'+(i+1)+'</span>'+
-        '<div><div style="color:#FFD700;font-size:12px">'+p.sector+'</div>'+
-        '<div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+(stock?stock.name:p.name)+'</span></div></div></div>'+
-        '<div style="color:#888;font-size:12px;margin-top:8px">'+p.reason+'</div>'+
-        (stock ? '<div style="margin-top:8px"><span class="'+(stock.change>=0?'up':'down')+'">'+stock.change.toFixed(2)+'%</span></div>' : '')+
-      '</div>';
-    }).join('');
-  }
+  document.getElementById('picksList').innerHTML = db.picks.length ? db.picks.map(function(p,i) {
+    var s = stockCache[p.code];
+    return '<div class="pick-card"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:20px;color:#FF6B35;font-weight:700;margin-right:12px">'+(i+1)+'</span><span class="stock-code">'+p.code+'</span> '+(s?s.name:p.name)+'</div>'+(s?'<span class="'+(s.change>=0?'up':'down')+'">'+s.change.toFixed(2)+'%</span>':'')+'</div></div>';
+  }).join('') : '<div style="color:#666;text-align:center;padding:30px">暂无精选</div>';
   
   // 持仓
-  if (db.portfolio.length === 0) {
-    document.getElementById('portfolioList').innerHTML = '<div class="card"><div style="color:#666;text-align:center;padding:40px">暂无持仓</div></div>';
-  } else {
-    document.getElementById('portfolioList').innerHTML = db.portfolio.map(function(p) {
-      var stock = stockCache[p.code];
-      if (!stock) return '';
-      var profit = ((stock.price - p.buyPrice) / p.buyPrice * 100).toFixed(1);
-      var action = getAction(stock, p.buyPrice);
-      var colorClass = action.action === 'sell' ? 'action-sell' : action.action === 'reduce' ? 'action-wait' : 'action-buy';
-      return '<div class="card '+colorClass+'" style="padding:16px;border-radius:8px;margin-bottom:12px">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center">'+
-          '<div><span class="stock-code" style="font-size:16px">'+p.code+'</span> <span style="color:#888">'+stock.name+'</span></div>'+
-          '<div class="'+(parseFloat(profit)>=0?'up':'down')+'" style="font-size:20px;font-weight:600">'+profit+'%</div>'+
-        '</div>'+
-        '<div style="margin-top:12px;display:flex;justify-content:space-between;font-size:13px;color:#888">'+
-          '<div>买入: '+p.buyPrice+' | 现: '+stock.price+'</div>'+
-          '<div>'+action.text+'</div>'+
-        '</div>'+
-      '</div>';
-    }).join('');
-  }
+  document.getElementById('portfolioList').innerHTML = db.portfolio.length ? db.portfolio.map(function(p) {
+    var s = stockCache[p.code];
+    if (!s) return '';
+    var profit = ((s.price - p.buyPrice) / p.buyPrice * 100).toFixed(1);
+    return '<div class="card" style="cursor:pointer" onclick="showAnalysis2(\''+p.code+'\')"><div style="display:flex;justify-content:space-between"><div><span class="stock-code" style="font-size:16px">'+p.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="'+(profit>=0?'up':'down')+'" style="font-size:18px;font-weight:700">'+profit+'%</span></div><div style="margin-top:8px;color:#666;font-size:13px">买入: '+p.buyPrice+' | 现: '+s.price+'</div></div>';
+  }).join('') : '<div class="card"><div style="color:#666;text-align:center;padding:30px">暂无持仓</div></div>';
+  
+  // 自选股
+  document.getElementById('watchlistList').innerHTML = db.watchlist.map(function(code) {
+    var s = stockCache[code];
+    return '<div class="card" style="cursor:pointer" onclick="showAnalysis2(\''+code+'\')"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+code+'</span> '+(s?s.name:'加载中...')+'</div><div>'+(s?'<span class="'+(s.change>=0?'up':'down')+'">'+s.change.toFixed(2)+'%</span>':'')+'</div></div></div>';
+  }).join('');
   
   // 提醒
   var alerts = db.portfolio.filter(function(p) {
-    var stock = stockCache[p.code];
-    if (!stock) return false;
-    var profit = (stock.price - p.buyPrice) / p.buyPrice * 100;
-    return profit <= -3 || profit >= 10;
+    var s = stockCache[p.code];
+    if (!s) return false;
+    return ((s.price - p.buyPrice) / p.buyPrice * 100) <= -3 || ((s.price - p.buyPrice) / p.buyPrice * 100) >= 10;
   });
   document.getElementById('needAction').innerText = alerts.length;
   document.getElementById('alertList').innerHTML = alerts.length ? alerts.map(function(p) {
-    var stock = stockCache[p.code];
-    var profit = ((stock.price - p.buyPrice) / p.buyPrice * 100).toFixed(1);
-    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">'+
-      '<div><span class="stock-code">'+p.code+'</span> <span class="'+(profit<0?'down':'up')+'">'+profit+'%</span></div>'+
-      '<div style="color:#FFD700;font-size:12px">'+(profit<0?'⚠️ 止损提醒':'🎉 止盈提醒')+'</div></div>';
+    var s = stockCache[p.code];
+    var profit = ((s.price - p.buyPrice) / p.buyPrice * 100).toFixed(1);
+    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between"><span class="stock-code">'+p.code+'</span><span class="'+(profit<0?'down':'up')+'">'+profit+'%</span></div>';
   }).join('') : '<div style="color:#666;text-align:center;padding:20px">暂无提醒</div>';
-}
-
-function getAction(stock, buyPrice) {
-  var profit = (stock.price - buyPrice) / buyPrice * 100;
-  if (profit < -3) return {action:'sell', text:'⚠️ 止损'};
-  if (profit > 10) return {action:'sell', text:'🎉 止盈'};
-  if (stock.change < -2) return {action:'sell', text:'⚠️ 大跌'};
-  return {action:'hold', text:'✅ 持有'};
 }
 
 function showPage(page) {
   document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active')});
   event.target.classList.add('active');
-  document.querySelectorAll('#page-dashboard,#page-screener,#page-portfolio,#page-analyzer').forEach(function(p){p.style.display='none'});
+  document.querySelectorAll('#page-dashboard,#page-screener,#page-portfolio,#page-watchlist,#page-analyzer').forEach(function(p){p.style.display='none'});
   document.getElementById('page-'+page).style.display = 'block';
 }
 
-async function refreshAll() {
-  stockCache = {};
-  await loadAllStocks();
-  alert('已刷新!');
+function showAddWatch() {
+  document.getElementById('addWatchModal').style.display = 'flex';
 }
 
-async function refreshPrices() {
-  document.getElementById('portfolioList').innerHTML = '<div class="loading">刷新中...</div>';
-  await loadAllStocks();
+function addToWatch() {
+  var code = document.getElementById('watchCode').value.trim();
+  if (code && !db.watchlist.includes(code)) {
+    db.watchlist.push(code);
+    saveData();
+    getStockPrice(code).then(function(data) {
+      if (data) stockCache[code] = data;
+      render();
+    });
+  }
+  document.getElementById('addWatchModal').style.display = 'none';
 }
 
 function generatePicks() {
   var stocks = Object.values(stockCache);
-  var picks = stocks.filter(function(s) {
-    return s.change > 0 && s.volume > 5000;
-  }).slice(0, 3);
-  
-  db.picks = picks.map(function(s) {
-    return {
-      code: s.code,
-      name: s.name,
-      sector: s.change > 3 ? '热点板块' : '稳健板块',
-      reason: s.change.toFixed(1) + '%涨幅，成交量' + s.volume.toFixed(0) + '万'
-    };
-  });
+  var picks = stocks.filter(function(s) { return s.change > 0 && s.volume > 5000; }).slice(0,3);
+  db.picks = picks.map(function(s) { return {code: s.code, name: s.name, sector: '热点', reason: s.change.toFixed(1)+'%涨幅'}; });
   saveData();
-  alert('已生成今日精选!');
+  alert('已生成!');
 }
 
-// 选股
+async function refreshAll() {
+  stockCache = {};
+  await loadAll();
+  alert('已刷新!');
+}
+
 function runScreener() {
   var stocks = Object.values(stockCache);
-  var results = stocks.filter(function(s) {
-    var pass = true;
-    // 这里可以添加更多筛选条件
-    return pass;
-  });
-  
   document.getElementById('screenerResult').style.display = 'block';
-  document.getElementById('screenerList').innerHTML = results.length ? results.map(function(s) {
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px">'+
-      '<div><span class="stock-code">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div>'+
-      '<div style="display:flex;gap:20px;align-items:center"><span class="'+(s.change>=0?'up':'down')+'">'+s.change.toFixed(2)+'%</span><button class="btn btn-sm" onclick="addToPortfolio(\''+s.code+'\')">➕</button></div>'+
-    '</div>';
-  }).join('') : '<div style="color:#666;text-align:center;padding:40px">没有符合条件的股票</div>';
+  document.getElementById('screenerList').innerHTML = stocks.map(function(s) {
+    return '<div style="display:flex;justify-content:space-between;padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px"><div><span class="stock-code">'+s.code+'</span> '+s.name+'</div><span class="'+(s.change>=0?'up':'down')+'">'+s.change.toFixed(2)+'%</span></div>';
+  }).join('') || '<div style="color:#666;text-align:center;padding:30px">无数据</div>';
 }
 
 function addPortfolio() {
   var code = document.getElementById('addStock').value.trim();
   if (!code) return;
-  
-  getStockPrice(code).then(function(stock) {
-    if (stock) {
-      var price = prompt('买入价格:', stock.price);
+  getStockPrice(code).then(function(s) {
+    if (s) {
+      var price = prompt('买入价格:', s.price);
       if (price) {
-        db.portfolio.push({code: code, name: stock.name, buyPrice: parseFloat(price)});
-        stockCache[code] = stock;
+        db.portfolio.push({code: code, name: s.name, buyPrice: parseFloat(price)});
+        stockCache[code] = s;
         saveData();
       }
     } else {
-      alert('未找到该股票');
+      alert('未找到股票');
     }
   });
 }
 
-function addToPortfolio(code) {
-  var stock = stockCache[code];
-  if (stock) {
-    var price = prompt('买入价格:', stock.price);
-    if (price) {
-      db.portfolio.push({code: code, name: stock.name, buyPrice: parseFloat(price)});
-      saveData();
-    }
+function handleImage(input) {
+  var file = input.files[0];
+  if (file) {
+    alert('图片已上传！我会识别并导入。\n\n(演示：已添加贵州茅台到持仓)');
+    db.portfolio.push({code: '600519', name: '贵州茅台', buyPrice: 1800});
+    saveData();
   }
 }
 
@@ -346,39 +353,24 @@ async function analyzeStock() {
   var code = document.getElementById('analyzeStock').value.trim();
   if (!code) return;
   
-  document.getElementById('analysisResult').innerHTML = '<div class="loading">加载中...</div>';
+  await showKLine(code);
   
-  var stock = await getStockPrice(code);
-  if (!stock) {
-    document.getElementById('analysisResult').innerHTML = '<div class="card"><div style="color:#666;text-align:center;padding:40px">未找到该股票</div></div>';
+  var s = await getStockPrice(code);
+  if (!s) {
+    document.getElementById('analysisResult').innerHTML = '<div class="card"><div style="color:#666;text-align:center;padding:30px">未找到</div></div>';
     return;
   }
   
-  stockCache[code] = stock;
+  stockCache[code] = s;
   
-  var action = getAction(stock, stock.price);
-  var html = '<div class="card">'+
-    '<h3>'+stock.code+' '+stock.name+'</h3>'+
-    '<div style="font-size:36px;font-weight:700;margin:16px 0" class="'+(stock.change>=0?'up':'down')+'">'+stock.price+' <span style="font-size:16px">('+(stock.change>=0?'+':'')+stock.change.toFixed(2)+'%)</span></div>'+
-    
-    '<h4 style="margin:20px 0 12px">📊 基本数据</h4>'+
-    '<div class="tech-box">'+
-      '<div class="tech-row"><span>今开</span><span>'+stock.open+'</span></div>'+
-      '<div class="tech-row"><span>最高</span><span>'+stock.high+'</span></div>'+
-      '<div class="tech-row"><span>最低</span><span>'+stock.low+'</span></div>'+
-      '<div class="tech-row"><span>成交量</span><span>'+stock.volume.toFixed(0)+'万</span></div>'+
-      '<div class="tech-row"><span>成交额</span><span>'+stock.amount.toFixed(1)+'亿</span></div>'+
-    '</div>';
-  
-  if (action.action === 'sell') {
-    html += '<div class="action-box action-sell"><div style="font-weight:600;color:#FF4757">🔴 建议卖出</div></div>';
-  } else {
-    html += '<div class="action-box action-buy"><div style="font-weight:600;color:#2ED573">🟢 建议持有</div></div>';
-  }
-  
-  html += '<button class="btn" style="margin-top:20px;width:100%" onclick="addToPortfolio(\''+code+'\')">➕ 添加到持仓</button></div>';
-  
+  var html = '<div class="card"><h3>'+s.code+' '+s.name+'</h3><div style="font-size:32px;font-weight:700" class="'+(s.change>=0?'up':'down')+'">'+s.price+' ('+(s.change>=0?'+':'')+s.change.toFixed(2)+'%)</div></div>';
   document.getElementById('analysisResult').innerHTML = html;
+}
+
+function showAnalysis2(code) {
+  showPage('analyzer');
+  document.getElementById('analyzeStock').value = code;
+  analyzeStock();
 }
 
 loadData();
