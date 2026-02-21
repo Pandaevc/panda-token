@@ -6,6 +6,14 @@
 <title>股票管理系统 - 红熵AI</title>
 <script src="https://cdn.plot.ly/plotly-2.24.1.min.js">
 
+function getQuickAnalysis(s) {
+  // Simple analysis based on stock data
+  var rating = '中';
+  if (s.change > 3) rating = '强';
+  else if (s.change < -3) rating = '弱';
+  return { rating: rating };
+}
+
 function getRecommendation(s, profit, analysis) {
   var rec = {action: '持有', reason: '观望', color: '#FFD700'};
   
