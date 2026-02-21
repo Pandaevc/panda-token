@@ -4,7 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>股票管理系统 - 红熵AI</title>
-<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.24.1.min.js">
+
+function clearPortfolio() {
+  if (confirm("确定清空所有持仓数据？")) {
+    db.portfolio = [];
+    saveData();
+    render();
+    alert("已清空");
+  }
+}
+</script>
 <script>
 function downloadTemplate() {
   var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
@@ -31,64 +41,65 @@ function handleCSVImport(input) {
     
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
-      if (!line) continue;
+      if (!line || line.length < 4) continue;
       if (line.indexOf("股票") >= 0) continue;
       
-      // Split by comma, tab, or multiple spaces
-      var parts = line.split(/[,，\t\s]+/);
-      if (parts.length < 2) continue;
+      // Find 6-digit code anywhere in line
+      var m = line.match(/(\d{6})/);
+      if (!m) continue;
+      var code = m[1];
       
-      var code = "";
+      // Validate code
+      if (code.charAt(0) !== "6" && code.charAt(0) !== "0" && 
+          code.charAt(0) !== "3" && code.substring(0,2) !== "68") continue;
+      
+      // Get all numbers from line
+      var nums = line.match(/(\d+\.?\d*)/g);
+      if (!nums || nums.length < 2) continue;
+      
+      // Parse: first number is shares, second is price
       var shares = 100;
       var price = 10;
-      var name = "";
       
-      // Find code and numbers
-      for (var j = 0; j < parts.length; j++) {
-        var p = parts[j].trim();
-        if (!p) continue;
+      // Try to determine which is shares vs price
+      if (nums.length >= 2) {
+        var n1 = parseFloat(nums[0]);
+        var n2 = parseFloat(nums[1]);
         
-        // Check if it's a 6-digit code
-        if (/^\d{6}$/.test(p)) {
-          if (p.charAt(0) === "6" || p.charAt(0) === "0" || p.charAt(0) === "3" || p.substring(0,2) === "68") {
-            code = p;
-          }
-        }
-        // Check if it's a number
-        else if (/^\d+(\.\d+)?$/.test(p)) {
-          var num = parseFloat(p);
-          // Price should be 1-10000, shares should be 10-1000000
-          if (num > 1 && num < 100 && shares === 100) {
-            // This is likely price (1-100 range)
-            price = num;
-          } else if (num >= 10 && shares === 100) {
-            shares = num;
-          } else if (num > 100 && shares !== 100) {
-            // This is more likely shares
-            shares = num;
-          }
-        }
-        // Text is likely name
-        else if (p.length > 0 && !/^\d+$/.test(p)) {
-          name = p.substring(0, 10);
+        // If first is large (likely shares) and second is small (likely price)
+        if (n1 >= 100 && n2 < 100) {
+          shares = n1;
+          price = n2;
+        } else if (n1 < 100 && n2 >= 100) {
+          shares = n2;
+          price = n1;
+        } else {
+          shares = n1;
+          price = n2;
         }
       }
       
-      if (!code) continue;
+      // Get name (text before code)
+      var name = code;
+      var idx = line.indexOf(code);
+      if (idx > 0) {
+        name = line.substring(0, idx).replace(/[,，\t ]/g, "").substring(0, 10);
+        if (!name) name = code;
+      }
       
-      // Check if already exists
+      // Check if exists
       var exists = false;
-      for (var k = 0; k < db.portfolio.length; k++) {
-        if (db.portfolio[k].code === code) { exists = true; break; }
+      for (var j = 0; j < db.portfolio.length; j++) {
+        if (db.portfolio[j].code === code) { exists = true; break; }
       }
       
       if (!exists) {
         db.portfolio.push({
-          code: code, 
-          name: name || code, 
-          shares: shares || 100, 
-          buyPrice: price || 10, 
-          sector: "", 
+          code: code,
+          name: name,
+          shares: shares,
+          buyPrice: price,
+          sector: "",
           addTime: Date.now()
         });
         added++;
@@ -100,10 +111,20 @@ function handleCSVImport(input) {
       render();
       alert("成功导入 " + added + " 只股票！");
     } else {
-      alert("未找到新股票，请检查格式");
+      alert("未找到新股票，请检查格式\n正确格式：名称,代码,数量,价格");
     }
   };
   reader.readAsText(file);
+}
+
+
+function clearPortfolio() {
+  if (confirm("确定清空所有持仓数据？")) {
+    db.portfolio = [];
+    saveData();
+    render();
+    alert("已清空");
+  }
 }
 </script>
 <style>
@@ -675,6 +696,26 @@ loadData();
 
 
 
+
+
+function clearPortfolio() {
+  if (confirm("确定清空所有持仓数据？")) {
+    db.portfolio = [];
+    saveData();
+    render();
+    alert("已清空");
+  }
+}
 </script>
+
+
+function clearPortfolio() {
+  if (confirm("确定清空所有持仓数据？")) {
+    db.portfolio = [];
+    saveData();
+    render();
+    alert("已清空");
+  }
+}
 </script></body>
 </html>
