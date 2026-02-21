@@ -106,7 +106,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <p>电商管理后台</p>
 <input type="text" class="input" id="username" placeholder="用户名">
 <input type="password" class="input" id="password" placeholder="密码">
-<button class="btn" id="loginBtn">登录</button>
+<button class="btn" onclick="doLogin()">登录</button>
 <p style="margin-top:20px;font-size:12px;color:#555">演示账号: admin / admin123</p>
 </div>
 </div>
@@ -343,10 +343,6 @@ var db = {
 var currentPayType = 'usdt';
 
 // ============ LOGIN ============
-window.onload = function() {
-  console.log('Admin panel loaded');
-  document.getElementById('loginBtn').onclick = doLogin;
-};
 
 function doLogin() {
   var u = document.getElementById('username').value;
