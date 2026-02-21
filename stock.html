@@ -217,17 +217,46 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 </div>
 
 <script>
+
+// Backend API - change to your server URL
+var API_URL = 'https://panda-token.vercel.app'; // or your server
 var stockCache = {};
 var db = {portfolio: [], picks: []};
 
-function loadData() {
+async function loadData() {
+  // Try to load from backend first
+  try {
+    var res = await fetch(API_URL + '/api/portfolio');
+    if (res.ok) {
+      var data = await res.json();
+      if (data && data.length > 0) {
+        db.portfolio = data;
+        localStorage.setItem('stock_db', JSON.stringify(db));
+      }
+    }
+  } catch(e) {
+    console.log('Using local storage');
+  }
+  
+  // Fallback to localStorage
   var s = localStorage.getItem('stock_db');
   if (s) db = JSON.parse(s);
   renderPortfolio();
 }
 
-function saveData() {
+async function saveData() {
   localStorage.setItem('stock_db', JSON.stringify(db));
+  
+  // Also save to backend
+  try {
+    for (var p of db.portfolio) {
+      await fetch(API_URL + '/api/portfolio', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(p)
+      });
+    }
+  } catch(e) {}
 }
 
 async function getStockData(code) {
@@ -657,6 +686,9 @@ function getRecommendation(s, profit, analysis) {
 
 
 <script>
+
+// Backend API - change to your server URL
+var API_URL = 'https://panda-token.vercel.app'; // or your server
 function downloadTemplate() {
   var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
   var blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
