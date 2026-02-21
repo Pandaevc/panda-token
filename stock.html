@@ -117,6 +117,52 @@ function filterAnalysis(type) {
   });
 }
 
+
+function downloadTemplate() {
+  var template = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
+  var blob = new Blob([template], {type: "text/csv;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "持仓模板.csv";
+  a.click();
+}
+
+function handleCSVImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split(/[\n\r]+/).filter(function(l){return l.trim().length > 0});
+    var added = 0;
+    lines.forEach(function(line) {
+      line = line.trim();
+      if (!line || line.indexOf("股票名称") >= 0) return;
+      var m = line.match(/(\d{6})/);
+      if (!m) return;
+      var code = m[1];
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
+      var parts = line.split(/[,，\t]/);
+      var shares = 100, price = 10, name = code;
+      if (parts.length >= 3) {
+        var nums = line.match(/(\d+\.?\d*)/g);
+        if (nums && nums.length >= 2) {
+          shares = parseFloat(nums[0]) || 100;
+          price = parseFloat(nums[1]) || 10;
+        }
+        name = parts[0].trim() || code;
+      }
+      if (!db.portfolio.find(function(p){return p.code === code})) {
+        db.portfolio.push({code:code, name:name.substring(0,10), shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        added++;
+      }
+    });
+    saveData();
+    renderPortfolio();
+    alert("成功导入 " + added + " 只股票！");
+  };
+  reader.readAsText(file);
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js">
 
@@ -231,6 +277,52 @@ function filterAnalysis(type) {
   });
 }
 
+
+function downloadTemplate() {
+  var template = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
+  var blob = new Blob([template], {type: "text/csv;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "持仓模板.csv";
+  a.click();
+}
+
+function handleCSVImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split(/[\n\r]+/).filter(function(l){return l.trim().length > 0});
+    var added = 0;
+    lines.forEach(function(line) {
+      line = line.trim();
+      if (!line || line.indexOf("股票名称") >= 0) return;
+      var m = line.match(/(\d{6})/);
+      if (!m) return;
+      var code = m[1];
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
+      var parts = line.split(/[,，\t]/);
+      var shares = 100, price = 10, name = code;
+      if (parts.length >= 3) {
+        var nums = line.match(/(\d+\.?\d*)/g);
+        if (nums && nums.length >= 2) {
+          shares = parseFloat(nums[0]) || 100;
+          price = parseFloat(nums[1]) || 10;
+        }
+        name = parts[0].trim() || code;
+      }
+      if (!db.portfolio.find(function(p){return p.code === code})) {
+        db.portfolio.push({code:code, name:name.substring(0,10), shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        added++;
+      }
+    });
+    saveData();
+    renderPortfolio();
+    alert("成功导入 " + added + " 只股票！");
+  };
+  reader.readAsText(file);
+}
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -291,6 +383,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="stat"><div class="v" id="portfolioCount">0</div><div class="l">持仓数量</div></div>
 <div class="stat"><div class="v" id="profit">0%</div><div class="l">总盈亏</div></div>
 <div class="stat"><div class="v" id="totalInvest">0</div><div class="l">总投入(万)</div></div>
+<div class="stat"><div class="v" id="totalInvest">0</div><div class="l">总投入(万)</div></div>
 <div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
 </div>
 <div class="strategy-card">
@@ -345,7 +438,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动输入</button>
 <button class="btn btn-outline" onclick="downloadTemplate()">📥 下载模板</button>
-<button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 表格导入</button>
+<button class="btn btn-outline" onclick="downloadTemplate()">📥 模板</button>
+<button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 导入</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
 </div>
 <div id="manualInput" style="display:none;margin-top:16px">
@@ -1148,6 +1242,52 @@ function filterAnalysis(type) {
   });
 }
 
+
+function downloadTemplate() {
+  var template = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
+  var blob = new Blob([template], {type: "text/csv;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "持仓模板.csv";
+  a.click();
+}
+
+function handleCSVImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split(/[\n\r]+/).filter(function(l){return l.trim().length > 0});
+    var added = 0;
+    lines.forEach(function(line) {
+      line = line.trim();
+      if (!line || line.indexOf("股票名称") >= 0) return;
+      var m = line.match(/(\d{6})/);
+      if (!m) return;
+      var code = m[1];
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
+      var parts = line.split(/[,，\t]/);
+      var shares = 100, price = 10, name = code;
+      if (parts.length >= 3) {
+        var nums = line.match(/(\d+\.?\d*)/g);
+        if (nums && nums.length >= 2) {
+          shares = parseFloat(nums[0]) || 100;
+          price = parseFloat(nums[1]) || 10;
+        }
+        name = parts[0].trim() || code;
+      }
+      if (!db.portfolio.find(function(p){return p.code === code})) {
+        db.portfolio.push({code:code, name:name.substring(0,10), shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        added++;
+      }
+    });
+    saveData();
+    renderPortfolio();
+    alert("成功导入 " + added + " 只股票！");
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
