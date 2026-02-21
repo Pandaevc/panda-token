@@ -26,25 +26,31 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .down{color:#2ED573}
 .btn{padding:10px 20px;background:#FF6B35;border:none;border-radius:8px;color:#FFF;cursor:pointer}
 .btn-sm{padding:6px 12px;font-size:12px}
+.btn-green{background:#2ED573}
 .input{width:100%;padding:12px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF}
 .search-box{display:flex;gap:12px;margin-bottom:20px}
 .kline-box{height:400px;background:#0D0D0D;border-radius:8px;margin:12px 0}
 .loading{text-align:center;padding:30px;color:#666}
-.drop-zone{border:2px dashed #333;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all 0.3s}
-.drop-zone:hover{border-color:#FF6B35;background:rgba(255,107,53,0.1)}
+.drop-zone{border:2px dashed #333;border-radius:12px;padding:40px;text-align:center;cursor:pointer}
+.drop-zone:hover{border-color:#FF6B35}
 .criteria-box{background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:16px}
 .criteria-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
 .criteria-item{background:#1A1A1A;padding:10px 16px;border-radius:8px;cursor:pointer;transition:all 0.2s;border:2px solid transparent}
 .criteria-item:hover{border-color:#FF6B35}
 .criteria-item.active{background:rgba(255,107,53,0.2);border-color:#FF6B35}
-.criteria-item .name{font-size:14px}
+.criteria-item .name{font-size:14px;font-weight:600}
 .criteria-item .value{font-size:12px;color:#888;margin-top:4px}
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin-right:4px}
 .tag-green{background:rgba(46,213,115,0.2);color:#2ED573}
 .tag-red{background:rgba(255,71,87,0.2);color:#FF4757}
+.tag-yellow{background:rgba(255,215,0,0.2);color:#FFD700}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal.show{display:flex}
 .modal-content{background:#1A1A1A;padding:24px;border-radius:16px;max-width:90%;max-height:90%;overflow:auto}
+.strategy-tag{display:inline-block;padding:4px 10px;background:#2ED573;border-radius:4px;font-size:12px;margin:4px}
+.strategy-box{background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:16px}
+.strategy-box h4{margin-bottom:12px;color:#FF6B35}
+.strategy-row{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:1000px){.nav{display:none}}
 </style>
 </head>
@@ -66,12 +72,15 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <h2 style="margin-bottom:20px">📊 仪表盘</h2>
 <div class="card">
 <h3>📝 每日精选选股条件</h3>
-<div style="background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:16px">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="color:#2ED573">✅</span> 去掉ST股</div>
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="color:#2ED573">✅</span> 市值>50亿</div>
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="color:#2ED573">✅</span> 10日内涨停过</div>
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="color:#2ED573">✅</span> 涨幅>0</div>
-<div style="display:flex;align-items:center;gap:8px"><span style="color:#2ED573">✅</span> 主力资金净流入>0</div>
+<div class="strategy-box">
+<h4>🎯 核心策略（已优化）</h4>
+<div class="strategy-row">
+<span class="strategy-tag">去掉ST股</span>
+<span class="strategy-tag">市值>50亿</span>
+<span class="strategy-tag">10日涨停</span>
+<span class="strategy-tag">CCI上移</span>
+<span class="strategy-tag">资金净流入</span>
+</div>
 </div>
 <button class="btn" onclick="generatePicks()">🔄 重新生成精选</button>
 </div>
@@ -93,8 +102,9 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <h2 style="margin-bottom:20px">🔍 智能选股</h2>
 
 <div class="card">
-<h3>🎯 选择筛选条件（可多选）</h3>
+<h3>🎯 选择筛选条件</h3>
 <div class="criteria-box">
+<div style="margin-bottom:16px"><strong style="color:#FF6B35">基础条件</strong></div>
 <div class="criteria-row">
 <div class="criteria-item active" onclick="toggleCriteria(this,'noST')" data-name="noST">
 <div class="name">去掉ST股</div>
@@ -108,16 +118,26 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="name">10日涨停</div>
 <div class="value">近期有涨停</div>
 </div>
+</div>
+
+<div style="margin:16px 0"><strong style="color:#FF6B35">技术指标</strong></div>
+<div class="criteria-row">
 <div class="criteria-item active" onclick="toggleCriteria(this,'rise')" data-name="rise">
 <div class="name">涨幅>0</div>
 <div class="value">今日上涨</div>
 </div>
-</div>
-<div class="criteria-row">
 <div class="criteria-item active" onclick="toggleCriteria(this,'fundIn')" data-name="fundIn">
 <div class="name">资金净流入</div>
 <div class="value">主力资金买入</div>
 </div>
+<div class="criteria-item active" onclick="toggleCriteria(this,'cciUp')" data-name="cciUp">
+<div class="name">CCI上移 📈</div>
+<div class="value">趋势上涨信号</div>
+</div>
+</div>
+
+<div style="margin:16px 0"><strong style="color:#FF6B35">激进条件</strong></div>
+<div class="criteria-row">
 <div class="criteria-item" onclick="toggleCriteria(this,'strong')" data-name="strong">
 <div class="name">涨幅>5%</div>
 <div class="value">强势股</div>
@@ -144,7 +164,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <!-- Portfolio -->
 <div id="page-portfolio" style="display:none">
 <h2 style="margin-bottom:20px">💼 持仓管理</h2>
-
 <div class="card">
 <h3>📷 上传持仓截图</h3>
 <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
@@ -153,9 +172,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div style="color:#666;font-size:12px;margin-top:8px">我帮你识别并导入</div>
 </div>
 <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImage(this)">
-<div style="margin-top:12px;color:#888;font-size:12px">提示：截图需包含股票代码和持仓数量</div>
 </div>
-
 <div class="search-box">
 <input type="text" id="addStock" placeholder="输入股票代码">
 <button class="btn" onclick="addPortfolio()">➕ 添加</button>
@@ -175,7 +192,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 
 <!-- Analyzer -->
 <div id="page-analyzer" style="display:none">
-<h2 style="margin-bottom:20px">📈 个股分析</h2>
+<h2 style="margin-bottom:20px">📈 个股深度分析</h2>
 <div class="search-box">
 <input type="text" id="analyzeStock" placeholder="输入股票代码">
 <button class="btn" onclick="analyzeStock()">🔍 分析</button>
@@ -186,7 +203,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 </div>
 
 <!-- K线Modal -->
-<div id="klineModal" class="modal" onclick="if(event.target===this)this.style.display='none'">
+<div id="klineModal" class="modal">
 <div class="modal-content" style="width:800px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
 <h3 id="modalStockName">股票分析</h3>
@@ -205,6 +222,7 @@ var criteriaConfig = {
   limitUp10: {active: true, name: '10日涨停'},
   rise: {active: true, name: '涨幅>0'},
   fundIn: {active: true, name: '资金净流入'},
+  cciUp: {active: true, name: 'CCI上移'},
   strong: {active: false, name: '涨幅>5%'},
   limitUp: {active: false, name: '今日涨停'},
   turnover: {active: false, name: '换手率>5%'}
@@ -252,25 +270,74 @@ async function getStockData(code) {
   return null;
 }
 
-async function getHistoryLimitUp(code) {
+// 获取历史数据并计算CCI
+async function getStockWithCCI(code) {
+  var stock = await getStockData(code);
+  if (!stock) return null;
+  
   var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
-  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20260201&end=20260221&lmt=15';
+  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20260101&end=20260221&lmt=30';
+  
   try {
     var res = await fetch(url);
     var data = await res.json();
     if (data.data && data.data.klines) {
-      for (var kl of data.data.klines) {
+      var klines = data.data.klines;
+      var highs = [], lows = [], closes = [];
+      
+      for (var kl of klines) {
         var arr = kl.split(',');
-        var change = parseFloat(arr[2]), open = parseFloat(arr[1]);
-        if (open > 0 && (change - open) / open * 100 >= 9.9) return true;
+        highs.push(parseFloat(arr[3]));
+        lows.push(parseFloat(arr[4]));
+        closes.push(parseFloat(arr[2]));
+      }
+      
+      // 计算CCI (14日)
+      if (closes.length >= 14) {
+        var tp = [];
+        for (var i = 0; i < highs.length; i++) {
+          tp.push((highs[i] + lows[i] + closes[i]) / 3);
+        }
+        
+        // 计算SMA和MD
+        var sma = [], md = [];
+        for (var i = 13; i < tp.length; i++) {
+          var sum = 0;
+          for (var j = i - 13; j <= i; j++) sum += tp[j];
+          sma.push(sum / 14);
+          
+          var mad = 0;
+          for (var j = i - 13; j <= i; j++) mad += Math.abs(tp[j] - sma[sma.length - 1]);
+          md.push(mad / 14);
+        }
+        
+        if (sma.length >= 2) {
+          var cciNow = (tp[tp.length - 1] - sma[sma.length - 1]) / (0.015 * md[md.length - 1]);
+          var cciPrev = (tp[tp.length - 2] - sma[sma.length - 2]) / (0.015 * md[md.length - 2]);
+          stock.cci = cciNow;
+          stock.cciUp = cciNow > cciPrev;
+        }
+      }
+      
+      // 检查10日涨停
+      stock.hasLimitUp = false;
+      for (var i = Math.max(0, klines.length - 10); i < klines.length; i++) {
+        var arr = klines[i].split(',');
+        var open = parseFloat(arr[1]);
+        var close = parseFloat(arr[2]);
+        if (open > 0 && ((close - open) / open * 100) >= 9.9) {
+          stock.hasLimitUp = true;
+          break;
+        }
       }
     }
-  } catch(e) {}
-  return false;
+  } catch(e) { console.log(e); }
+  
+  return stock;
 }
 
 async function loadAllStocks() {
-  document.getElementById('screenerList').innerHTML = '<div class="loading">正在获取A股数据...</div>';
+  document.getElementById('screenerList').innerHTML = '<div class="loading">正在获取股票数据并计算CCI...</div>';
   
   var codes = [];
   for (var i = 600000; i < 604000; i++) codes.push(i.toString());
@@ -278,8 +345,8 @@ async function loadAllStocks() {
   
   allStocks = [];
   
-  for (var i = 0; i < Math.min(codes.length, 200); i += 20) {
-    var promises = codes.slice(i, i+20).map(c => getStockData(c));
+  for (var i = 0; i < Math.min(codes.length, 100); i += 10) {
+    var promises = codes.slice(i, i+10).map(c => getStockWithCCI(c));
     var results = await Promise.all(promises);
     results.forEach(function(s) {
       if (s && s.price > 0) {
@@ -287,13 +354,7 @@ async function loadAllStocks() {
         stockCache[s.code] = s;
       }
     });
-    document.getElementById('screenerList').innerHTML = '<div class="loading">已获取 ' + allStocks.length + ' 只股票...</div>';
-  }
-  
-  document.getElementById('screenerList').innerHTML = '<div class="loading">检查10日涨停...</div>';
-  var upStocks = allStocks.filter(s => s.change > 0).slice(0, 30);
-  for (var s of upStocks) {
-    s.hasLimitUp = await getHistoryLimitUp(s.code);
+    document.getElementById('screenerList').innerHTML = '<div class="loading">已获取 ' + allStocks.length + ' 只股票 (计算CCI中...)</div>';
   }
   
   runScreener();
@@ -323,9 +384,15 @@ function runScreener() {
       pass = pass && totalMoney > 0;
     }
     
+    // CCI上移
+    if (cfg.cciUp.active) {
+      pass = pass && s.cciUp;
+    }
+    
     return pass;
   });
   
+  // 按资金流入排序
   results.sort(function(a, b) { 
     var aMoney = (a.mainMoney||0) + (a.superMoney||0) + (a.largeMoney||0);
     var bMoney = (b.mainMoney||0) + (b.superMoney||0) + (b.largeMoney||0);
@@ -341,11 +408,17 @@ function runScreener() {
   
   document.getElementById('screenerList').innerHTML = results.slice(0, 30).map(function(s) {
     var money = ((s.mainMoney||0) + (s.superMoney||0) + (s.largeMoney||0)) / 10000;
-    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">' +
+    var cciTag = s.cciUp ? '<span class="tag tag-green">CCI↑</span>' : (s.cci ? '<span class="tag tag-red">CCI↓</span>' : '<span class="tag tag-yellow">CCI?</span>');
+    
+    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center">' +
       '<div><span class="stock-code" onclick="showKLineModal(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div>' +
       '<div style="text-align:right"><div class="'+(s.change>=0?'up':'down')+'" style="font-size:16px;font-weight:600">'+(s.change||0).toFixed(2)+'%</div>' +
-      '<div style="font-size:12px;color:'+(money>0?'#2ED573':'#FF4757')+'">'+(money>0?'+':'')+money.toFixed(0)+'万</div></div>' +
-      '<button class="btn btn-sm" onclick="addToPortfolio(\''+s.code+'\')">➕</button></div>';
+      '<div style="font-size:12px;color:'+(money>0?'#2ED573':'#FF4757')+'">'+(money>0?'+':'')+money.toFixed(0)+'万</div></div></div>' +
+      '<div style="margin-top:8px">' + cciTag + 
+      '<span class="tag '+(s.hasLimitUp?'tag-green':'tag-red')+'">'+(s.hasLimitUp?'10日涨停':'无涨停')+'</span>' +
+      '<span class="tag">市值'+(s.market||0).toFixed(0)+'亿</span></div>' +
+      '<button class="btn btn-sm" style="margin-top:8px" onclick="addToPortfolio(\''+s.code+'\')">➕ 添加到持仓</button></div>';
   }).join('');
 }
 
@@ -362,7 +435,7 @@ async function loadAll() {
   
   for (var code of codes) {
     if (!stockCache[code]) {
-      var data = await getStockData(code);
+      var data = await getStockWithCCI(code);
       if (data) stockCache[code] = data;
     }
   }
@@ -387,7 +460,8 @@ function render() {
   
   document.getElementById('picksList').innerHTML = db.picks.length ? db.picks.map(function(p,i) {
     var s = stockCache[p.code];
-    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLineModal(\''+p.code+'\')">'+(i+1)+'. '+p.code+'</span> <span style="color:#888">'+(s?s.name:'')+'</span></div>'+(s?'<span class="'+(s.change>=0?'up':'down')+'">'+(s.change||0).toFixed(2)+'%</span>':'')+'</div>';
+    var cciTag = s && s.cciUp ? '<span class="tag tag-green">CCI↑</span>' : '';
+    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLineModal(\''+p.code+'\')">'+(i+1)+'. '+p.code+'</span> <span style="color:#888">'+(s?s.name:'')+'</span> '+cciTag+'</div>'+(s?'<span class="'+(s.change>=0?'up':'down')+'">'+(s.change||0).toFixed(2)+'%</span>':'')+'</div></div>';
   }).join('') : '<div style="color:#666;text-align:center;padding:30px">暂无精选，点击上方按钮生成</div>';
   
   document.getElementById('portfolioList').innerHTML = db.portfolio.length ? db.portfolio.map(function(p) {
@@ -429,19 +503,20 @@ function showPage(page) {
 async function generatePicks() {
   if (allStocks.length === 0) await loadAllStocks();
   
+  // 使用优化策略
   var picks = allStocks.filter(function(s) {
-    return !s.isST && s.market > 50 && s.change > 0 && s.hasLimitUp;
+    return !s.isST && s.market > 50 && s.change > 0 && s.hasLimitUp && s.cciUp;
   }).slice(0, 3);
   
   db.picks = picks.map(function(s) { return {code: s.code, name: s.name}; });
   saveData();
-  alert('已生成今日精选!');
+  alert('已生成今日精选! 条件: ST过滤+市值50亿+10日涨停+CCI上移');
 }
 
 function addPortfolio() {
   var code = document.getElementById('addStock').value.trim();
   if (!code) return;
-  getStockData(code).then(function(s) {
+  getStockWithCCI(code).then(function(s) {
     if (s) {
       var price = prompt('买入价格:', s.price);
       if (price) {
@@ -470,7 +545,7 @@ function addWatch() {
   var code = document.getElementById('watchCode').value.trim();
   if (code && !db.watchlist.includes(code)) {
     db.watchlist.push(code);
-    getStockData(code).then(function(s) {
+    getStockWithCCI(code).then(function(s) {
       if (s) stockCache[code] = s;
       render();
     });
@@ -481,14 +556,14 @@ function addWatch() {
 function handleImage(input) {
   var file = input.files[0];
   if (file) {
-    alert('📷 图片已上传！\n\n目前支持手动输入：\n请告诉我你持仓的股票代码和买入价格，我帮你录入。\n\n例如：\n- 600519 贵州茅台 1800元\n- 000858 五粮液 165元');
+    alert('📷 图片已上传！\n\n请告诉我你持仓的股票代码和买入价格。\n例如：600519 贵州茅台 1800元');
   }
 }
 
 async function showKLineModal(code) {
   var s = stockCache[code];
   if (!s) {
-    s = await getStockData(code);
+    s = await getStockWithCCI(code);
     if (s) stockCache[code] = s;
   }
   
@@ -498,11 +573,14 @@ async function showKLineModal(code) {
   await showKLine('modalKline', code);
   
   var money = ((s.mainMoney||0) + (s.superMoney||0) + (s.largeMoney||0)) / 10000;
-  document.getElementById('modalAnalysis').innerHTML = '<div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">现价</div><div style="font-size:18px;font-weight:600">'+(s.price||'-')+'</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">涨跌幅</div><div style="font-size:18px;font-weight:600'+(s.change>=0?'color:#FF4757':'color:#2ED573')+'">'+(s.change||0).toFixed(2)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-size:18px;font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">市值</div><div style="font-size:18px;font-weight:600">'+(s.market||0).toFixed(0)+'亿</div></div></div><button class="btn" style="margin-top:16px;width:100%" onclick="addToPortfolio(\''+code+'\')">➕ 添加到持仓</button>';
+  var cciText = s.cci ? s.cci.toFixed(1) : 'N/A';
+  var cciStatus = s.cciUp ? '<span style="color:#2ED573">↑ 上移</span>' : (s.cci ? '<span style="color:#FF4757">↓ 下移</span>' : '<span>计算中</span>');
+  
+  document.getElementById('modalAnalysis').innerHTML = '<div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">现价</div><div style="font-size:18px;font-weight:600">'+(s.price||'-')+'</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">涨跌幅</div><div style="font-size:18px;font-weight:600'+(s.change>=0?'color:#FF4757':'color:#2ED573')+'">'+(s.change||0).toFixed(2)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">CCI</div><div style="font-size:18px;font-weight:600">' + cciText + '</div><div style="font-size:12px">' + cciStatus + '</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-size:18px;font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div></div><button class="btn" style="margin-top:16px;width:100%" onclick="addToPortfolio(\''+code+'\')">➕ 添加到持仓</button>';
 }
 
 async function showKLine(containerId, code) {
-  var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
+  var secid = code.startsWith('6') ? '1.' +code : '0.' + code;
   var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20250101&end=20260221&lmt=90';
   
   try {
