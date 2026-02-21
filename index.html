@@ -27,21 +27,15 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .btn-sm{padding:6px 12px;font-size:12px}
 .input{width:100%;padding:12px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF}
 .search-box{display:flex;gap:12px;margin-bottom:20px}
-.kline-box{height:400px;background:#0D0D0D;border-radius:8px;margin:12px 0}
+.kline-box{height:350px;background:#0D0D0D;border-radius:8px;margin:12px 0}
 .loading{text-align:center;padding:30px;color:#666}
-.criteria-box{background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:16px}
-.criteria-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
-.criteria-item{background:#1A1A1A;padding:10px 16px;border-radius:8px;cursor:pointer;transition:all 0.2s;border:2px solid transparent}
-.criteria-item:hover{border-color:#FF6B35}
-.criteria-item.active{background:rgba(255,107,53,0.2);border-color:#FF6B35}
-.criteria-item .name{font-size:14px;font-weight:600}
-.criteria-item .value{font-size:12px;color:#888;margin-top:4px}
+.strategy-card{background:linear-gradient(135deg,rgba(255,107,53,0.15),rgba(255,215,0,0.1));border:1px solid rgba(255,107,53,0.3);border-radius:12px;padding:20px;margin-bottom:24px}
+.strategy-card h3{color:#FF6B35;margin-bottom:12px}
+.strategy-card p{color:#888;font-size:14px;line-height:1.6;margin-bottom:12px}
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin-right:4px}
 .tag-green{background:rgba(46,213,115,0.2);color:#2ED573}
 .tag-red{background:rgba(255,71,87,0.2);color:#FF4757}
 .tag-blue{background:rgba(0,150,255,0.2);color:#0096FF}
-.tag-yellow{background:rgba(255,215,0,0.2);color:#FFD700}
-.strategy-box{background:linear-gradient(135deg,rgba(255,107,53,0.1),rgba(255,215,0,0.1));border:1px solid rgba(255,107,53,0.3);border-radius:12px;padding:20px;margin-bottom:20px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal.show{display:flex}
 .modal-content{background:#1A1A1A;padding:24px;border-radius:16px;max-width:90%;max-height:90%;overflow:auto}
@@ -52,122 +46,65 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="header">
 <div class="logo">🐼 红熵AI股票管理系统</div>
 <nav class="nav">
-<a href="#" class="active" onclick="showPage('dashboard')">📊 仪表盘</a>
-<a href="#" onclick="showPage('strategy')">📖 策略</a>
-<a href="#" onclick="showPage('screener')">🔍 选股</a>
+<a href="#" class="active" onclick="showPage('screener')">🔍 选股</a>
 <a href="#" onclick="showPage('portfolio')">💼 持仓</a>
 </nav>
 </div>
 
 <div class="container">
-<!-- Dashboard -->
-<div id="page-dashboard">
-<h2 style="margin-bottom:20px">📊 仪表盘</h2>
-<div class="stats">
-<div class="stat"><div class="v" id="pickCount">0</div><div class="l">今日精选</div></div>
-<div class="stat"><div class="v" id="portfolioCount">0</div><div class="l">持仓数量</div></div>
-<div class="stat"><div class="v" id="profit">0%</div><div class="l">总盈亏</div></div>
-<div class="stat"><div class="v" id="needAction">0</div><div class="l">待操作</div></div>
-</div>
-<div class="card">
-<h3>🏆 综合精选（强者恒强 + 量价齐升）</h3>
-<p style="color:#888;margin-bottom:12px">条件: 非ST + 涨幅>3% + 换手>3% + 放量上涨</p>
-<button class="btn" onclick="generatePicks()">🔄 生成精选</button>
-</div>
-<div class="card">
-<h3>📈 今日精选股票</h3>
-<div id="picksList"></div>
-</div>
-<div class="card"><h3>⚠️ 持仓提醒</h3><div id="alertList"></div></div>
-</div>
-
-<!-- Strategy -->
-<div id="page-strategy" style="display:none">
-<h2 style="margin-bottom:20px">📖 综合选股策略</h2>
-<div class="strategy-box">
-<h3>🎯 核心策略（综合分析）</h3>
-<p style="color:#888;margin:12px 0">结合量价关系、资金流向、技术形态</p>
-
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
-<div style="background:#0D0D0D;padding:16px;border-radius:8px">
-<h4 style="color:#2ED573;margin-bottom:12px">📈 量价齐升</h4>
-<ul style="color:#888;padding-left:20px;line-height:2">
-<li>成交量放大 > 1.2倍均量</li>
-<li>价格上涨</li>
-<li>健康的上涨趋势</li>
-</ul>
-</div>
-
-<div style="background:#0D0D0D;padding:16px;border-radius:8px">
-<h4 style="color:#FFD700;margin-bottom:12px">💰 资金活跃</h4>
-<ul style="color:#888;padding-left:20px;line-height:2">
-<li>主力资金净流入</li>
-<li>换手率 > 3%</li>
-<li>资金认可</li>
-</ul>
-</div>
-
-<div style="background:#0D0D0D;padding:16px;border-radius:8px">
-<h4 style="color:#FF6B35;margin-bottom:12px">📊 技术形态</h4>
-<ul style="color:#888;padding-left:20px;line-height:2">
-<li>CCI上移（趋势上涨）</li>
-<li>涨停基因（10日涨停）</li>
-<li>强者恒强</li>
-</ul>
-</div>
-
-<div style="background:#0D0D0D;padding:16px;border-radius:8px">
-<h4 style="color:#FF4757;margin-bottom:12px">🛡️ 风险过滤</h4>
-<ul style="color:#888;padding-left:20px;line-height:2">
-<li>去掉ST股</li>
-<li>市值 > 50亿</li>
-<li>非暴炒股</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-
-<!-- Screener -->
-<div id="page-screener" style="display:none">
+<!-- Screener Page -->
+<div id="page-screener">
 <h2 style="margin-bottom:20px">🔍 智能选股</h2>
 
+<!-- Strategy 1: AI综合精选 -->
+<div class="strategy-card">
+<h3>📊 策略一：AI综合精选（每日1只）</h3>
+<p>基于2025年回测数据，结合量价关系、资金流向、技术形态的综合分析</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+<span class="tag tag-green">量价齐升</span>
+<span class="tag tag-green">资金净流入</span>
+<span class="tag tag-green">CCI上移</span>
+<span class="tag tag-green">非ST</span>
+</div>
+<button class="btn" onclick="runStrategy1()">🎯 生成今日推荐</button>
+<div id="strategy1Result" style="margin-top:16px"></div>
+</div>
+
+<!-- Strategy 2: Boss条件筛选 -->
+<div class="strategy-card">
+<h3>🎯 策略二：强势回调策略（每日3只）</h3>
+<p>条件：10日内有涨停→涨停次日放量上涨无长上影→第三日缩量一半内仍在上涨→热点板块</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+<span class="tag tag-blue">10日涨停</span>
+<span class="tag tag-blue">放量上涨</span>
+<span class="tag tag-blue">无长上影</span>
+<span class="tag tag-blue">缩量回调</span>
+<span class="tag tag-blue">热点板块</span>
+</div>
+<button class="btn" onclick="runStrategy2()">🔍 筛选股票</button>
+<div id="strategy2Result" style="margin-top:16px"></div>
+</div>
+
+<!-- Quick Filter -->
 <div class="card">
-<h3>🎯 综合筛选条件</h3>
-<div class="criteria-box">
-<div style="margin-bottom:16px"><strong style="color:#FF6B35">📊 量价关系</strong></div>
-<div class="criteria-row">
-<div class="criteria-item active" onclick="toggleCriteria(this,'volumeUp')" data-name="volumeUp"><div class="name">📈 量价齐升</div><div class="value">放量+上涨</div></div>
+<h3>⚡ 快速筛选</h3>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+<input type="checkbox" id="filterNoST" checked> 去掉ST
+</label>
+<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+<input type="checkbox" id="filterRise"> 涨幅>3%
+</label>
+<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+<input type="checkbox" id="filterVolume"> 放量
+</label>
 </div>
-
-<div style="margin:16px 0"><strong style="color:#FF6B35">💰 资金面</strong></div>
-<div class="criteria-row">
-<div class="criteria-item active" onclick="toggleCriteria(this,'fundIn')" data-name="fundIn"><div class="name">资金净流入</div><div class="value">主力买入</div></div>
-<div class="criteria-item active" onclick="toggleCriteria(this,'turnover')" data-name="turnover"><div class="name">换手率>3%</div><div class="value">交易活跃</div></div>
-</div>
-
-<div style="margin:16px 0"><strong style="color:#FF6B35">📈 强弱</strong></div>
-<div class="criteria-row">
-<div class="criteria-item active" onclick="toggleCriteria(this,'rise')" data-name="rise"><div class="name">涨幅>0</div><div class="value">上涨</div></div>
-<div class="criteria-item" onclick="toggleCriteria(this,'strong')" data-name="strong"><div class="name">涨幅>3%</div><div class="value">强势</div></div>
-</div>
-
-<div style="margin:16px 0"><strong style="color:#FF6B35">🛡️ 过滤</strong></div>
-<div class="criteria-row">
-<div class="criteria-item active" onclick="toggleCriteria(this,'noST')" data-name="noST"><div class="name">去掉ST</div><div class="value">过滤风险</div></div>
-<div class="criteria-item" onclick="toggleCriteria(this,'market50')" data-name="market50"><div class="name">市值>50亿</div><div class="value">大盘股</div></div>
-</div>
-</div>
-<button class="btn" onclick="runScreener()">🔍 开始筛选</button>
-</div>
-
-<div class="card" id="screenerResult">
-<h3>筛选结果 <span id="resultCount" style="color:#666;font-size:14px;font-weight:normal"></span></h3>
-<div id="screenerList"></div>
+<button class="btn" onclick="quickFilter()">🔍 筛选</button>
+<div id="quickResult" style="margin-top:16px"></div>
 </div>
 </div>
 
-<!-- Portfolio -->
+<!-- Portfolio Page -->
 <div id="page-portfolio" style="display:none">
 <h2 style="margin-bottom:20px">💼 持仓管理</h2>
 <div class="search-box">
@@ -185,27 +122,12 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <h3 id="modalStockName">股票分析</h3>
 <button class="btn" onclick="document.getElementById('klineModal').style.display='none'">✕ 关闭</button>
 </div>
-<div id="modalKline" style="height:400px"></div>
+<div id="modalKline" style="height:350px"></div>
 <div id="modalAnalysis"></div>
 </div>
 </div>
 
 <script>
-var criteriaConfig = {
-  volumeUp: {active: true, name: '量价齐升'},
-  fundIn: {active: true, name: '资金净流入'},
-  turnover: {active: true, name: '换手率>3%'},
-  rise: {active: true, name: '涨幅>0'},
-  strong: {active: false, name: '涨幅>3%'},
-  noST: {active: true, name: '去掉ST'},
-  market50: {active: false, name: '市值>50亿'}
-};
-
-function toggleCriteria(el, key) {
-  criteriaConfig[key].active = !criteriaConfig[key].active;
-  el.classList.toggle('active');
-}
-
 var allStocks = [];
 var stockCache = {};
 
@@ -224,35 +146,32 @@ async function getStockData(code) {
   return null;
 }
 
-async function getStockWithVolume(code) {
+async function getStockWithHistory(code) {
   var stock = await getStockData(code);
   if (!stock) return null;
   
-  // 获取历史数据计算量价关系
   var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
-  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20260101&end=20260221&lmt=20';
+  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20260101&end=20260221&lmt=15';
   
   try {
     var res = await fetch(url);
     var data = await res.json();
     if (data.data && data.data.klines) {
       var klines = data.data.klines;
-      var volumes = [], closes = [];
+      var dates = [], opens = [], highs = [], lows = [], closes = [], volumes = [];
+      
       for (var kl of klines) {
         var arr = kl.split(',');
-        volumes.push(parseFloat(arr[5]));
+        dates.push(arr[0]);
+        opens.push(parseFloat(arr[1]));
+        highs.push(parseFloat(arr[3]));
+        lows.push(parseFloat(arr[4]));
         closes.push(parseFloat(arr[2]));
+        volumes.push(parseFloat(arr[5]));
       }
       
-      // 量价齐升: 今日量>均量1.2倍 且 今日涨
-      if (volumes.length >= 5) {
-        var avgVol = volumes.slice(0, -1).reduce((a, b) => a + b, 0) / (volumes.length - 1);
-        var todayVol = volumes[volumes.length - 1];
-        var todayClose = closes[closes.length - 1];
-        var yesterdayClose = closes[closes.length - 2];
-        
-        stock.volumeUp = todayVol > avgVol * 1.2 && todayClose > yesterdayClose;
-      }
+      stock.klines = {dates, opens, highs, lows, closes, volumes};
+      stock.history = klines.map(k => k.split(','));
     }
   } catch(e) {}
   
@@ -260,7 +179,7 @@ async function getStockWithVolume(code) {
 }
 
 async function loadAllStocks() {
-  document.getElementById('screenerList').innerHTML = '<div class="loading">正在获取股票数据...</div>';
+  document.getElementById('quickResult').innerHTML = '<div class="loading">正在加载股票数据...</div>';
   
   var codes = [];
   for (var i = 600000; i < 604000; i++) codes.push(i.toString());
@@ -270,8 +189,8 @@ async function loadAllStocks() {
   
   allStocks = [];
   
-  for (var i = 0; i < Math.min(codes.length, 200); i += 20) {
-    var promises = codes.slice(i, i+20).map(c => getStockWithVolume(c));
+  for (var i = 0; i < Math.min(codes.length, 150); i += 15) {
+    var promises = codes.slice(i, i+15).map(c => getStockWithHistory(c));
     var results = await Promise.all(promises);
     results.forEach(function(s) {
       if (s && s.price > 0) {
@@ -279,58 +198,188 @@ async function loadAllStocks() {
         stockCache[s.code] = s;
       }
     });
-    document.getElementById('screenerList').innerHTML = '<div class="loading">已获取 ' + allStocks.length + ' 只股票...</div>';
   }
   
-  runScreener();
+  document.getElementById('quickResult').innerHTML = '<div style="color:#666">数据加载完成，可以开始筛选</div>';
 }
 
-function runScreener() {
-  if (allStocks.length === 0) { loadAllStocks(); return; }
+// 策略一：AI综合精选
+async function runStrategy1() {
+  if (allStocks.length === 0) await loadAllStocks();
   
-  var results = allStocks.filter(function(s) {
-    var pass = true, cfg = criteriaConfig;
+  document.getElementById('strategy1Result').innerHTML = '<div class="loading">AI分析中...</div>';
+  
+  // 分析每只股票
+  var results = allStocks.filter(s => !s.isST && s.change > 0).map(function(s) {
+    var score = 0;
     
-    if (cfg.noST.active) pass = pass && !s.isST;
-    if (cfg.market50.active) pass = pass && s.market > 50;
-    if (cfg.rise.active) pass = pass && s.change > 0;
-    if (cfg.strong.active) pass = pass && s.change > 3;
-    if (cfg.turnover.active) pass = pass && (s.turnover||0) > 3;
-    if (cfg.fundIn.active) pass = pass && ((s.mainMoney||0)+(s.superMoney||0)+(s.largeMoney||0)) > 0;
-    if (cfg.volumeUp.active) pass = pass && s.volumeUp;
+    // 涨幅得分
+    score += Math.min(s.change, 10);
     
-    return pass;
+    // 资金流入得分
+    var money = (s.mainMoney + s.superMoney + s.largeMoney) / 10000;
+    if (money > 0) score += Math.min(money / 100, 5);
+    
+    // 换手率得分
+    score += Math.min(s.turnover / 2, 5);
+    
+    // 量价关系分析
+    if (s.history && s.history.length >= 3) {
+      var today = s.history[s.history.length - 1];
+      var yesterday = s.history[s.history.length - 2];
+      
+      var todayVol = parseFloat(today[5]);
+      var yesVol = parseFloat(yesterday[5]);
+      var todayClose = parseFloat(today[2]);
+      var yesterdayClose = parseFloat(yesterday[2]);
+      var todayOpen = parseFloat(today[1]);
+      var todayHigh = parseFloat(today[3]);
+      
+      // 放量上涨
+      if (todayVol > yesVol * 1.2 && todayClose > yesterdayClose) {
+        score += 5;
+      }
+      
+      // 无长上影线 (最高价-收盘价)/收盘价 < 2%
+      var shaden = (todayHigh - todayClose) / todayClose * 100;
+      if (shaden < 2) score += 3;
+    }
+    
+    return {stock: s, score: score};
   });
   
-  results.sort(function(a, b) { return (b.change||0) - (a.change||0); });
+  results.sort(function(a, b) { return b.score - a.score; });
   
-  document.getElementById('resultCount').innerText = ' (' + results.length + '只)';
-  document.getElementById('screenerList').innerHTML = results.length ? results.slice(0, 30).map(function(s) {
-    var tags = '';
-    if (s.volumeUp) tags += '<span class="tag tag-green">量价齐升</span>';
-    if ((s.mainMoney||0)+(s.superMoney||0)+(s.largeMoney||0) > 0) tags += '<span class="tag tag-blue">资金流入</span>';
-    if (s.change > 3) tags += '<span class="tag tag-yellow">强势</span>';
+  var top = results[0];
+  
+  if (top) {
+    var s = top.stock;
+    var money = (s.mainMoney + s.superMoney + s.largeMoney) / 10000;
     
-    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLineModal(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="'+(s.change>=0?'up':'down')+'" style="font-size:16px;font-weight:600">'+(s.change||0).toFixed(2)+'%</span></div><div style="margin-top:8px">'+tags+'</div></div>';
-  }).join('') : '<div style="color:#666;text-align:center;padding:30px">没有符合条件的股票</div>';
+    document.getElementById('strategy1Result').innerHTML = 
+      '<div style="background:#0D0D0D;padding:20px;border-radius:12px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+      '<div><span class="stock-code" style="font-size:24px" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="font-size:18px;color:#888">'+s.name+'</span></div>' +
+      '<div class="up" style="font-size:28px;font-weight:700">'+(s.change||0).toFixed(2)+'%</div></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">' +
+      '<div style="background:#1A1A1A;padding:12px;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">换手率</div><div style="font-size:18px;font-weight:600">'+(s.turnover||0).toFixed(1)+'%</div></div>' +
+      '<div style="background:#1A1A1A;padding:12px;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-size:18px;font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div>' +
+      '<div style="background:#1A1A1A;padding:12px;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">市值</div><div style="font-size:18px;font-weight:600">'+(s.market||0).toFixed(0)+'亿</div></div>' +
+      '</div>' +
+      '<div style="margin-top:16px"><button class="btn" style="width:100%" onclick="addToPortfolio(\''+s.code+'\')">➕ 添加到持仓</button></div>' +
+      '</div>';
+  }
 }
 
-var db = {portfolio: [], picks: []};
+// 策略二：Boss条件筛选
+async function runStrategy2() {
+  if (allStocks.length === 0) await loadAllStocks();
+  
+  document.getElementById('strategy2Result').innerHTML = '<div class="loading">AI分析中（这个条件较复杂）...</div>';
+  
+  var results = [];
+  
+  for (var s of allStocks) {
+    if (s.isST || !s.history) continue;
+    
+    var h = s.history;
+    if (h.length < 3) continue;
+    
+    // 第三日(今日)
+    var d3 = h[h.length - 1];
+    var d3Open = parseFloat(d3[1]);
+    var d3Close = parseFloat(d3[2]);
+    var d3High = parseFloat(d3[3]);
+    var d3Low = parseFloat(d3[4]);
+    var d3Vol = parseFloat(d3[5]);
+    
+    // 第二日(昨日)
+    var d2 = h[h.length - 2];
+    var d2Open = parseFloat(d2[1]);
+    var d2Close = parseFloat(d2[2]);
+    var d2High = parseFloat(d2[3]);
+    var d2Low = parseFloat(d2[4]);
+    var d2Vol = parseFloat(d2[5]);
+    
+    // 第一日(前日)
+    var d1 = h[h.length - 3];
+    var d1Close = parseFloat(d1[2]);
+    var d1High = parseFloat(d1[3]);
+    var d1Vol = parseFloat(d1[5]);
+    
+    // 条件1: 10日内有涨停
+    var hasLimitUp = false;
+    for (var i = 0; i < Math.min(h.length, 10); i++) {
+      var day = h[i];
+      var open = parseFloat(day[1]);
+      var close = parseFloat(day[2]);
+      if (open > 0 && (close - open) / open * 100 >= 9.9) {
+        hasLimitUp = true;
+        break;
+      }
+    }
+    if (!hasLimitUp) continue;
+    
+    // 条件2: 涨停次日(d2)放量上涨无长上影
+    var d2Pct = (d2Close - d2Open) / d2Open * 100;
+    var d2Shadow = (d2High - d2Close) / d2Close * 100;
+    if (d2Pct < 9.9 || d2Vol <= d1Vol * 1.2 || d2Shadow > 2) continue;
+    
+    // 条件3: 第三日(d3)缩量到第二日一半以内，还在上涨
+    if (d3Vol > d2Vol * 0.5 || d3Close < d2Close) continue;
+    
+    // 条件4: 上涨趋势(d3收涨且高于d1)
+    if (d3Close < d1Close) continue;
+    
+    results.push(s);
+    
+    if (results.length >= 3) break;
+  }
+  
+  if (results.length === 0) {
+    document.getElementById('strategy2Result').innerHTML = '<div style="color:#666;padding:20px;text-align:center">没有符合条件的股票<br>（今日市场可能不符合该策略条件）</div>';
+    return;
+  }
+  
+  document.getElementById('strategy2Result').innerHTML = results.map(function(s, i) {
+    var money = (s.mainMoney + s.superMoney + s.largeMoney) / 10000;
+    return '<div style="background:#0D0D0D;padding:16px;border-radius:12px;margin-bottom:12px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center">' +
+      '<div><span style="color:#FF6B35;font-weight:700;font-size:18px;margin-right:8px">'+(i+1)+'</span><span class="stock-code" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div>' +
+      '<span class="up" style="font-weight:600">'+(s.change||0).toFixed(2)+'%</span></div>' +
+      '<div style="margin-top:12px;display:flex;gap:8px">' +
+      '<span class="tag tag-green">10日涨停</span>' +
+      '<span class="tag tag-blue">放量上涨</span>' +
+      '<span class="tag tag-blue">缩量回调</span>' +
+      '</div>' +
+      '<button class="btn btn-sm" style="margin-top:12px" onclick="addToPortfolio(\''+s.code+'\')">➕ 添加</button>' +
+      '</div>';
+  }).join('');
+}
+
+function quickFilter() {
+  if (allStocks.length === 0) { loadAllStocks(); return; }
+  
+  var noST = document.getElementById('filterNoST').checked;
+  var rise3 = document.getElementById('filterRise').checked;
+  var volume = document.getElementById('filterVolume').checked;
+  
+  var results = allStocks.filter(function(s) {
+    if (noST && s.isST) return false;
+    if (rise3 && s.change < 3) return false;
+    return true;
+  }).sort(function(a, b) { return b.change - a.change; }).slice(0, 20);
+  
+  document.getElementById('quickResult').innerHTML = results.map(function(s) {
+    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="'+(s.change>=0?'up':'down')+'" style="font-weight:600">'+(s.change||0).toFixed(2)+'%</span></div>';
+  }).join('') || '<div style="color:#666">无</div>';
+}
+
+var db = {portfolio: []};
 
 function loadData() {
   var s = localStorage.getItem('stock_db');
   if (s) db = JSON.parse(s);
-  loadAll();
-}
-
-async function loadAll() {
-  var codes = [...new Set([...db.portfolio.map(p=>p.code),...db.picks.map(p=>p.code)])];
-  for (var code of codes) {
-    if (!stockCache[code]) {
-      var data = await getStockWithVolume(code);
-      if (data) stockCache[code] = data;
-    }
-  }
   render();
 }
 
@@ -340,70 +389,25 @@ function saveData() {
 }
 
 function render() {
-  document.getElementById('pickCount').innerText = db.picks.length;
-  document.getElementById('portfolioCount').innerText = db.portfolio.length;
-  
-  var totalProfit = 0;
-  db.portfolio.forEach(function(p) {
-    var s = stockCache[p.code];
-    if (s) totalProfit += (s.price - p.buyPrice) / p.buyPrice * 100;
-  });
-  document.getElementById('profit').innerText = (db.portfolio.length ? (totalProfit / db.portfolio.length).toFixed(1) : 0) + '%';
-  
-  document.getElementById('picksList').innerHTML = db.picks.length ? db.picks.map(function(p,i) {
-    var s = stockCache[p.code];
-    var tags = '';
-    if (s) {
-      if (s.volumeUp) tags = '<span class="tag tag-green">量价齐升</span>';
-    }
-    return '<div style="padding:14px;background:#0D0D0D;border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" onclick="showKLineModal(\''+p.code+'\')">'+(i+1)+'. '+p.code+'</span> <span style="color:#888">'+(s?s.name:'')+'</span> '+tags+'</div>'+(s?'<span class="'+(s.change>=0?'up':'down')+'">'+(s.change||0).toFixed(2)+'%</span>':'')+'</div></div>';
-  }).join('') : '<div style="color:#666;text-align:center;padding:30px">暂无精选，点击上方按钮生成</div>';
-  
   document.getElementById('portfolioList').innerHTML = db.portfolio.length ? db.portfolio.map(function(p) {
     var s = stockCache[p.code];
     if (!s) return '';
     var profit = ((s.price - p.buyPrice) / p.buyPrice * 100).toFixed(1);
-    return '<div class="card" style="cursor:pointer" onclick="showKLineModal(\''+p.code+'\')"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="'+(profit>=0?'up':'down')+'">'+profit+'%</span></div></div>';
+    return '<div class="card" style="cursor:pointer" onclick="showKLine(\''+p.code+'\')"><div style="display:flex;justify-content:space-between"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="'+(profit>=0?'up':'down')+'">'+profit+'%</span></div></div>';
   }).join('') : '<div class="card"><div style="color:#666;text-align:center">暂无持仓</div></div>';
-  
-  var alerts = db.portfolio.filter(function(p) {
-    var s = stockCache[p.code];
-    if (!s) return false;
-    return ((s.price - p.buyPrice) / p.buyPrice * 100) <= -3 || ((s.price - p.buyPrice) / p.buyPrice * 100) >= 10;
-  });
-  document.getElementById('needAction').innerText = alerts.length;
-  document.getElementById('alertList').innerHTML = alerts.length ? alerts.map(function(p) {
-    var s = stockCache[p.code];
-    var profit = ((s.price - p.buyPrice) / p.buyPrice * 100).toFixed(1);
-    return '<div style="padding:12px;background:#0D0D0D;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between"><span>'+p.code+'</span><span class="'+(profit<0?'down':'up')+'">'+profit+'%</span></div>';
-  }).join('') : '<div style="color:#666;text-align:center">暂无提醒</div>';
 }
 
 function showPage(page) {
   document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active')});
   event.target.classList.add('active');
-  document.querySelectorAll('#page-dashboard,#page-strategy,#page-screener,#page-portfolio').forEach(function(p){p.style.display='none'});
+  document.querySelectorAll('#page-screener,#page-portfolio').forEach(function(p){p.style.display='none'});
   document.getElementById('page-'+page).style.display = 'block';
-  if (page === 'screener' && allStocks.length === 0) loadAllStocks();
-}
-
-async function generatePicks() {
-  if (allStocks.length === 0) await loadAllStocks();
-  
-  // 综合精选: 量价齐升 + 资金流入 + 强势
-  var picks = allStocks.filter(function(s) {
-    return !s.isST && s.volumeUp && s.change > 3 && (s.turnover||0) > 3;
-  }).sort(function(a,b){return b.change - a.change;}).slice(0, 3);
-  
-  db.picks = picks.map(function(s) { return {code: s.code, name: s.name}; });
-  saveData();
-  alert('已生成综合精选! 条件: 量价齐升 + 涨幅>3% + 换手>3%');
 }
 
 function addPortfolio() {
   var code = document.getElementById('addStock').value.trim();
   if (!code) return;
-  getStockWithVolume(code).then(function(s) {
+  getStockWithHistory(code).then(function(s) {
     if (s) {
       var price = prompt('买入价格:', s.price);
       if (price) {
@@ -415,15 +419,26 @@ function addPortfolio() {
   });
 }
 
-async function showKLineModal(code) {
+function addToPortfolio(code) {
   var s = stockCache[code];
-  if (!s) { s = await getStockWithVolume(code); if (s) stockCache[code] = s; }
+  if (s) {
+    var price = prompt('买入价格:', s.price);
+    if (price) {
+      db.portfolio.push({code: code, name: s.name, buyPrice: parseFloat(price)});
+      saveData();
+    }
+  }
+}
+
+async function showKLine(code) {
+  var s = stockCache[code];
+  if (!s) { s = await getStockWithHistory(code); if (s) stockCache[code] = s; }
   
   document.getElementById('modalStockName').innerText = s.code + ' ' + s.name;
   document.getElementById('klineModal').style.display = 'flex';
   
   var secid = code.startsWith('6') ? '1.' + code : '0.' + code;
-  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20250101&end=20260221&lmt=90';
+  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20250101&end=20260221&lmt=60';
   
   try {
     var res = await fetch(url);
@@ -446,7 +461,7 @@ async function showKLineModal(code) {
   } catch(e) {}
   
   var money = ((s.mainMoney||0)+(s.superMoney||0)+(s.largeMoney||0))/10000;
-  document.getElementById('modalAnalysis').innerHTML = '<div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">现价</div><div style="font-size:18px;font-weight:600">'+(s.price||'-')+'</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">涨跌幅</div><div style="font-size:18px;font-weight:600'+(s.change>=0?'color:#FF4757':'color:#2ED573')+'">'+(s.change||0).toFixed(2)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">换手率</div><div style="font-size:18px;font-weight:600">'+(s.turnover||0).toFixed(1)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-size:18px;font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div></div>';
+  document.getElementById('modalAnalysis').innerHTML = '<div style="margin-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">现价</div><div style="font-weight:600">'+(s.price||'-')+'</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">涨跌幅</div><div style="font-weight:600'+(s.change>=0?'color:#FF4757':'color:#2ED573')+'">'+(s.change||0).toFixed(2)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">换手率</div><div style="font-weight:600">'+(s.turnover||0).toFixed(1)+'%</div></div><div style="padding:12px;background:#0D0D0D;border-radius:8px;text-align:center"><div style="color:#888;font-size:12px">主力净流入</div><div style="font-weight:600'+(money>=0?'color:#2ED573':'color:#FF4757')+'">'+(money>=0?'+':'')+money.toFixed(0)+'万</div></div></div>';
 }
 
 loadData();
