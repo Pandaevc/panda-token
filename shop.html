@@ -11,19 +11,21 @@
 body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal.show{display:flex}
-.modal-box{background:var(--surface);border-radius:20px;padding:32px;max-width:420px;width:90%;text-align:center;position:relative}
+.modal-box{background:var(--surface);border-radius:20px;padding:32px;max-width:480px;width:90%;text-align:center;position:relative;max-height:90vh;overflow-y:auto}
 .modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;background:none;border:none;color:#666;font-size:28px;cursor:pointer}
 .modal-icon{font-size:56px;margin-bottom:16px}
 .modal-title{font-size:22px;font-weight:700;margin-bottom:16px}
-.modal-msg{font-size:14px;color:#AAA;margin-bottom:24px;line-height:1.6;white-space:pre-line}
+.modal-msg{font-size:14px;color:#AAA;margin-bottom:24px;line-height:1.6}
 .modal-btn{padding:14px 36px;background:var(--g);border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer;width:100%;margin-top:10px}
 .modal-btn.secondary{background:#333}
+.modal-btn.danger{background:#ff4757}
+.modal-btn.success{background:var(--success)}
 .social-btns{display:flex;flex-direction:column;gap:12px;margin-top:20px}
 .social-btn{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;border-radius:12px;border:none;font-weight:600;cursor:pointer;width:100%}
 .social-btn.google{background:#fff;color:#333}
-.social-btn.facebook{background:#1877F2;color:#fff}
 .social-btn.whatsapp{background:#25D366;color:#fff}
 .social-btn.apple{background:#000;color:#fff}
+.social-btn.facebook{background:#1877F2;color:#fff}
 .bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.12),transparent 50%),radial-gradient(circle at 70% 80%,rgba(255,215,0,0.08),transparent 50%)}
 header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b);z-index:200}
 .c{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
@@ -36,9 +38,15 @@ nav a:hover,nav a.active{color:#fff}
 .header-right{display:flex;align-items:center;gap:16px;margin-left:auto}
 .cart-btn{position:relative;background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
 .cart-badge{position:absolute;top:-8px;right:-8px;background:var(--primary);color:#fff;font-size:11px;padding:2px 6px;border-radius:10px}
-.user-btn{width:40px;height:40px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+.user-dropdown{position:relative}
+.user-btn{width:40px;height:40px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;border:none}
+.user-menu{position:absolute;top:50px;right:0;background:var(--surface);border-radius:12px;padding:16px;min-width:200px;display:none;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+.user-menu.show{display:block}
+.user-menu a{display:block;padding:10px 0;color:var(--text);text-decoration:none}
+.user-menu a:hover{color:var(--primary)}
 .hero{padding:140px 24px 60px;text-align:center}
 .badge{display:inline-block;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.3);padding:12px 28px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
+.badge.referral{background:rgba(0,230,118,0.15);border-color:rgba(0,230,118,0.3);color:var(--success)}
 h1{font-size:52px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
 .subtitle{font-size:18px;color:#B0B0B0;margin:0 auto 50px}
 .product-section{padding:60px 24px;max-width:1400px;margin:0 auto}
@@ -46,14 +54,14 @@ h1{font-size:52px;font-weight:800;margin-bottom:18px;background:var(--g2);-webki
 .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:28px}
 .product-card{background:var(--surface);border-radius:20px;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s}
 .product-card:hover{transform:translateY(-8px);box-shadow:0 20px 40px rgba(0,0,0,0.4)}
-.ecig-3d{height:280px;background:linear-gradient(180deg,#1a1a2e,#0d0d1a);position:relative;display:flex;align-items:center;justify-content:center;perspective:800px}
-.ecig-body{width:100px;height:240px;background:linear-gradient(135deg,#2a2a3e,#1a1a2e);border-radius:50px 50px 40px 40px;position:relative;transform:rotateY(-5deg);box-shadow:-20px 10px 30px rgba(0,0,0,0.5)}
-.ecig-screen{position:absolute;top:25px;left:12px;right:12px;height:100px;background:#000;border-radius:16px;overflow:hidden}
-.slot{display:flex;align-items:center;justify-content:center;font-size:28px;gap:4px;animation:slotSpin 0.1s infinite}
-@keyframes slotSpin{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-.ecig-led{position:absolute;bottom:30px;left:15px;right:15px;height:20px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:10px;animation:ledPulse 2s infinite}
-@keyframes ledPulse{0%,100%{opacity:1;box-shadow:0 0 20px var(--primary)}50%{opacity:0.6;box-shadow:0 0 10px var(--primary)}}
-.ecig-tip{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:30px;height:40px;background:linear-gradient(180deg,#444,#222);border-radius:8px 8px 0 0}
+.ecig-display{height:280px;background:linear-gradient(180deg,#1a1a2e,#0d0d1a);position:relative;display:flex;align-items:center;justify-content:center}
+.ecig{width:90px;height:220px;background:linear-gradient(135deg,#2a2a3e,#1a1a2e);border-radius:45px;position:relative;transform:perspective(500px) rotateY(-8deg);box-shadow:-15px 8px 25px rgba(0,0,0,0.5)}
+.ecig-screen{position:absolute;top:22px;left:10px;right:10px;height:90px;background:#000;border-radius:14px;overflow:hidden}
+.slot-machine{display:flex;align-items:center;justify-content:center;font-size:26px;gap:2px;animation:slot 0.15s infinite}
+@keyframes slot{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.ecig-led{position:absolute;bottom:28px;left:12px;right:12px;height:18px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:9px;animation:led 2s infinite}
+@keyframes led{0%,100%{opacity:1;box-shadow:0 0 15px var(--primary)}50%{opacity:0.5}}
+.ecig-tip{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:26px;height:36px;background:linear-gradient(180deg,#555,#333);border-radius:6px 6px 0 0}
 .product-info{padding:24px}
 .product-info h3{font-size:18px;margin-bottom:8px}
 .product-info .tag{display:inline-block;background:var(--g);color:#fff;padding:4px 12px;border-radius:20px;font-size:11px;margin-bottom:12px}
@@ -64,12 +72,17 @@ h1{font-size:52px;font-weight:800;margin-bottom:18px;background:var(--g2);-webki
 .price{font-size:28px;font-weight:700;color:var(--primary)}
 .price .original{font-size:16px;color:#666;text-decoration:line-through;margin-left:8px}
 .buy-btn{padding:14px 28px;background:var(--g);border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer}
+.buy-btn:hover{background:var(--primary)}
+.referral-banner{background:linear-gradient(135deg,rgba(0,230,118,0.2),rgba(0,230,118,0.1));border:1px solid rgba(0,230,118,0.3);border-radius:16px;padding:20px;margin:30px auto;max-width:600px}
+.referral-banner h3{color:var(--success);margin-bottom:10px}
+.referral-banner p{font-size:14px;color:#AAA}
 footer{padding:40px 24px;border-top:var(--b);text-align:center}
 footer p{color:var(--text-muted);font-size:13px}
 @media(max-width:768px){nav{display:none}h1{font-size:36px}.products{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<!-- Main Modal -->
 <div class="modal" id="modal">
 <div class="modal-box">
 <button class="modal-close" onclick="closeModal()">×</button>
@@ -86,21 +99,37 @@ footer p{color:var(--text-muted);font-size:13px}
 <button class="modal-close" onclick="closeLogin()">×</button>
 <div class="modal-icon">🔐</div>
 <div class="modal-title">登录 / 注册</div>
-<div class="modal-msg">选择登录方式</div>
+<div class="modal-msg">登录后享受更多功能</div>
 <div class="social-btns">
-<button class="social-btn google" onclick="socialLogin('google')">
-<img src="https://www.google.com/favicon.ico" width="20"> Google 账号登录
-</button>
-<button class="social-btn whatsapp" onclick="socialLogin('whatsapp')">
-📱 WhatsApp 登录
-</button>
-<button class="social-btn apple" onclick="socialLogin('apple')">
-🍎 Apple ID 登录
-</button>
-<button class="social-btn facebook" onclick="socialLogin('facebook')">
-📘 Facebook 登录
-</button>
+<button class="social-btn google" onclick="socialLogin('google')">🔵 Google 账号登录</button>
+<button class="social-btn whatsapp" onclick="socialLogin('whatsapp')">🟢 WhatsApp 登录</button>
+<button class="social-btn apple" onclick="socialLogin('apple')">🍎 Apple ID 登录</button>
+<button class="social-btn facebook" onclick="socialLogin('facebook')">🔵 Facebook 登录</button>
 </div>
+<div style="margin-top:20px">
+<button class="modal-btn secondary" onclick="showPhoneLogin()">📱 手机号登录</button>
+</div>
+</div>
+</div>
+
+<!-- Phone Login Modal -->
+<div class="modal" id="phoneModal">
+<div class="modal-box">
+<button class="modal-close" onclick="closePhoneLogin()">×</button>
+<div class="modal-icon">📱</div>
+<div class="modal-title">手机号登录</div>
+<div style="text-align:left;margin:20px 0">
+<label style="display:block;margin-bottom:8px;font-size:13px;color:#888">手机号</label>
+<input type="tel" id="phoneInput" placeholder="+86 123 4567 8901" style="width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:16px">
+</div>
+<div style="text-align:left;margin:20px 0">
+<label style="display:block;margin-bottom:8px;font-size:13px;color:#888">验证码</label>
+<div style="display:flex;gap:10px">
+<input type="text" id="codeInput" placeholder="6位验证码" style="flex:1;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:16px">
+<button onclick="sendCode()" style="padding:14px 20px;background:var(--g);border:none;border-radius:10px;color:#fff;cursor:pointer">发送</button>
+</div>
+</div>
+<button class="modal-btn" onclick="verifyCode()">验证登录</button>
 </div>
 </div>
 
@@ -115,7 +144,14 @@ footer p{color:var(--text-muted);font-size:13px}
 </nav>
 <div class="header-right">
 <button class="cart-btn" onclick="showCart()">🛒<span class="cart-badge" id="cartCount">0</span></button>
+<div class="user-dropdown">
 <button class="user-btn" id="userBtn" onclick="toggleUserMenu()">👤</button>
+<div class="user-menu" id="userMenu">
+<div id="userInfo" style="padding-bottom:10px;border-bottom:var(--b);margin-bottom:10px"></div>
+<a href="shop-admin.html">⚙️ 管理后台</a>
+<a href="#" onclick="logout()">🚪 退出登录</a>
+</div>
+</div>
 </div>
 </div>
 </header>
@@ -124,108 +160,127 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="badge">🎰 全球首创</div>
 <h1>熊猫智能电子烟 Pro</h1>
 <p class="subtitle">全球首款带智能老虎机的电子烟 · 吸烟即挖矿</p>
+
+<div class="referral-banner">
+<h3>👥 邀请好友得代币</h3>
+<p>每邀请1人购买电子烟，<strong style="color:var(--success)">立即获得 500 PANDA</strong></p>
+<button class="modal-btn" style="margin-top:15px" onclick="shareReferral()">🔗 复制邀请链接</button>
+</div>
 </section>
 
 <section class="product-section" id="products">
 <h2>🔥 热销产品</h2>
-<div class="products" id="productList">
-<!-- Products will be rendered by JS -->
-</div>
+<div class="products" id="productList"></div>
 </section>
 
 <footer><p>© 2026 PandaToken | All Rights Reserved</p></footer>
 
 <script>
-// Product Data
-var products = [
-{
-id: 1,
-name: "熊猫智能电子烟 Pro",
-tag: "2026新品",
-desc: "全球首款带智能屏幕的电子烟，吸烟自动触发老虎机",
-price: 70,
-originalPrice: 99,
-pandaTokens: 3000,
-specs: ["🎰 智能老虎机", "🔊 中奖提示", "🔋 5000口", "🔑 3000代币"],
-image: "pro"
-},
-{
-id: 2,
-name: "熊猫智能电子烟 Lite",
-tag: "性价比",
-desc: "简约版智能电子烟，同样享受代币奖励",
-price: 49,
-originalPrice: 69,
-pandaTokens: 1500,
-specs: ["🎰 智能屏幕", "🔋 3000口", "🔑 1500代币"],
-image: "lite"
-},
-{
-id: 3,
-name: "熊猫电子烟套装",
-tag: "超值套装",
-desc: "Pro主机 + 3颗烟弹 + 代币大礼包",
-price: 129,
-originalPrice: 199,
-pandaTokens: 5000,
-specs: ["🎰 智能老虎机", "🫁 3颗烟弹", "🔑 5000代币",("+500推荐")],
-image: "bundle"
-}
-];
+// ==================== 数据层 ====================
+var API_BASE = 'https://panda-token-d6bckkwli-pandaevc.vercel.app';
 
-var cart = [];
-var currentUser = null;
+// 模拟数据库
+var db = {
+  users: JSON.parse(localStorage.getItem('panda_users') || '[]'),
+  products: JSON.parse(localStorage.getItem('panda_products') || JSON.stringify([
+    {id:1,name:"熊猫智能电子烟 Pro",tag:"2026新品",desc:"全球首款带智能屏幕的电子烟，吸烟自动触发老虎机",price:70,originalPrice:99,pandaTokens:3000,stock:500,flavors:["原味","薄荷","芒果"],status:"active"},
+    {id:2,name:"熊猫智能电子烟 Lite",tag:"性价比",desc:"简约版智能电子烟，同样享受代币奖励",price:49,originalPrice:69,pandaTokens:1500,stock:800,flavors:["原味","薄荷"],status:"active"},
+    {id:3,name:"熊猫电子烟套装",tag:"超值套装",desc:"Pro主机 + 3颗烟弹 + 代币大礼包",price:129,originalPrice:199,pandaTokens:5000,stock:200,flavors:["原味","薄荷","芒果","葡萄"],status:"active"}
+  ])),
+  orders: JSON.parse(localStorage.getItem('panda_orders') || '[]'),
+  cart: JSON.parse(localStorage.getItem('panda_cart') || '[]')
+};
+
+// 保存数据
+function saveData() {
+  localStorage.setItem('panda_users', JSON.stringify(db.users));
+  localStorage.setItem('panda_products', JSON.stringify(db.products));
+  localStorage.setItem('panda_orders', JSON.stringify(db.orders));
+  localStorage.setItem('panda_cart', JSON.stringify(db.cart));
+}
+
+// ==================== UI层 ====================
+var currentUser = JSON.parse(localStorage.getItem('panda_current_user') || 'null');
+var referralCode = new URLSearchParams(window.location.search).get('ref') || '';
 
 function $(id) {return document.getElementById(id);}
 
-function showModal(title, msg, icon) {
+function showModal(title, msg, icon, btns) {
   $('modalTitle').innerText = title;
   $('modalMsg').innerText = msg;
   $('modalIcon').innerText = icon || '✅';
+  $('modalBtns').innerHTML = btns || '<button class="modal-btn" onclick="closeModal()">确定</button>';
   $('modal').classList.add('show');
 }
 
-function closeModal() {
-  $('modal').classList.remove('show');
-}
-
-function showLogin() {
-  $('loginModal').classList.add('show');
-}
-
-function closeLogin() {
-  $('loginModal').classList.remove('show');
-}
-
-function socialLogin(provider) {
-  var email = prompt("请输入您的邮箱地址:");
-  if (email) {
-    // Simulate login
-    currentUser = {provider: provider, email: email, name: email.split('@')[0]};
-    localStorage.setItem('panda_user', JSON.stringify(currentUser));
-    closeLogin();
-    showModal('✅ 登录成功', '欢迎 ' + currentUser.name + '!', '🎉');
-    updateUserUI();
-  }
-}
+function closeModal() {$('modal').classList.remove('show');}
+function showLogin() {$('loginModal').classList.add('show');}
+function closeLogin() {$('loginModal').classList.remove('show');}
+function showPhoneLogin() {closeLogin(); $('phoneModal').classList.add('show');}
+function closePhoneLogin() {$('phoneModal').classList.remove('show');}
 
 function toggleUserMenu() {
-  if (!currentUser) {
-    showLogin();
+  var menu = $('userMenu');
+  menu.classList.toggle('show');
+  setTimeout(() => {if(!event.target.closest('.user-dropdown'))menu.classList.remove('show');}, 3000);
+}
+
+// ==================== 认证层 ====================
+function socialLogin(provider) {
+  var identifier = prompt('请输入您的 ' + provider + ' 邮箱/手机号:');
+  if (!identifier) return;
+  
+  var user = {
+    id: Date.now(),
+    provider: provider,
+    identifier: identifier,
+    name: identifier.split('@')[0] || identifier,
+    created: new Date().toISOString(),
+    referralCode: 'PAND' + Math.random().toString(36).substr(2,6).toUpperCase(),
+    referredBy: referralCode || null
+  };
+  
+  // 检查是否已存在
+  var existing = db.users.find(function(u) {return u.identifier === identifier;});
+  if (existing) {
+    currentUser = existing;
   } else {
-    var menu = document.createElement('div');
-    menu.style.cssText = 'position:fixed;top:70px;right:24px;background:var(--surface);border-radius:12px;padding:16px;z-index:300';
-    menu.innerHTML = '<div style="margin-bottom:12px">' + currentUser.name + '</div>' +
-      '<a href="shop-admin.html" style="display:block;padding:8px 0;color:var(--accent)">管理后台</a>' +
-      '<button onclick="logout()" style="background:none;border:none;color:#ff4757;cursor:pointer">退出登录</button>';
-    document.body.appendChild(menu);
-    setTimeout(() => menu.remove(), 5000);
+    db.users.push(user);
+    currentUser = user;
+    saveData();
   }
+  
+  localStorage.setItem('panda_current_user', JSON.stringify(currentUser));
+  closeLogin();
+  showModal('✅ 登录成功', '欢迎 ' + currentUser.name + '!\n\n' + (referralCode ? '推荐人: ' + referralCode : ''), '🎉');
+  updateUserUI();
+  
+  // 如果有推荐人，记录推荐关系
+  if (referralCode && existing) {
+    // 推荐奖励逻辑
+  }
+}
+
+function showPhoneLogin() {closeLogin(); $('phoneModal').classList.add('show');}
+
+function sendCode() {
+  var phone = $('phoneInput').value;
+  if (!phone) {alert('请输入手机号');return;}
+  alert('验证码已发送 (演示: 123456)');
+}
+
+function verifyCode() {
+  var code = $('codeInput').value;
+  if (code !== '123456') {alert('验证码错误');return;}
+  
+  var phone = $('phoneInput').value;
+  socialLogin('phone:' + phone);
 }
 
 function logout() {
   currentUser = null;
-  localStorage.removeItem('panda_user');
+  localStorage.removeItem('panda_current_user');
+  $('userMenu').classList.remove('show');
   showModal('👋 已退出', '欢迎下次再来', '👋');
   updateUserUI();
 }
@@ -233,17 +288,23 @@ function logout() {
 function updateUserUI() {
   if (currentUser) {
     $('userBtn').innerText = currentUser.name[0].toUpperCase();
+    $('userInfo').innerHTML = '<div style="font-weight:600">' + currentUser.name + '</div><div style="font-size:12px;color:#888">' + currentUser.identifier + '</div>';
+  } else {
+    $('userBtn').innerText = '👤';
   }
 }
 
+// ==================== 商品层 ====================
 function renderProducts() {
+  var products = typeof db.products === 'string' ? JSON.parse(db.products) : db.products;
   var list = $('productList');
+  
   list.innerHTML = products.map(function(p) {
     return '<div class="product-card">' +
-      '<div class="ecig-3d">' +
-        '<div class="ecig-body">' +
+      '<div class="ecig-display">' +
+        '<div class="ecig">' +
           '<div class="ecig-tip"></div>' +
-          '<div class="ecig-screen"><div class="slot" id="slot' + p.id + '">🍒 🍋 🍇</div></div>' +
+          '<div class="ecig-screen"><div class="slot-machine" id="slot' + p.id + '">🍒 🍋 🍇</div></div>' +
           '<div class="ecig-led"></div>' +
         '</div>' +
       '</div>' +
@@ -251,7 +312,11 @@ function renderProducts() {
         '<span class="tag">' + p.tag + '</span>' +
         '<h3>' + p.name + '</h3>' +
         '<p class="desc">' + p.desc + '</p>' +
-        '<div class="specs">' + p.specs.map(function(s) { return '<span class="spec">' + s + '</span>'; }).join('') + '</div>' +
+        '<div class="specs">' +
+          '<span class="spec">🎰 ' + p.pandaTokens + '代币</span>' +
+          '<span class="spec">📦 库存:' + p.stock + '</span>' +
+        '</div>' +
+        '<div class="specs">' + (p.flavors || []).map(function(f) {return '<span class="spec">'+f+'</span>';}).join('') + '</div>' +
         '<div class="price-row">' +
           '<div class="price">$' + p.price + '<span class="original">$' + p.originalPrice + '</span></div>' +
           '<button class="buy-btn" onclick="addToCart(' + p.id + ')">🛒 购买</button>' +
@@ -260,49 +325,120 @@ function renderProducts() {
     '</div>';
   }).join('');
   
-  // Animate slots
+  // 动画
   setInterval(function() {
+    var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
     products.forEach(function(p) {
-      var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
-      var s = symbols[Math.floor(Math.random() * symbols.length)];
       var el = $('slot' + p.id);
-      if (el) el.innerHTML = s + ' ' + s + ' ' + s;
+      if (el) {
+        var s = symbols[Math.floor(Math.random() * symbols.length)];
+        el.innerHTML = s + ' ' + s + ' ' + s;
+      }
     });
   }, 200);
 }
 
+// ==================== 购物车层 ====================
 function addToCart(productId) {
+  if (!currentUser) {showLogin(); return;}
+  
+  var products = typeof db.products === 'string' ? JSON.parse(db.products) : db.products;
+  var product = products.find(function(p) {return p.id === productId;});
+  if (!product) return;
+  
+  var cartItem = {
+    id: Date.now(),
+    productId: product.id,
+    name: product.name,
+    price: product.price,
+    pandaTokens: product.pandaTokens,
+    quantity: 1,
+    flavor: (product.flavors && product.flavors[0]) || '默认'
+  };
+  
+  db.cart.push(cartItem);
+  saveData();
+  
+  $('cartCount').innerText = db.cart.length;
+  showModal('✅ 已加入购物车', product.name + '\n价格: $' + product.price + '\n代币: ' + product.pandaTokens, '🛒');
+}
+
+function showCart() {
+  if (db.cart.length === 0) {
+    showModal('🛒 购物车', '购物车是空的', '🛒');
+    return;
+  }
+  
+  var total = db.cart.reduce(function(s, i) {return s + i.price * i.quantity;}, 0);
+  var tokens = db.cart.reduce(function(s, i) {return s + i.pandaTokens * i.quantity;}, 0);
+  var list = db.cart.map(function(i, idx) {
+    return (idx+1) + '. ' + i.name + ' x' + i.quantity + ' - $' + i.price;
+  }).join('\n');
+  
+  var btns = '<button class="modal-btn" onclick="closeModal();checkout()">💳 结算</button>' +
+    '<button class="modal-btn secondary" onclick="clearCart()">🗑️ 清空</button>';
+  
+  showModal('🛒 购物车\n\n' + list + '\n\n总计: $' + total + '\n代币: ' + tokens, '', '🛒', btns);
+}
+
+function clearCart() {
+  db.cart = [];
+  saveData();
+  $('cartCount').innerText = '0';
+  closeModal();
+  showModal('🗑️ 已清空', '购物车已清空', '🛒');
+}
+
+function checkout() {
+  if (!currentUser) {showLogin(); return;}
+  if (db.cart.length === 0) return;
+  
+  var total = db.cart.reduce(function(s, i) {return s + i.price * i.quantity;}, 0);
+  
+  // 创建订单
+  var order = {
+    id: 'ORD' + Date.now(),
+    userId: currentUser.id,
+    userName: currentUser.name,
+    items: db.cart.map(function(i) {return {name: i.name, qty: i.quantity, price: i.price};}),
+    total: total,
+    status: 'pending_payment',
+    created: new Date().toISOString(),
+    referral: currentUser.referredBy,
+    tracking: ''
+  };
+  
+  db.orders.push(order);
+  db.cart = [];
+  saveData();
+  $('cartCount').innerText = '0';
+  
+  // 显示订单
+  var btns = '<button class="modal-btn" onclick="closeModal()">查看订单</button>';
+  showModal('✅ 订单创建成功!\n\n订单号: ' + order.id + '\n金额: $' + total + '\n\n请完成支付', '', '💳', btns);
+}
+
+// ==================== 推荐层 ====================
+function shareReferral() {
   if (!currentUser) {
     showLogin();
     return;
   }
   
-  var product = products.find(function(p) { return p.id === productId; });
-  cart.push(product);
-  $('cartCount').innerText = cart.length;
-  showModal('✅ 已加入购物车', product.name + '\n价格: $' + product.price, '🛒');
+  var link = window.location.origin + window.location.pathname + '?ref=' + currentUser.referralCode;
+  navigator.clipboard.writeText(link);
+  showModal('🔗 已复制', '邀请链接已复制!\n\n发送给朋友购买，您将获得 500 PANDA/ 人', '📋');
 }
 
-function showCart() {
-  if (cart.length === 0) {
-    showModal('🛒 购物车', '购物车是空的', '🛒');
-    return;
-  }
-  
-  var total = cart.reduce(function(sum, p) { return sum + p.price; }, 0);
-  var list = cart.map(function(p, i) { return (i+1) + '. ' + p.name + ' - $' + p.price; }).join('\n');
-  
-  showModal('🛒 购物车\n\n' + list + '\n\n总计: $' + total + '\n\n是否结算?', '🎉');
-}
-
-// Load user
-var savedUser = localStorage.getItem('panda_user');
-if (savedUser) {
-  currentUser = JSON.parse(savedUser);
-  updateUserUI();
-}
-
+// 初始化
+db.products = typeof db.products === 'string' ? JSON.parse(db.products) : db.products;
+$('cartCount').innerText = db.cart.length;
+updateUserUI();
 renderProducts();
+
+if (referralCode) {
+  showModal('👥 推荐注册', '推荐人: ' + referralCode, '🎉');
+}
 </script>
 </body>
 </html>
