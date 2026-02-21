@@ -575,7 +575,7 @@ document.querySelectorAll('.sidebar-nav a').forEach(function(link){
 
 // ============ OTHER FUNCTIONS ============
 function doRefresh() { loadData(); alert('已刷新'); }
-function doExport() { var d=JSON.stringify(db,null,2); var a=document.createElement('a');a.href='data:text/json,'+encodeURIComponent(d);a.download='panda-backup-'+Date.now()+'.json');a.click(); }
+function doExport() { var d=JSON.stringify(db,null,2); var a=document.createElement('a');a.href='data:text/json,'+encodeURIComponent(d);a.download='panda-backup-'+Date.now()+'.json';a.click(); }
 function doSaveMarketing() { alert('营销设置已保存!'); }
 function doSaveAnnouncement() { alert('公告已发布!'); }
 function doSaveAdmin() { alert('管理员设置已保存!'); }
