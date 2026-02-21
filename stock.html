@@ -116,6 +116,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <button class="btn" onclick="document.getElementById('screenshotInput').click()">📸 上传截图</button>
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动</button>
+<span style="color:#FF4757;cursor:pointer;margin-left:12px" onclick="localStorage.removeItem('stock_db');location.reload();">[清空数据]</span>
 <button class="btn btn-outline" onclick="downloadTemplate()">📥 模板</button>
 <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 导入</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
