@@ -26,8 +26,8 @@ function handleCSVImport(input) {
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    var positions = [];
     var lines = text.split(/[\n\r]+/);
+    var added = 0;
     
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
@@ -47,14 +47,25 @@ function handleCSVImport(input) {
       var shares = parseInt(nums[0]) || 100;
       var price = parseFloat(nums[1]) || 10;
       
-      if (!db.portfolio.some(function(p){return p.code === code;})) {
+      // Check if already exists
+      var exists = false;
+      for (var j = 0; j < db.portfolio.length; j++) {
+        if (db.portfolio[j].code === code) { exists = true; break; }
+      }
+      
+      if (!exists) {
         db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        added++;
       }
     }
     
-    saveData();
-    render();
-    alert("成功导入 " + db.portfolio.length + " 只股票！");
+    if (added > 0) {
+      saveData();
+      render();
+      alert("成功导入 " + added + " 只股票！");
+    } else {
+      alert("未找到新股票或格式不正确");
+    }
   };
   reader.readAsText(file);
 }
