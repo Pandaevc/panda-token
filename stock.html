@@ -81,6 +81,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .tag-blue{background:rgba(0,150,255,0.2);color:#0096FF}
 .tag-yellow{background:rgba(255,215,0,0.2);color:#FFD700}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal.show{display:flex;animation:fadeIn 0.2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal.show{display:flex}
 .modal-content{background:#1A1A1A;padding:24px;border-radius:16px;max-width:90%;max-height:90%;overflow:auto}
 .filter-group{background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:12px}
@@ -192,16 +194,25 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 </div>
 <div class="card">
 <h3>📊 持仓监控</h3>
-<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+<span style="color:#888;font-size:12px">筛选:</span>
 <select id="filterAction" class="input" style="width:auto" onchange="renderPortfolio()">
 <option value="all">全部</option>
-<option value="action">只看增持/加仓</option>
-<option value="reduce">只看减仓/清仓</option>
+<option value="buy">增持/加仓</option>
+<option value="hold">持有/观望</option>
+<option value="reduce">减仓</option>
+<option value="clear">清仓</option>
+<option value="profit_high">盈利>15%</option>
+<option value="profit_low">亏损>-5%</option>
+<option value="st">ST股票</option>
 </select>
+<span style="color:#888;font-size:12px;margin-left:12px">排序:</span>
 <select id="sortBy" class="input" style="width:auto" onchange="renderPortfolio()">
 <option value="profit">按盈亏排序</option>
 <option value="code">按代码排序</option>
 <option value="name">按名称排序</option>
+<option value="change">按涨跌幅排序</option>
+<option value="time">按添加时间排序</option>
 </select>
 </div>
 <div id="portfolioMonitor"></div>
@@ -476,12 +487,23 @@ async function renderPortfolio() {
     if (filterAction === 'all') return true;
     var s = stockCache[p.code];
     if (!s) return false;
-    var profit = ((p.currentPrice - p.buyPrice) / p.buyPrice * 100);
+    var profit = ((s.price - p.buyPrice) / p.buyPrice * 100);
     var rec = getRecommendation(s, profit, getQuickAnalysis(s));
-    if (filterAction === 'action') {
+    
+    if (filterAction === 'buy') {
       return rec.action === '加仓' || rec.action === '增持';
+    } else if (filterAction === 'hold') {
+      return rec.action === '持有' || rec.action === '观望';
     } else if (filterAction === 'reduce') {
-      return rec.action === '减仓' || rec.action === '清仓';
+      return rec.action === '减仓';
+    } else if (filterAction === 'clear') {
+      return rec.action === '清仓';
+    } else if (filterAction === 'profit_high') {
+      return profit > 15;
+    } else if (filterAction === 'profit_low') {
+      return profit < -5;
+    } else if (filterAction === 'st') {
+      return s.isST === true;
     }
     return true;
   });
@@ -496,6 +518,8 @@ async function renderPortfolio() {
     if (sortBy === 'profit') return profit2 - profit1;
     if (sortBy === 'code') return a.code.localeCompare(b.code);
     if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+    if (sortBy === 'change') return (s2.change || 0) - (s1.change || 0);
+    if (sortBy === 'time') return (b.addTime || 0) - (a.addTime || 0);
     return 0;
   });
   
@@ -521,7 +545,7 @@ async function renderPortfolio() {
       if (s.turnover > 5) analysisText += '；换手率较高，活跃度高';
       if (s.mainMoney < -10) analysisText += '；主力资金净流出，注意风险';
       else if (s.mainMoney > 10) analysisText += '；主力资金净流入，看涨';
-      return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="showEditStock(\''+p.code+'\')" style="background:#0096FF;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px">✏️</button><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700;margin-left:8px">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span onclick="alert(\''+p.code+' '+p.name+' 详细分析：\\n'+analysisText+'\')" style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
+      return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="showEditStock(\''+p.code+'\')" style="background:#0096FF;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px">✏️</button><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700;margin-left:8px">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span onclick="showStockAnalysis(\''+p.code+'\')" style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
     } catch(e) {
       console.error('Error mapping stock:', p.code, e);
       return '';
@@ -984,6 +1008,105 @@ function getRecommendation(s, profit, analysis) {
   
   return rec;
 }
+
+// Modal functions
+function showModal(title, content) {
+  var modal = document.getElementById('analysisModal');
+  var modalTitle = document.getElementById('modalTitle');
+  var modalBody = document.getElementById('modalBody');
+  modalTitle.innerHTML = title;
+  modalBody.innerHTML = content;
+  modal.classList.add('show');
+}
+
+function hideModal() {
+  var modal = document.getElementById('analysisModal');
+  modal.classList.remove('show');
+}
+
+function showStockAnalysis(code) {
+  var p = db.portfolio.find(function(x){return x.code === code;});
+  if (!p) return;
+  
+  var s = stockCache[code];
+  if (!s) return;
+  
+  var profit = ((s.price - p.buyPrice) / p.buyPrice * 100);
+  var rec = getRecommendation(s, profit, getQuickAnalysis(s));
+  var levels = calcSupportResistance(s);
+  
+  var analysis = '<div style="background:#1A1A1A;padding:16px;border-radius:12px;margin-bottom:16px">';
+  analysis += '<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="color:#FF6B35;font-size:18px;font-weight:700">'+code+'</span><span style="color:#FFD700;font-size:18px;font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div>';
+  analysis += '<div style="color:#888;margin-bottom:16px">'+p.name+'</div>';
+  
+  analysis += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">';
+  analysis += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">持仓数量</div><div style="color:#FFF;font-weight:600">'+p.shares+'</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">成本价</div><div style="color:#FFF;font-weight:600">'+p.buyPrice.toFixed(2)+'</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">现价</div><div style="color:#FFF;font-weight:600">'+(s.price||'-')+'</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">今日涨跌</div><div style="color:'+(s.change>=0?'#FF4757':'#2ED573')+';font-weight:600">'+(s.change>=0?'+':'')+(s.change||0).toFixed(2)+'%</div></div>';
+  analysis += '</div>';
+  
+  analysis += '<div style="background:#0D0D0D;padding:12px;border-radius:8px;margin-bottom:16px"><div style="color:#666;font-size:11px;margin-bottom:8px">建议操作</div><div style="color:'+rec.color+';font-size:20px;font-weight:700">'+rec.action+'</div><div style="color:#888;margin-top:4px">'+rec.reason+'</div></div>';
+  
+  analysis += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">📊 技术分析</div>';
+  analysis += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  analysis += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">支撑位</div><div style="color:#2ED573">'+levels.support.toFixed(2)+'</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">阻力位</div><div style="color:#FF4757">'+levels.resistance.toFixed(2)+'</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">换手率</div><div style="color:#FFF">'+(s.turnover||0).toFixed(2)+'%</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">市值(亿)</div><div style="color:#FFF">'+(s.market||0).toFixed(0)+'</div></div>';
+  analysis += '</div></div>';
+  
+  analysis += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">💰 资金流向</div>';
+  analysis += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
+  analysis += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">主力净流入</div><div style="color:'+((s.mainMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.mainMoney||0).toFixed(2)+'万</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">超大单</div><div style="color:'+((s.superMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.superMoney||0).toFixed(2)+'万</div></div>';
+  analysis += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">大单</div><div style="color:'+((s.largeMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.largeMoney||0).toFixed(2)+'万</div></div>';
+  analysis += '</div></div>';
+  
+  // Risk assessment
+  var risks = [];
+  if (profit > 25) risks.push('⚠️ 盈利超过25%，注意止盈');
+  if (profit < -8) risks.push('⚠️ 亏损超过8%，注意止损');
+  if (s.change > 5) risks.push('⚠️ 今日涨幅较大，谨防回调');
+  if (s.change < -5) risks.push('⚠️ 今日跌幅较大，关注支撑');
+  if (s.mainMoney < -10) risks.push('⚠️ 主力资金净流出，注意风险');
+  if (s.turnover > 8) risks.push('⚠️ 换手率较高，波动较大');
+  if (s.isST) risks.push('⚠️ ST股票，风险较高');
+  
+  if (risks.length > 0) {
+    analysis += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">⚡ 风险提示</div>';
+    analysis += '<div style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);padding:12px;border-radius:8px">';
+    analysis += risks.join('<br>');
+    analysis += '</div></div>';
+  }
+  
+  // Add time
+  analysis += '<div style="color:#666;font-size:11px;text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #333">添加时间: '+new Date(p.addTime).toLocaleString()+'</div>';
+  
+  analysis += '</div>';
+  
+  showModal(p.name + ' (' + code + ')', analysis);
+}
+
+// Close modal on outside click
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('analysisModal');
+  if (e.target === modal) {
+    hideModal();
+  }
+});
 </script>
+
+<!-- Modal -->
+<div id="analysisModal" class="modal" onclick="if(event.target === this) hideModal()">
+<div class="modal-content" style="max-width:500px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #333">
+<h3 id="modalTitle" style="margin:0;color:#FF6B35">分析详情</h3>
+<button onclick="hideModal()" style="background:none;border:none;color:#888;font-size:24px;cursor:pointer;padding:0;line-height:1">&times;</button>
+</div>
+<div id="modalBody" style="color:#CCC;line-height:1.8"></div>
+</div>
+</div>
+
 </body>
 </html>
