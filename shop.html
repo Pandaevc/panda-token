@@ -90,29 +90,24 @@ footer p{color:var(--text-muted);font-size:13px}
 <div class="modal-title">🛒 确认订单</div>
 
 <div style="background:var(--dark);padding:20px;border-radius:12px;margin:20px 0;text-align:left">
-<div style="display:flex;justify-content:space-between;margin-bottom:10px">
-<span>商品</span><span>熊猫智能电子烟 Pro</span>
-</div>
-<div style="display:flex;justify-content:space-between;margin-bottom:10px">
-<span>口味</span><span id="selectedFlavor">原味</span></div>
-<div style="display:flex;justify-content:space-between;margin-bottom:10px">
-<span>代币</span><span style="color:var(--success)">3000 PANDA</span>
-</div>
-<div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:10px;border-top:var(--b)">
-<span>总计</span><span style="color:var(--primary)">$70 USD</span>
-</div>
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>商品</span><span>熊猫智能电子烟 Pro</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>口味</span><span id="selectedFlavor">原味</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>代币</span><span style="color:var(--success)">3000 PANDA</span></div>
+<div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:10px;border-top:var(--b)"><span>总计</span><span style="color:var(--primary)">$70 USD</span></div>
 </div>
 
 <h4 style="text-align:left;margin:20px 0 10px">支付方式</h4>
 <div class="flavor-btns" style="margin:15px 0">
-<div class="flavor-btn active" onclick="selectPay('usdt')" id="payUSDT">🔷 USDT</div>
+<div class="flavor-btn active" onclick="selectPay('usdt')" id="payUSDT">🔷 USDT (TRC20)</div>
 <div class="flavor-btn" onclick="selectPay('visa')" id="payVISA">💳 Visa</div>
 <div class="flavor-btn" onclick="selectPay('mast')" id="payMAST">💳 Mastercard</div>
 </div>
 
-<div id="usdtInfo" style="text-align:left;margin:15px 0;display:block">
-<div style="font-size:13px;color:#888;margin-bottom:8px">请向以下地址转账 $70 USDT (TRC20)</div>
-<div style="background:var(--dark);padding:12px;border-radius:8px;font-family:monospace;font-size:13px;word-break:break-all">TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E</div>
+<!-- USDT支付说明 -->
+<div id="usdtPayment" style="text-align:left;margin:15px 0">
+<div style="font-size:13px;color:#888;margin-bottom:12px">📌 请向以下地址转账 <strong style="color:var(--primary)">70 USDT</strong></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;margin-bottom:10px">TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E</div>
+<div style="font-size:12px;color:var(--success);margin-bottom:15px">✅ 转账后自动确认，无需手动上传哈希</div>
 </div>
 
 <h4 style="text-align:left;margin:20px 0 10px">收货信息</h4>
@@ -128,11 +123,9 @@ footer p{color:var(--text-muted);font-size:13px}
 <option value="SV">萨尔瓦多</option>
 </select>
 <input type="text" class="modal-input" id="shipAddress" placeholder="详细地址 *">
-<input type="text" class="modal-input" id="shipTxHash" placeholder="USDT转账哈希 (TRC20) *" style="display:none">
 
 <label style="display:flex;align-items:center;gap:10px;margin:15px 0;text-align:left">
-<input type="checkbox" id="saveAddress">
-<span style="font-size:13px;color:#888">保存为默认地址</span>
+<input type="checkbox" id="saveAddress"><span style="font-size:13px;color:#888">保存为默认地址</span>
 </label>
 
 <button class="modal-btn" onclick="submitOrder()">✅ 提交订单</button>
@@ -146,7 +139,8 @@ footer p{color:var(--text-muted);font-size:13px}
 <div id="userName" style="font-weight:600"></div>
 <div id="userEmail" style="font-size:12px;color:#888"></div>
 </div>
-<a href="shop-admin.html" style="display:block;padding:10px 0;color:var(--accent);text-decoration:none">⚙️ 管理后台</a>
+<!-- 移除直接链接到后台的入口，改为安全验证 -->
+<button onclick="goToAdmin()" style="display:block;width:100%;padding:10px 0;text-align:left;background:none;border:none;color:var(--accent);cursor:pointer">⚙️ 管理后台</button>
 <button onclick="logout()" style="display:block;width:100%;padding:10px 0;text-align:left;background:none;border:none;color:#ff4757;cursor:pointer">🚪 退出登录</button>
 </div>
 
@@ -159,7 +153,7 @@ footer p{color:var(--text-muted);font-size:13px}
 <a href="#product">产品</a>
 </nav>
 <div class="header-right">
-<button class="cart-btn" onclick="showCheckout()">🛒<span class="cart-badge" id="cartCount">0</span></button>
+<button class="cart-btn" onclick="showCheckout()">🛒</button>
 <button class="user-btn" id="userBtn" onclick="toggleUserMenu()">👤</button>
 </div>
 </div>
@@ -208,11 +202,15 @@ footer p{color:var(--text-muted);font-size:13px}
 <footer><p>© 2026 PandaToken | All Rights Reserved</p></footer>
 
 <script>
+// ==================== 配置 ====================
+var USDT_ADDRESS = 'TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E'; // 固定收款地址
+var EXPECTED_AMOUNT = 70;
+
 // ==================== 数据 ====================
 var currentUser = JSON.parse(localStorage.getItem('panda_current_user') || 'null');
 var selectedFlavor = '原味';
 var selectedPay = 'usdt';
-var cart = {flavor: '原味', quantity: 1};
+var orderPending = false;
 
 // ==================== 用户 ====================
 function toggleUserMenu() {
@@ -228,6 +226,16 @@ function toggleUserMenu() {
     o.style.position = 'fixed';
     o.style.inset = '0';
     o.onclick = function() {toggleUserMenu();};
+  }
+}
+
+// 安全访问后台 - 需要验证
+function goToAdmin() {
+  var adminCode = prompt('请输入管理员验证码:');
+  if (adminCode === 'admin123') {
+    window.location.href = 'shop-admin.html';
+  } else {
+    alert('验证码错误');
   }
 }
 
@@ -250,11 +258,11 @@ function verifyLogin() {
   var phone = document.getElementById('phoneInput').value;
   if (code !== '123456') {alert('验证码错误 (演示: 123456)');return;}
   
-  // 登录成功
   currentUser = {
     id: Date.now(),
     phone: phone,
     name: phone.substr(-4),
+    isAdmin: phone === 'admin', // 特殊账号
     created: new Date().toISOString()
   };
   localStorage.setItem('panda_current_user', JSON.stringify(currentUser));
@@ -284,15 +292,11 @@ function selectFlavor(btn, flavor) {
   document.querySelectorAll('.flavor-btn').forEach(function(b) {b.classList.remove('active');});
   btn.classList.add('active');
   selectedFlavor = flavor;
-  cart.flavor = flavor;
 }
 
 // ==================== 购买流程 ====================
 function startBuy() {
-  if (!currentUser) {
-    showLogin();
-    return;
-  }
+  if (!currentUser) {showLogin();return;}
   showCheckout();
 }
 
@@ -303,7 +307,6 @@ function showCheckout() {
   document.getElementById('checkoutOverlay').style.display = 'block';
   document.getElementById('selectedFlavor').innerText = selectedFlavor;
   
-  // 加载保存的地址
   var savedAddr = JSON.parse(localStorage.getItem('panda_default_address') || 'null');
   if (savedAddr) {
     document.getElementById('shipName').value = savedAddr.name || '';
@@ -321,8 +324,7 @@ function selectPay(method) {
   selectedPay = method;
   document.querySelectorAll('.flavor-btn').forEach(function(b) {b.classList.remove('active');});
   document.getElementById('pay' + method.toUpperCase()).classList.add('active');
-  
-  document.getElementById('shipTxHash').style.display = method === 'usdt' ? 'block' : 'none';
+  document.getElementById('usdtPayment').style.display = method === 'usdt' ? 'block' : 'none';
 }
 
 function submitOrder() {
@@ -330,55 +332,131 @@ function submitOrder() {
   var phone = document.getElementById('shipPhone').value.trim();
   var country = document.getElementById('shipCountry').value;
   var address = document.getElementById('shipAddress').value.trim();
-  var txHash = document.getElementById('shipTxHash').value.trim();
   
-  if (!name || !phone || !country || !address) {
-    alert('请填写完整收货信息');return;
-  }
-  if (selectedPay === 'usdt' && !txHash) {
-    alert('请填写USDT转账哈希');return;
-  }
+  if (!name || !phone || !country || !address) {alert('请填写完整收货信息');return;}
   
-  // 保存地址
   if (document.getElementById('saveAddress').checked) {
-    var addr = {name, phone, country, address};
-    localStorage.setItem('panda_default_address', JSON.stringify(addr));
+    localStorage.setItem('panda_default_address', JSON.stringify({name, phone, country, address}));
   }
   
   // 创建订单
   var order = {
     id: 'ORD' + Date.now(),
     userId: currentUser.id,
-    userName: currentUser.name,
     userPhone: currentUser.phone,
     flavor: selectedFlavor,
     amount: 70,
     tokens: 3000,
     payMethod: selectedPay,
-    txHash: txHash,
+    usdtAddress: USDT_ADDRESS,
     ship: {name, phone, country, address},
-    status: selectedPay === 'usdt' ? 'pending_verify' : 'pending_payment',
+    status: selectedPay === 'usdt' ? 'pending_payment' : 'pending_payment',
     created: new Date().toISOString()
   };
   
-  // 保存到本地
+  // 保存订单
   var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
   orders.push(order);
   localStorage.setItem('panda_orders', JSON.stringify(orders));
+  localStorage.setItem('panda_pending_order', JSON.stringify(order));
   
   closeCheckout();
+  orderPending = true;
   
-  var msg = '✅ 订单创建成功!\n\n订单号: ' + order.id + '\n金额: $70\n口味: ' + selectedFlavor;
   if (selectedPay === 'usdt') {
-    msg += '\n\n请等待USDT确认';
+    alert('✅ 订单已创建!\n\n订单号: ' + order.id + '\n\n请向以下地址转账 $70 USDT:\n' + USDT_ADDRESS + '\n\n⏳ 转账后自动确认 (约1-3分钟)');
+    startUSDTMonitoring(order.id);
+  } else {
+    alert('✅ 订单已创建!\n\n订单号: ' + order.id + '\n金额: $70\n\n我们尽快处理您的支付');
   }
-  alert(msg);
+}
+
+// ==================== USDT 自动监听 ====================
+var tronWeb;
+async function initTron() {
+  if (typeof TronWeb !== 'undefined') {
+    tronWeb = new TronWeb({
+      fullHost: 'https://api.trongrid.io'
+    });
+    return true;
+  }
+  return false;
+}
+
+async function startUSDTMonitoring(orderId) {
+  await initTron();
+  
+  var checkCount = 0;
+  var maxChecks = 60; // 最多检查60次 (约5分钟)
+  
+  var statusDiv = document.createElement('div');
+  statusDiv.id = 'paymentStatus';
+  statusDiv.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--surface);padding:16px 24px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:1000';
+  statusDiv.innerHTML = '<div style="margin-bottom:8px">🔄 等待USDT转账确认...</div><div style="font-size:12px;color:#888">请向 ' + USDT_ADDRESS.substring(0,10) + '... 转账70 USDT</div><div style="margin-top:10px;font-size:12px;color:var(--primary)" id="checkCount">检查中 0/' + maxChecks + '</div>';
+  document.body.appendChild(statusDiv);
+  
+  var checkInterval = setInterval(async function() {
+    checkCount++;
+    document.getElementById('checkCount').innerText = '检查中 ' + checkCount + '/' + maxChecks;
+    
+    try {
+      // 查询USDT转账交易
+      var transactions = await tronWeb.trx.getTransactionsRelated(USDT_ADDRESS, 'all', 0, 20);
+      
+      if (transactions && transactions.data) {
+        for (var i = 0; i < transactions.data.length; i++) {
+          var tx = transactions.data[i];
+          if (tx.txID && tx.block_timestamp) {
+            var now = Date.now();
+            var txTime = tx.block_timestamp;
+            var amount = 0;
+            
+            // 解析交易数据
+            if (tx.raw_data && tx.raw_data.contract) {
+              var contract = tx.raw_data.contract[0];
+              if (contract.parameter && contract.parameter.value) {
+                var value = contract.parameter.value.amount || 0;
+                amount = value / 1000000; // 转换为USDT
+              }
+            }
+            
+            // 检查是否是向我们的地址转账70 USDT
+            if (amount >= EXPECTED_AMOUNT && (now - txTime) < 3600000) { // 1小时内
+              // 找到转账!
+              clearInterval(checkInterval);
+              statusDiv.innerHTML = '<div style="color:var(--success);font-size:18px">✅ 支付已确认!</div><div style="font-size:12px;color:#888;margin-top:8px">订单: ' + orderId + '</div>';
+              setTimeout(function() {statusDiv.remove();}, 3000);
+              
+              // 更新订单状态
+              var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
+              var order = orders.find(function(o) {return o.id === orderId;});
+              if (order) {
+                order.status = 'paid';
+                order.paidAt = new Date().toISOString();
+                localStorage.setItem('panda_orders', JSON.stringify(orders));
+              }
+              
+              orderPending = false;
+              alert('🎉 支付已确认!\n\n您的订单 ' + orderId + ' 已支付成功\n\n我们将尽快为您发货!');
+              return;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.log('检查失败:', e.message);
+    }
+    
+    if (checkCount >= maxChecks) {
+      clearInterval(checkInterval);
+      statusDiv.innerHTML = '<div style="color:var(--warning)">⚠️ 未检测到转账</div><div style="font-size:12px;color:#888;margin-top:8px">如已转账，请联系客服</div><button onclick="this.parentElement.remove()" style="margin-top:10px;padding:8px 16px;background:var(--g);border:none;border-radius:6px;color:#fff;cursor:pointer">关闭</button>';
+    }
+  }, 5000); // 每5秒检查一次
 }
 
 // ==================== 初始化 ====================
 updateUserUI();
 
-// 动画
 setInterval(function() {
   var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
   var s = symbols[Math.floor(Math.random() * symbols.length)];
