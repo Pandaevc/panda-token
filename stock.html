@@ -130,36 +130,42 @@ function downloadTemplate() {
 function handleCSVImport(input) {
   var file = input.files[0];
   if (!file) return;
+  
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    var lines = text.split(/[\n\r]+/).filter(function(l){return l.trim().length > 0});
+    alert("读取到: " + text.substring(0, 100));
+    
+    // Simple parse: look for 6-digit codes anywhere
+    var codes = text.match(/\d{6}/g) || [];
+    alert("找到代码: " + codes.join(", "));
+    
     var added = 0;
-    lines.forEach(function(line) {
-      line = line.trim();
-      if (!line || line.indexOf("股票名称") >= 0) return;
-      var m = line.match(/(\d{6})/);
-      if (!m) return;
-      var code = m[1];
-      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
-      var parts = line.split(/[,，\t]/);
-      var shares = 100, price = 10, name = code;
-      if (parts.length >= 3) {
-        var nums = line.match(/(\d+\.?\d*)/g);
-        if (nums && nums.length >= 2) {
-          shares = parseFloat(nums[0]) || 100;
-          price = parseFloat(nums[1]) || 10;
-        }
-        name = parts[0].trim() || code;
-      }
+    codes.forEach(function(code) {
+      // Validate
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && 
+          code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
+      
+      // Try to find numbers for shares and price
+      var lineMatch = text.match(new RegExp(code + "[^\n]*"));
+      if (!lineMatch) return;
+      
+      var nums = lineMatch[0].match(/\d+\.?\d*/g) || [];
+      var shares = nums.length > 0 ? parseFloat(nums[0]) : 100;
+      var price = nums.length > 1 ? parseFloat(nums[1]) : 10;
+      
+      if (shares < 10) shares = 100;
+      if (price < 1) price = 10;
+      
       if (!db.portfolio.find(function(p){return p.code === code})) {
-        db.portfolio.push({code:code, name:name.substring(0,10), shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
         added++;
       }
     });
+    
+    alert("导入成功: " + added + "只");
     saveData();
     renderPortfolio();
-    alert("成功导入 " + added + " 只股票！");
   };
   reader.readAsText(file);
 }
@@ -290,36 +296,42 @@ function downloadTemplate() {
 function handleCSVImport(input) {
   var file = input.files[0];
   if (!file) return;
+  
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    var lines = text.split(/[\n\r]+/).filter(function(l){return l.trim().length > 0});
+    alert("读取到: " + text.substring(0, 100));
+    
+    // Simple parse: look for 6-digit codes anywhere
+    var codes = text.match(/\d{6}/g) || [];
+    alert("找到代码: " + codes.join(", "));
+    
     var added = 0;
-    lines.forEach(function(line) {
-      line = line.trim();
-      if (!line || line.indexOf("股票名称") >= 0) return;
-      var m = line.match(/(\d{6})/);
-      if (!m) return;
-      var code = m[1];
-      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
-      var parts = line.split(/[,，\t]/);
-      var shares = 100, price = 10, name = code;
-      if (parts.length >= 3) {
-        var nums = line.match(/(\d+\.?\d*)/g);
-        if (nums && nums.length >= 2) {
-          shares = parseFloat(nums[0]) || 100;
-          price = parseFloat(nums[1]) || 10;
-        }
-        name = parts[0].trim() || code;
-      }
+    codes.forEach(function(code) {
+      // Validate
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && 
+          code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
+      
+      // Try to find numbers for shares and price
+      var lineMatch = text.match(new RegExp(code + "[^\n]*"));
+      if (!lineMatch) return;
+      
+      var nums = lineMatch[0].match(/\d+\.?\d*/g) || [];
+      var shares = nums.length > 0 ? parseFloat(nums[0]) : 100;
+      var price = nums.length > 1 ? parseFloat(nums[1]) : 10;
+      
+      if (shares < 10) shares = 100;
+      if (price < 1) price = 10;
+      
       if (!db.portfolio.find(function(p){return p.code === code})) {
-        db.portfolio.push({code:code, name:name.substring(0,10), shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
         added++;
       }
     });
+    
+    alert("导入成功: " + added + "只");
     saveData();
     renderPortfolio();
-    alert("成功导入 " + added + " 只股票！");
   };
   reader.readAsText(file);
 }
@@ -1258,36 +1270,42 @@ function downloadTemplate() {
 function handleCSVImport(input) {
   var file = input.files[0];
   if (!file) return;
+  
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    var lines = text.split(/[\n\r]+/).filter(function(l){return l.trim().length > 0});
+    alert("读取到: " + text.substring(0, 100));
+    
+    // Simple parse: look for 6-digit codes anywhere
+    var codes = text.match(/\d{6}/g) || [];
+    alert("找到代码: " + codes.join(", "));
+    
     var added = 0;
-    lines.forEach(function(line) {
-      line = line.trim();
-      if (!line || line.indexOf("股票名称") >= 0) return;
-      var m = line.match(/(\d{6})/);
-      if (!m) return;
-      var code = m[1];
-      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
-      var parts = line.split(/[,，\t]/);
-      var shares = 100, price = 10, name = code;
-      if (parts.length >= 3) {
-        var nums = line.match(/(\d+\.?\d*)/g);
-        if (nums && nums.length >= 2) {
-          shares = parseFloat(nums[0]) || 100;
-          price = parseFloat(nums[1]) || 10;
-        }
-        name = parts[0].trim() || code;
-      }
+    codes.forEach(function(code) {
+      // Validate
+      if (code.indexOf("6") !== 0 && code.indexOf("0") !== 0 && 
+          code.indexOf("3") !== 0 && code.indexOf("68") !== 0) return;
+      
+      // Try to find numbers for shares and price
+      var lineMatch = text.match(new RegExp(code + "[^\n]*"));
+      if (!lineMatch) return;
+      
+      var nums = lineMatch[0].match(/\d+\.?\d*/g) || [];
+      var shares = nums.length > 0 ? parseFloat(nums[0]) : 100;
+      var price = nums.length > 1 ? parseFloat(nums[1]) : 10;
+      
+      if (shares < 10) shares = 100;
+      if (price < 1) price = 10;
+      
       if (!db.portfolio.find(function(p){return p.code === code})) {
-        db.portfolio.push({code:code, name:name.substring(0,10), shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
+        db.portfolio.push({code:code, name:code, shares:shares, buyPrice:price, sector:"", addTime:Date.now()});
         added++;
       }
     });
+    
+    alert("导入成功: " + added + "只");
     saveData();
     renderPortfolio();
-    alert("成功导入 " + added + " 只股票！");
   };
   reader.readAsText(file);
 }
