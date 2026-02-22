@@ -679,7 +679,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <button class="btn" onclick="document.getElementById('screenshotInput').click()">📸 上传截图</button>
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动</button>
-<span style="color:#FF4757;cursor:pointer;margin-left:12px" onclick="localStorage.removeItem('stock_db');location.reload();">[清空数据]</span>
+<span style="color:#FF4757;cursor:pointer;margin-left:12px" onclick="if(confirm('确定清空所有数据吗？')){localStorage.removeItem('stock_db');location.reload();}">[清空数据]</span>
 <button class="btn btn-outline" onclick="downloadTemplate()">📥 模板</button>
 <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 导入</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
@@ -769,8 +769,13 @@ function loadData() {
     var s = localStorage.getItem('stock_db');
     if (s) {
       db = JSON.parse(s);
+      console.log('数据已加载:', db.portfolio.length, '条持仓');
+    } else {
+      db = {portfolio: [], picks: []};
+      console.log('无历史数据');
     }
   } catch(e) {
+    console.error('加载失败:', e);
     db = {portfolio: [], picks: []};
   }
   renderPortfolio();
@@ -863,18 +868,12 @@ async function analyzeStock() {
 }
 
 async function saveData() {
-  localStorage.setItem('stock_db', JSON.stringify(db));
-  
-  // Also save to backend
   try {
-    for (var p of db.portfolio) {
-      await fetch(API_URL + '/api/portfolio', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(p)
-      });
-    }
-  } catch(e) {}
+    localStorage.setItem('stock_db', JSON.stringify(db));
+    console.log('数据已保存:', db.portfolio.length, '条持仓');
+  } catch(e) {
+    console.error('保存失败:', e);
+  }
 }
 
 async function getStockData(code) {
