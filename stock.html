@@ -612,6 +612,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="strategy-card">
 <h3>📊 策略一：AI综合精选（每日1只）</h3>
 <button class="btn" onclick="runStrategy1()">🎯 生成今日推荐</button>
+<button class="btn" style="background:#25D366;margin-left:8px" onclick="pushDailyPicks()">📤 推送精选</button>
 <div id="strategy1Result" style="margin-top:16px"></div>
 </div>
 <div class="strategy-card">
@@ -949,6 +950,80 @@ async function runScreener() {
     var money = (s.mainMoney + s.superMoney) / 10000;
     return '<div class="sr-result" style="cursor:pointer" onclick="showKLine(\''+s.code+'\')"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code" style="font-size:18px">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="'+(s.change>=0?'up':'down')+'" style="font-size:20px;font-weight:700">'+(s.change||0).toFixed(2)+'%</span></div><div style="margin-top:8px;display:flex;gap:16px;font-size:12px;color:#666"><span>换手率:'+(s.turnover||0).toFixed(1)+'%</span><span>成交额:'+(s.amount||0).toFixed(1)+'亿</span><span>主力净流入:'+(money>=0?'+':'')+money.toFixed(0)+'万</span></div></div>';
   }).join('');
+}
+
+// 推送每日精选到WhatsApp
+async function pushDailyPicks() {
+  await loadStocks();
+  document.getElementById('strategy1Result').innerHTML = '<div class="loading">🔍 生成推送内容...</div>';
+  
+  // 获取精选股票
+  var validStocks = allStocks.filter(function(s) { 
+    return !s.isST && s.change > 0 && s.history && s.history.length >= 20; 
+  });
+  
+  var results = validStocks.map(function(s) {
+    var analysis = getQuickAnalysis(s);
+    var rec = getRecommendation(s, 0, analysis);
+    var moneyScore = 0;
+    var mainMoney = (s.mainMoney || 0) + (s.superMoney || 0);
+    if (mainMoney > 50) moneyScore = 5;
+    else if (mainMoney > 20) moneyScore = 3;
+    else if (mainMoney > 0) moneyScore = 1;
+    var totalScore = analysis.score + moneyScore * 2;
+    var isHot = s.sectorName && (s.sectorName.indexOf('科技') >= 0 || s.sectorName.indexOf('AI') >= 0 || s.sectorName.indexOf('新能源') >= 0 || s.sectorName.indexOf('芯片') >= 0);
+    if (isHot) totalScore += 3;
+    return {stock: s, score: totalScore, analysis: analysis, rec: rec};
+  });
+  
+  results.sort(function(a, b) { return b.score - a.score; });
+  var top3 = results.slice(0, 3);
+  
+  if (top3.length === 0) {
+    alert('暂无可推送的股票');
+    return;
+  }
+  
+  // 生成推送消息
+  var message = '🐼 红熵AI每日股票精选\n\n';
+  message += '📊 今日热门股票分析:\n\n';
+  
+  top3.forEach(function(item, i) {
+    var s = item.stock;
+    var rec = item.rec;
+    message += (i+1) + '. ' + s.code + ' ' + s.name + '\n';
+    message += '   涨幅: ' + (s.change > 0 ? '+' : '') + (s.change || 0).toFixed(2) + '%\n';
+    message += '   现价: ¥' + (s.price || '-') + '\n';
+    message += '   推荐: ' + rec.action + ' - ' + rec.reason + '\n';
+    message += '   主力资金: ' + (s.mainMoney > 0 ? '+' : '') + (s.mainMoney || 0).toFixed(0) + '万\n';
+    message += '   板块: ' + (s.sectorName || '-') + '\n\n';
+  });
+  
+  message += '---\n';
+  message += '分析时间: ' + new Date().toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'}) + '\n';
+  message += 'Powered by 红熵AI';
+  
+  // 显示消息供确认
+  document.getElementById('strategy1Result').innerHTML = 
+    '<div style="background:#0D0D0D;padding:16px;border-radius:12px;margin-bottom:12px">' +
+    '<div style="color:#FFD700;margin-bottom:12px">📤 推送预览:</div>' +
+    '<pre style="white-space:pre-wrap;color:#888;font-size:12px;max-height:300px;overflow-y:auto">' + message + '</pre>' +
+    '<button class="btn" style="background:#25D366;margin-top:12px;width:100%" onclick="confirmPush(\'' + encodeURIComponent(message) + '\')">📤 确认发送到WhatsApp</button>' +
+    '</div>';
+}
+
+// 确认推送
+function confirmPush(encodedMessage) {
+  var message = decodeURIComponent(encodedMessage);
+  
+  // 通过 WhatsApp API 发送（需要在后端配置）
+  // 这里先显示成功消息，实际推送需要后端支持
+  alert('📤 推送功能需要后端API支持\n\n消息内容:\n' + message);
+  
+  // 复制到剪贴板
+  navigator.clipboard.writeText(message).then(function() {
+    console.log('已复制到剪贴板');
+  });
 }
 
 async function runStrategy1() {
