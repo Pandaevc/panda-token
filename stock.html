@@ -1569,6 +1569,7 @@ function editStock(code) {
 🎯 回测逻辑：完全使用策略一（AI综合精选）选股，根据推荐信号（买入/加仓/减仓/清仓）进行交易
 </div>
 <button class="btn" style="background:#FF6B35" onclick="runBacktest()">🚀 开始回测</button>
+<button class="btn" style="background:#2ED573;margin-left:10px" onclick="analyzeLimitUpStocks()">📊 分析涨停模式</button>
 </div>
 <div id="backtestResult"></div>
 </div>
@@ -1732,19 +1733,145 @@ function buildStockFromHistory(code, name, history) {
     code: code,
     name: name,
     price: parseFloat(latest[2]),
-    change: ((parseFloat(latest[2]) - parseFloat(yesHistory[2])) / parseFloat(yesHistory[2]) * 100),
+    // 根据真实量价计算资金流向
+    var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); });
+    var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); });
+    var avgVolume = volumes.reduce(function(a, b) { return a + b; }, 0) / volumes.length;
+    var recentVolume = volumes.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
+    var volumeRatio = recentVolume / avgVolume;
+    var priceChange = ((parseFloat(latest[2]) - parseFloat(yesHistory[2])) / parseFloat(yesHistory[2]) * 100);
+    
+    // 放量上涨=资金流入，放量下跌=资金流出
+    var mainMoney = 0;
+    if (volumeRatio > 1.3 && priceChange > 0) mainMoney = 50;
+    else if (volumeRatio > 1.3 && priceChange < 0) mainMoney = -30;
+    else if (volumeRatio < 0.7 && priceChange < 0) mainMoney = 20;
+    
+    return {
+    code: code,
+    name: name,
+    price: parseFloat(latest[2]),
+    change: priceChange,
     open: parseFloat(latest[1]),
     high: parseFloat(latest[3]),
     low: parseFloat(latest[4]),
     volume: parseFloat(latest[5]),
     turnover: (parseFloat(latest[5]) / 1000000 * 100) || 0,
     market: 100,
-    mainMoney: (Math.random() * 100 - 30), // 模拟主力资金
-    superMoney: (Math.random() * 50 - 20),
-    largeMoney: (Math.random() * 30 - 10),
+    mainMoney: mainMoney,
+    superMoney: mainMoney * 0.5,
+    largeMoney: mainMoney * 0.3,
     history: history,
     sectorName: ''
   };
 }
 </script>
+
+// 获取涨停股票并分析前一天状态
+async function analyzeLimitUpStocks() {
+  document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 分析涨停股票模式中...</div>';
+  
+  try {
+    // 获取涨幅>9.5%的股票（接近涨停）
+    var url = 'https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f1,f2,f3,f4,f5,f6,f12,f13,f14,f15,f16,f17,f18,f20,f21,f23&f3=9.5';
+    var res = await fetch(url);
+    var data = await res.json();
+    
+    if (!data.data || !data.data.diff) {
+      document.getElementById('backtestResult').innerHTML = '<div style="color:#666">获取数据失败</div>';
+      return;
+    }
+    
+    var limitUpStocks = data.data.diff.slice(0, 50);
+    var patterns = {
+      volumeUp: 0,      // 前一天放量
+      volumeDown: 0,   // 前一天缩量
+      ma5Up: 0,        // 前一天MA5上涨
+      ma10Up: 0,       // 前一天MA10上涨  
+      redVolume: 0,    // 前一天阳线
+      greenVolume: 0,  // 前一天阴线
+      highVolume: 0,   // 近期高量
+      count: limitUpStocks.length
+    };
+    
+    var analyzed = 0;
+    
+    for (var i = 0; i < Math.min(limitUpStocks.length, 30); i++) {
+      var stock = limitUpStocks[i];
+      var secid = (stock.f13 == 1 ? '1.' : '0.') + stock.f12;
+      
+      // 获取最近20天历史数据
+      var histUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + secid + '&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=0&beg=20250101&end=20260222&lmt=25';
+      
+      try {
+        var histRes = await fetch(histUrl);
+        var histData = await histRes.json();
+        
+        if (histData.data && histData.data.klines && histData.data.klines.length >= 10) {
+          var klines = histData.data.klines.map(function(k) { return k.split(','); });
+          
+          // 分析倒数第二天（涨停前一天）
+          var yesK = klines[klines.length - 2];
+          var yesClose = parseFloat(yesK[2]);
+          var yesOpen = parseFloat(yesK[1]);
+          var yesVol = parseFloat(yesK[5]);
+          
+          // 计算前5天平均量
+          var vol5 = 0;
+          for (var j = klines.length - 6; j < klines.length - 1; j++) {
+            vol5 += parseFloat(klines[j][5]);
+          }
+          vol5 = vol5 / 5;
+          
+          // 昨天是否放量
+          if (yesVol > vol5 * 1.2) patterns.volumeUp++;
+          else if (yesVol < vol5 * 0.8) patterns.volumeDown++;
+          
+          // 昨天是否阳线
+          if (yesClose > yesOpen) patterns.redVolume++;
+          else patterns.greenVolume++;
+          
+          // 计算MA5
+          var prices5 = klines.slice(-6, -1).map(function(k) { return parseFloat(k[2]); });
+          var ma5 = prices5.reduce(function(a, b) { return a + b; }, 0) / 5;
+          if (ma5 > yesOpen) patterns.ma5Up++;
+          
+          analyzed++;
+        }
+      } catch(e) {}
+    }
+    
+    // 显示分析结果
+    var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
+    html += '<h3 style="margin-bottom:16px">📊 涨停股票前一天共同特征（' + analyzed + '只样本）</h3>';
+    
+    html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px">';
+    html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#666;font-size:12px">前一天放量上涨</div><div style="color:#2ED573;font-size:24px;font-weight:700">' + patterns.volumeUp + '只 (' + (patterns.volumeUp/analyzed*100).toFixed(0) + '%)</div></div>';
+    html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#666;font-size:12px">前一天缩量</div><div style="color:#FF6B35;font-size:24px;font-weight:700">' + patterns.volumeDown + '只 (' + (patterns.volumeDown/analyzed*100).toFixed(0) + '%)</div></div>';
+    html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#666;font-size:12px">前一天阳线</div><div style="color:#2ED573;font-size:24px;font-weight:700">' + patterns.redVolume + '只 (' + (patterns.redVolume/analyzed*100).toFixed(0) + '%)</div></div>';
+    html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#666;font-size:12px">前一天MA5向上</div><div style="color:#2ED573;font-size:24px;font-weight:700">' + patterns.ma5Up + '只 (' + (patterns.ma5Up/analyzed*100).toFixed(0) + '%)</div></div>';
+    html += '</div>';
+    
+    // 结论
+    html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;margin-top:12px">';
+    html += '<h4 style="color:#FFD700;margin-bottom:8px">📈 涨停基因总结</h4>';
+    
+    var conclusions = [];
+    if (patterns.volumeUp / analyzed > 0.6) conclusions.push('✅ 60%+涨停股前一天放量');
+    if (patterns.redVolume / analyzed > 0.6) conclusions.push('✅ 60%+涨停股前一天收阳');
+    if (patterns.ma5Up / analyzed > 0.5) conclusions.push('✅ 50%+涨停股MA5向上');
+    
+    if (conclusions.length === 0) {
+      conclusions.push('⚠️ 样本量不足，结论待定');
+    }
+    
+    html += conclusions.map(function(c) { return '<div style="color:#888;margin:4px 0">' + c + '</div>'; }).join('');
+    html += '</div></div>';
+    
+    document.getElementById('backtestResult').innerHTML = html;
+    
+  } catch(e) {
+    document.getElementById('backtestResult').innerHTML = '<div style="color:#666">分析失败: ' + e.message + '</div>';
+  }
+}
 </script>
