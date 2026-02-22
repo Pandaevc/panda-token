@@ -1769,7 +1769,7 @@ async function analyzeLimitUpStocks() {
   
   try {
     // 调用后端API（更快更准确）
-    var res = await fetch('http://127.0.0.1:5004/api/limitup-pattern');
+    var res = await fetch('http://127.0.0.1:5005/api/limitup-pattern');
     var data = await res.json();
     
     var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
