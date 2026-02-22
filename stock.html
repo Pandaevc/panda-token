@@ -750,7 +750,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div class="modal-content" style="width:900px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
 <h3 id="modalStockName">股票分析</h3>
-<button class="btn" onclick="document.getElementById('klineModal').style.display='none'">✕ 关闭</button>
+<button class="btn" onclick="document.getElementById(&quot;klineModal&quot;).style.display='none'">✕ 关闭</button>
 </div>
 <div id="modalKline" style="height:350px"></div>
 <div id="modalAnalysis"></div>
@@ -1771,7 +1771,6 @@ function buildStockFromHistory(code, name, history) {
 async function analyzeLimitUpStocks() {
   document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 分析涨停股票模式中...</div>';
   
-  console.log('开始分析涨停股票...');
   try {
     // 获取涨停股票（涨幅>=9.5%）
     var url = 'https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f1,f2,f3,f4,f5,f6,f12,f13,f14,f15,f16,f17,f18,f20,f21,f23';
