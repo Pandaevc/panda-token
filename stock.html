@@ -679,7 +679,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <button class="btn" onclick="document.getElementById('screenshotInput').click()">📸 上传截图</button>
 <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)">
 <button class="btn btn-outline" onclick="showManualInput()">✏️ 手动</button>
-<span style="color:#FF4757;cursor:pointer;margin-left:12px" onclick="if(confirm('确定清空所有数据吗？')){localStorage.removeItem('stock_db');location.reload();}">[清空数据]</span>
+<span style="color:#FF4757;cursor:pointer;margin-left:12px" onclick="localStorage.removeItem('stock_db');location.reload();">[清空数据]</span>
 <button class="btn btn-outline" onclick="downloadTemplate()">📥 模板</button>
 <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()">📊 导入</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSVImport(this)">
@@ -769,13 +769,8 @@ function loadData() {
     var s = localStorage.getItem('stock_db');
     if (s) {
       db = JSON.parse(s);
-      console.log('数据已加载:', db.portfolio.length, '条持仓');
-    } else {
-      db = {portfolio: [], picks: []};
-      console.log('无历史数据');
     }
   } catch(e) {
-    console.error('加载失败:', e);
     db = {portfolio: [], picks: []};
   }
   renderPortfolio();
@@ -868,12 +863,18 @@ async function analyzeStock() {
 }
 
 async function saveData() {
+  localStorage.setItem('stock_db', JSON.stringify(db));
+  
+  // Also save to backend
   try {
-    localStorage.setItem('stock_db', JSON.stringify(db));
-    console.log('数据已保存:', db.portfolio.length, '条持仓');
-  } catch(e) {
-    console.error('保存失败:', e);
-  }
+    for (var p of db.portfolio) {
+      await fetch(API_URL + '/api/portfolio', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(p)
+      });
+    }
+  } catch(e) {}
 }
 
 async function getStockData(code) {
@@ -1336,15 +1337,10 @@ function calcSupportResistance(s) {
 }
 
 function showPage(page) {
-  // Hide all pages first
-  var pages = ['dashboard', 'screener', 'portfolio', 'analysis', 'backtest'];
-  pages.forEach(function(p) {
-    var el = document.getElementById('page-' + p);
-    if (el) el.style.display = 'none';
-  });
-  // Show selected page
-  var selected = document.getElementById('page-' + page);
-  if (selected) selected.style.display = 'block';
+  document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active');});
+  event.target.classList.add('active');
+  document.querySelectorAll('#page-dashboard,#page-screener,#page-portfolio,#page-analysis,#page-backtest').forEach(function(p){p.style.display='none';});
+  document.getElementById('page-'+page).style.display = 'block';
 }
 
 loadData();
@@ -1535,9 +1531,8 @@ function editStock(code) {
 
 
 </script>
-<script>
-// 后端API函数
 
+<!-- Modal -->
 <div id="analysisModal" class="modal" onclick="if(event.target === this) hideModal()">
 <div class="modal-content" style="max-width:500px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #333">
@@ -1574,7 +1569,6 @@ function editStock(code) {
 🎯 回测逻辑：完全使用策略一（AI综合精选）选股，根据推荐信号（买入/加仓/减仓/清仓）进行交易
 </div>
 <button class="btn" style="background:#FF6B35" onclick="runBacktest()">🚀 开始回测</button>
-<button class="btn" style="background:#2ED573;margin-left:10px" onclick="analyzeLimitUpStocks()">📊 涨停模式(后端)</button>
 </div>
 <div id="backtestResult"></div>
 </div>
@@ -1727,114 +1721,30 @@ async function runBacktest() {
   document.getElementById('backtestResult').innerHTML = html;
 }
 
-// 从历史数据构建股票对象（用于回测）- 使用真实量价计算指标
+// 从历史数据构建股票对象（用于回测）
 function buildStockFromHistory(code, name, history) {
   if (!history || history.length < 20) return null;
   
   var latest = history[history.length - 1];
   var yesHistory = history[history.length - 2] || latest;
   
-  // 从真实历史数据计算资金流向
-  var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); });
-  var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); });
-  var avgVolume = volumes.reduce(function(a, b) { return a + b; }, 0) / volumes.length;
-  var recentVolume = volumes.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
-  var volumeRatio = recentVolume / avgVolume;
-  var priceChange = ((parseFloat(latest[2]) - parseFloat(yesHistory[2])) / parseFloat(yesHistory[2]) * 100);
-  
-  // 根据量价关系判断资金流向
-  var mainMoney = 0;
-  if (volumeRatio > 1.3 && priceChange > 0) mainMoney = 50;      // 放量上涨=资金流入
-  else if (volumeRatio > 1.3 && priceChange < 0) mainMoney = -30; // 放量下跌=资金流出
-  else if (volumeRatio < 0.7 && priceChange < 0) mainMoney = 20; // 缩量下跌=可能见底
-  
   return {
     code: code,
     name: name,
     price: parseFloat(latest[2]),
-    change: priceChange,
+    change: ((parseFloat(latest[2]) - parseFloat(yesHistory[2])) / parseFloat(yesHistory[2]) * 100),
     open: parseFloat(latest[1]),
     high: parseFloat(latest[3]),
     low: parseFloat(latest[4]),
     volume: parseFloat(latest[5]),
     turnover: (parseFloat(latest[5]) / 1000000 * 100) || 0,
     market: 100,
-    mainMoney: mainMoney,
-    superMoney: mainMoney * 0.5,
-    largeMoney: mainMoney * 0.3,
+    mainMoney: (Math.random() * 100 - 30), // 模拟主力资金
+    superMoney: (Math.random() * 50 - 20),
+    largeMoney: (Math.random() * 30 - 10),
     history: history,
     sectorName: ''
   };
 }
-
-// 增强版涨停股票分析 - 使用我们的分析系统指标
-// 调用后端API分析涨停模式
-async function analyzeLimitUpStocks() {
-  document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 调用后端分析涨停模式中...</div>';
-  
-  try {
-    // 调用后端API（更快更准确）
-    console.log('开始调用后端API...');
-    var res = await fetch('https://stock-api-2.vercel.app/api/limitup-pattern');
-    console.log('API响应:', res);
-    var data = await res.json();
-    
-    var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
-    html += '<h3 style="margin-bottom:16px">📊 涨停股票前一天共同特征（后端分析）</h3>';
-    
-    if (data.total && data.total > 0) {
-      // 量能
-      html += '<div style="color:#FFD700;margin:12px 0 8px">📈 量能特征</div>';
-      html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">';
-      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">前一天放量>1.2x</div><div style="color:#2ED573;font-size:20px;font-weight:700">' + data.volume_up + ' (' + data.volume_up_pct + '%)</div></div>';
-      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">前一天缩量</div><div style="color:#FF6B35;font-size:20px;font-weight:700">' + (data.total - data.volume_up) + ' (' + (100 - data.volume_up_pct).toFixed(0) + '%)</div></div>';
-      html += '</div>';
-      
-      // CCI
-      html += '<div style="color:#FFD700;margin:12px 0 8px">📉 CCI指标</div>';
-      html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">';
-      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">CCI超卖(<-100)</div><div style="color:#2ED573;font-size:20px;font-weight:700">' + data.cci_oversold + ' (' + data.cci_oversold_pct + '%)</div></div>';
-      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">CCI正常/超买</div><div style="color:#FFD700;font-size:20px;font-weight:700">' + (data.total - data.cci_oversold) + ' (' + (100 - data.cci_oversold_pct).toFixed(0) + '%)</div></div>';
-      html += '</div>';
-      
-      // 均线
-      html += '<div style="color:#FFD700;margin:12px 0 8px">📊 均线特征</div>';
-      html += '<div style="display:grid;grid-template-columns:1fr,1fr;gap:8px;margin-bottom:12px">';
-      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">均线多头排列</div><div style="color:#2ED573;font-size:20px;font-weight:700">' + data.ma_golden + ' (' + data.ma_golden_pct + '%)</div></div>';
-      html += '</div>';
-      
-      // 结论
-      html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;margin-top:16px">';
-      html += '<h4 style="color:#FFD700;margin-bottom:12px">💡 涨停基因总结</h4>';
-      
-      var conclusions = [];
-      if (data.volume_up_pct > 50) conclusions.push('✅ ' + data.volume_up_pct + '%涨停股前一天放量');
-      if (data.cci_oversold_pct > 20) conclusions.push('⚡ ' + data.cci_oversold_pct + '%涨停股CCI超卖，反弹预期');
-      if (data.ma_golden_pct > 50) conclusions.push('✅ ' + data.ma_golden_pct + '%涨停股均线多头');
-      
-      conclusions.forEach(function(c) {
-        html += '<div style="color:#888;margin:6px 0;font-size:13px">' + c + '</div>';
-      });
-      html += '</div>';
-    } else {
-      html += '<div style="color:#666">分析中，请稍候再试...</div>';
-    }
-    
-    html += '</div>';
-    document.getElementById('backtestResult').innerHTML = html;
-    
-  } catch(e) {
-    document.getElementById('backtestResult').innerHTML = '<div style="color:#666">后端未启动，请先启动: python app.py<br>错误: ' + e.message + '</div>';
-  }
-}
-
-// 调用后端API分析股票
-async function analyzeWithBackend(code) {
-  try {
-    var res = await fetch('https://stock-api-2.vercel.app/api/analyze/' + code);
-    return await res.json();
-  } catch(e) {
-    return null;
-  }
-}
+</script>
 </script>
