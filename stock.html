@@ -404,12 +404,10 @@ function showStockAnalysis(code) {
 
 function getRecommendation(s, profit, analysis) {
   // 游资战法核心：资金为王、趋势为王、热点板块
-  // 不根据盈亏判断，只看技术面
-  var rec = {action: '持有', reason: '技术面中性，观望为主', color: '#FFD700'};
+  var rec = {action: '观望', reason: '技术面中性', color: '#FFD700'};
   
   var score = analysis.score || 0;
   var signals = analysis.signals || [];
-  var rating = analysis.rating || '中';
   
   // 热点板块判断
   var isHot = s.hotConcept || (s.sectorName && (
@@ -429,86 +427,79 @@ function getRecommendation(s, profit, analysis) {
   var hasVolumeUp = signals.some(function(sig) { return sig.type === '放量' || sig.type === '📊 量价'; });
   var hasPatternUp = signals.some(function(sig) { return sig.type === 'K线突破' || sig.type === '🕯️ 形态'; });
   var hasPatternDown = signals.some(function(sig) { return sig.type === 'K线反转'; });
-  var hasCCIOversold = signals.some(function(sig) { return sig.type === '📈 CCI' && sig.desc.includes('超卖'); });
-  var hasCCIOverbought = signals.some(function(sig) { return sig.type === '📉 CCI' && sig.desc.includes('超买'); });
+  var hasCCIOversold = signals.some(function(sig) { return sig.desc && sig.desc.includes('超卖'); });
+  var hasCCIOverbought = signals.some(function(sig) { return sig.desc && sig.desc.includes('超买'); });
   var hasBreakthrough = signals.some(function(sig) { return sig.type === '🚀 突破'; });
   var hasSupport = signals.some(function(sig) { return sig.type === '✅ 支撑'; });
   var hasTwoWave = signals.some(function(sig) { return sig.type === '🌊 二波'; });
   
+  // 计算综合评分
+  var posCount = signals.filter(function(sig) { return sig.value === true; }).length;
+  var negCount = signals.filter(function(sig) { return sig.value === false; }).length;
+  
   // ===== 游资战法核心逻辑 =====
   
   // 1. 主力资金判断 (最重要)
-  var moneyScore = 0;
-  if (totalMainMoney > 50) moneyScore = 3;      // 主力大幅净流入
-  else if (totalMainMoney > 20) moneyScore = 2; // 主力净流入
-  else if (totalMainMoney > 0) moneyScore = 1;   // 轻微净流入
-  else if (totalMainMoney < -20) moneyScore = -2; // 主力净流出
-  else if (totalMainMoney < -50) moneyScore = -3; // 大幅净流出
+  var moneyLevel = 0; // -2 to 2
+  if (totalMainMoney > 50) moneyLevel = 2;
+  else if (totalMainMoney > 20) moneyLevel = 1;
+  else if (totalMainMoney > 0) moneyLevel = 0;
+  else if (totalMainMoney > -20) moneyLevel = -1;
+  else moneyLevel = -2;
   
   // 2. 趋势判断
-  var trendScore = 0;
-  if (hasMALong || hasBreakthrough || hasTwoWave) trendScore = 3;
-  else if (hasMAShort || hasPatternDown) trendScore = -3;
-  else if (hasSupport) trendScore = 1;
+  var trendLevel = 0;
+  if (hasMALong || hasBreakthrough || hasTwoWave) trendLevel = 2;
+  else if (hasMAShort || hasPatternDown) trendLevel = -2;
+  else if (hasSupport) trendLevel = 1;
   
   // 3. 量能判断
-  var volumeScore = 0;
-  if (hasVolumeUp) volumeScore = 2;
-  else if (analysis.volumeRatio && analysis.volumeRatio < 0.5) volumeScore = -1;
+  var volumeLevel = 0;
+  if (analysis.volumeRatio > 1.5) volumeLevel = 1;
+  else if (analysis.volumeRatio < 0.7) volumeLevel = -1;
   
   // 4. 板块热度
-  var sectorScore = isHot ? 2 : 0;
+  var sectorLevel = isHot ? 1 : 0;
   
-  // 5. 综合技术评分
-  var techScore = score;
+  // 5. CCI判断
+  var cciLevel = 0;
+  if (hasCCIOversold) cciLevel = 1;
+  else if (hasCCIOverbought) cciLevel = -1;
   
-  // 计算总分
-  var totalScore = moneyScore * 3 + trendScore * 2 + volumeScore + sectorScore + techScore;
+  // 计算总分 (-8 到 8)
+  var totalScore = moneyLevel * 3 + trendLevel * 2 + volumeLevel + sectorLevel + cciLevel;
   
   // ===== 根据综合评分给出建议 =====
   
-  if (totalScore >= 10) {
-    // 强势信号：资金+趋势+量能都配合
-    if (isHot && hasBreakthrough) {
-      rec = {action: '持有', reason: '🔥 热点+突破+资金流入，坚决持有！', color: '#2ED573'};
+  // 强势买入信号
+  if (moneyLevel >= 1 && (trendLevel >= 1 || hasBreakthrough)) {
+    if (isHot) {
+      rec = {action: '买入', reason: '🔥 热点+资金流入+趋势启动', color: '#FF4757'};
     } else if (hasTwoWave) {
-      rec = {action: '持有', reason: '🌊 二波上攻形态，继续持有！', color: '#2ED573'};
+      rec = {action: '买入', reason: '🌊 二波上攻形态，强势信号', color: '#FF4757'};
     } else {
-      rec = {action: '持有', reason: '技术面强势，趋势良好，继续持有', color: '#2ED573'};
+      rec = {action: '买入', reason: '💰 主力资金流入，趋势向好', color: '#FF4757'};
     }
-  } else if (totalScore >= 6) {
-    // 偏多信号
-    if (moneyScore > 0 && trendScore >= 0) {
-      rec = {action: '持有', reason: '💰 主力资金流入，趋势向好', color: '#2ED573'};
-    } else if (isHot && hasVolumeUp) {
-      rec = {action: '持有', reason: '🔥 热门板块+量能配合，持有', color: '#2ED573'};
-    } else {
-      rec = {action: '持有', reason: '技术面偏多，继续持有观察', color: '#2ED573'};
-    }
-  } else if (totalScore >= 3) {
-    // 中性偏多
-    rec = {action: '持有', reason: '技术面中性，持有观望为主', color: '#FFD700'};
-  } else if (totalScore >= -3) {
-    // 中性
-    rec = {action: '持有', reason: '趋势不明，建议持有观望', color: '#FFD700'};
-  } else if (totalScore >= -6) {
-    // 偏弱信号
-    if (moneyScore < -2) {
-      rec = {action: '持有', reason: '⚠️ 主力资金流出，注意风险', color: '#FFD700'};
-    } else if (hasMAShort) {
-      rec = {action: '持有', reason: '📉 均线空头排列，建议持有观察', color: '#FFD700'};
-    } else {
-      rec = {action: '持有', reason: '技术面偏弱，谨慎持有', color: '#FFD700'};
-    }
-  } else {
-    // 弱势信号 - 只有在技术面极度弱势时才建议减仓
-    if (moneyScore <= -3 && hasMAShort) {
-      rec = {action: '持有', reason: '⚠️ 资金流出+趋势走弱，建议持有观察', color: '#FFD700'};
-    } else if (hasPatternDown && moneyScore < 0) {
-      rec = {action: '持有', reason: '⚠️ K线反转形态，建议持有观察', color: '#FFD700'};
-    } else {
-      rec = {action: '持有', reason: '技术面偏弱，持有等待反弹', color: '#FFD700'};
-    }
+  }
+  // 观望信号
+  else if (moneyLevel >= 0 && trendLevel >= 0 && posCount >= negCount) {
+    rec = {action: '观望', reason: '📊 技术面偏多，继续观察', color: '#FFD700'};
+  }
+  // CCI超卖反弹信号
+  else if (hasCCIOversold && moneyLevel >= 0) {
+    rec = {action: '关注', reason: '📈 CCI超卖，可能反弹', color: '#FFD700'};
+  }
+  // 资金流出但趋势强
+  else if (moneyLevel < 0 && trendLevel >= 1) {
+    rec = {action: '观望', reason: '⚠️ 资金流出但趋势较强，谨慎', color: '#FFD700'};
+  }
+  // 弱势信号
+  else if (moneyLevel <= -1 || trendLevel <= -1) {
+    rec = {action: '观望', reason: '⚠️ 技术面偏弱，注意风险', color: '#FFD700'};
+  }
+  // 默认
+  else {
+    rec = {action: '观望', reason: '趋势不明，建议观望', color: '#FFD700'};
   }
   
   return rec;
@@ -722,6 +713,61 @@ function loadData() {
     db = {portfolio: [], picks: []};
   }
   renderPortfolio();
+}
+
+async function analyzeStock() {
+  var code = document.getElementById('analyzeCode').value.trim();
+  if (!code) { alert('请输入股票代码'); return; }
+  document.getElementById('analysisResult').innerHTML = '<div class="loading">深度分析中...</div>';
+  
+  var s = await getStockWithHistory(code);
+  if (!s) { 
+    document.getElementById('analysisResult').innerHTML = '<div style="color:#666">未找到该股票</div>'; 
+    return; 
+  }
+  
+  stockCache[code] = s;
+  var analysis = getQuickAnalysis(s);
+  var profit = 0;
+  var rec = getRecommendation(s, profit, analysis);
+  var levels = calcSupportResistance(s);
+  
+  var html = '<div style="background:#1A1A1A;padding:16px;border-radius:12px;margin-bottom:16px">';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="color:#FF6B35;font-size:18px;font-weight:700">'+code+'</span><span style="color:#FFD700;font-size:18px;font-weight:700">'+s.name+'</span></div>';
+  
+  // Basic info
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">';
+  html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">现价</div><div style="color:#FFF;font-weight:600">'+(s.price||'-')+'</div></div>';
+  html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">今日涨跌</div><div style="color:'+(s.change>=0?'#FF4757':'#2ED573')+';font-weight:600">'+(s.change>=0?'+':'')+(s.change||0).toFixed(2)+'%</div></div>';
+  html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">换手率</div><div style="color:#FFF;font-weight:600">'+(s.turnover||0).toFixed(2)+'%</div></div>';
+  html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">市值(亿)</div><div style="color:#FFF;font-weight:600">'+(s.market||0).toFixed(0)+'</div></div>';
+  html += '</div>';
+  
+  // Recommendation
+  html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px;margin-bottom:16px"><div style="color:#666;font-size:11px;margin-bottom:8px">📋 综合建议</div><div style="color:'+rec.color+';font-size:20px;font-weight:700">'+rec.action+'</div><div style="color:#888;margin-top:4px">'+rec.reason+'</div></div>';
+  
+  // Signals
+  if (analysis.signals && analysis.signals.length > 0) {
+    html += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">💡 技术信号 ('+analysis.signals.length+'项)</div>';
+    html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px;max-height:200px;overflow-y:auto">';
+    analysis.signals.forEach(function(sig) {
+      var sigColor = sig.value ? '#2ED573' : '#FF4757';
+      html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222"><span style="color:'+sigColor+'">'+(sig.value ? '✅' : '❌')+' '+sig.type+'</span><span style="color:#888;font-size:11px">'+sig.desc+'</span></div>';
+    });
+    html += '</div></div>';
+  }
+  
+  // Money flow
+  html += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">💰 资金流向</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
+  html += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">主力净流入</div><div style="color:'+((s.mainMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.mainMoney||0).toFixed(2)+'万</div></div>';
+  html += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">超大单</div><div style="color:'+((s.superMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.superMoney||0).toFixed(2)+'万</div></div>';
+  html += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">大单</div><div style="color:'+((s.largeMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.largeMoney||0).toFixed(2)+'万</div></div>';
+  html += '</div></div>';
+  
+  html += '</div>';
+  
+  document.getElementById('analysisResult').innerHTML = html;
 }
 
 async function saveData() {
