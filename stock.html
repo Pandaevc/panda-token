@@ -1657,7 +1657,7 @@ async function scanAll() {
 // 涨停模式分析
 async function analyzeLimitUp() {
   var el = document.getElementById('backtestResult');
-  el.innerHTML = '<div class="loading">🔍 分析涨停股信号分布...</div>';
+  el.innerHTML = '<div class="loading">🔍 涨停股信号分析...</div>';
   
   try {
     var res = await fetch('https://stock-api-2.vercel.app/api/limitup-pattern');
