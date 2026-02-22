@@ -1821,3 +1821,13 @@ async function analyzeLimitUpStocks() {
   }
 }
 </script>
+
+// 调用后端API分析股票
+async function analyzeWithBackend(code) {
+  try {
+    var res = await fetch('https://stock-api-2.vercel.app/api/analyze/' + code);
+    return await res.json();
+  } catch(e) {
+    return null;
+  }
+}
