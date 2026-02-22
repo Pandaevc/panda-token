@@ -1768,7 +1768,9 @@ async function analyzeLimitUpStocks() {
   
   try {
     // 调用后端API（更快更准确）
+    console.log('开始调用后端API...');
     var res = await fetch('https://stock-api-2.vercel.app/api/limitup-pattern');
+    console.log('API响应:', res);
     var data = await res.json();
     
     var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
