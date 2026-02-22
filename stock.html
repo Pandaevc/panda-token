@@ -277,6 +277,131 @@ function recognizePattern(recentKLines, prices) {
   return '震荡整理';
 }
 
+// Modal functions - 放在前面确保在renderPortfolio之前定义
+function showModal(title, content) {
+  var modal = document.getElementById('analysisModal');
+  var modalTitle = document.getElementById('modalTitle');
+  var modalBody = document.getElementById('modalBody');
+  modalTitle.innerHTML = title;
+  modalBody.innerHTML = content;
+  modal.classList.add('show');
+}
+
+function hideModal() {
+  var modal = document.getElementById('analysisModal');
+  modal.classList.remove('show');
+}
+
+function showStockAnalysis(code) {
+  var p = db.portfolio.find(function(x){return x.code === code;});
+  if (!p) return;
+  
+  var s = stockCache[code];
+  if (!s) return;
+  
+  var profit = ((s.price - p.buyPrice) / p.buyPrice * 100);
+  var analysis = getQuickAnalysis(s);
+  var rec = getRecommendation(s, profit, analysis);
+  var levels = calcSupportResistance(s);
+  
+  var analysisHtml = '<div style="background:#1A1A1A;padding:16px;border-radius:12px;margin-bottom:16px">';
+  analysisHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="color:#FF6B35;font-size:18px;font-weight:700">'+code+'</span><span style="color:#FFD700;font-size:18px;font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div>';
+  analysisHtml += '<div style="color:#888;margin-bottom:16px">'+p.name+'</div>';
+  
+  // Basic info
+  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">';
+  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">持仓数量</div><div style="color:#FFF;font-weight:600">'+p.shares+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">成本价</div><div style="color:#FFF;font-weight:600">'+p.buyPrice.toFixed(2)+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">现价</div><div style="color:#FFF;font-weight:600">'+(s.price||'-')+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">今日涨跌</div><div style="color:'+(s.change>=0?'#FF4757':'#2ED573')+';font-weight:600">'+(s.change>=0?'+':'')+(s.change||0).toFixed(2)+'%</div></div>';
+  analysisHtml += '</div>';
+  
+  // Recommendation
+  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px;margin-bottom:16px"><div style="color:#666;font-size:11px;margin-bottom:8px">📋 综合建议</div><div style="color:'+rec.color+';font-size:20px;font-weight:700">'+rec.action+'</div><div style="color:#888;margin-top:4px">'+rec.reason+'</div></div>';
+  
+  // Technical indicators - CCI
+  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">📈 CCI指标</div>';
+  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  var cciColor = analysis.cci > 100 ? '#FF4757' : analysis.cci < -100 ? '#2ED573' : '#FFD700';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">CCI值</div><div style="color:'+cciColor+';font-weight:700">'+(analysis.cci||0).toFixed(0)+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">CCI状态</div><div style="color:#FFF">'+(analysis.cci > 100 ? '超买' : analysis.cci < -100 ? '超卖' : '正常')+'</div></div>';
+  analysisHtml += '</div></div>';
+  
+  // MA indicators
+  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">📊 均线系统</div>';
+  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">MA5</div><div style="color:#FFF">'+(analysis.ma5||0).toFixed(2)+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">MA10</div><div style="color:#FFF">'+(analysis.ma10||0).toFixed(2)+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">MA20</div><div style="color:#FFF">'+(analysis.ma20||0).toFixed(2)+'</div></div>';
+  analysisHtml += '</div></div>';
+  
+  // K-line pattern
+  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">🕯️ K线形态</div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><span style="color:'+(analysis.pattern.includes('上涨')||analysis.pattern.includes('突破')||analysis.pattern.includes('启明星')?'#2ED573':analysis.pattern.includes('下跌')||analysis.pattern.includes('反转')||analysis.pattern.includes('黄昏')?'#FF4757':'#FFD700')+';font-weight:600">'+analysis.pattern+'</span></div></div>';
+  
+  // Volume
+  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">📊 量能分析</div>';
+  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  var volColor = analysis.volumeRatio > 1.5 ? '#2ED573' : analysis.volumeRatio < 0.7 ? '#FF4757' : '#FFD700';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">量比</div><div style="color:'+volColor+';font-weight:700">'+(analysis.volumeRatio||1).toFixed(2)+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">5日涨跌</div><div style="color:'+((analysis.change5||0)>=0?'#FF4757':'#2ED573')+'">'+(analysis.change5>=0?'+':'')+(analysis.change5||0).toFixed(1)+'%</div></div>';
+  analysisHtml += '</div></div>';
+  
+  // Support/Resistance
+  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">🎯 支撑阻力</div>';
+  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">支撑位</div><div style="color:#2ED573;font-weight:700">'+(analysis.support||levels.support).toFixed(2)+'</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">阻力位</div><div style="color:#FF4757;font-weight:700">'+(analysis.resistance||levels.resistance).toFixed(2)+'</div></div>';
+  analysisHtml += '</div></div>';
+  
+  // All signals
+  if (analysis.signals && analysis.signals.length > 0) {
+    analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">💡 技术信号 ('+analysis.signals.length+'项)</div>';
+    analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px;max-height:200px;overflow-y:auto">';
+    analysis.signals.forEach(function(sig) {
+      var sigColor = sig.value ? '#2ED573' : '#FF4757';
+      analysisHtml += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222"><span style="color:'+sigColor+'">'+(sig.value ? '✅' : '❌')+' '+sig.type+'</span><span style="color:#888;font-size:11px">'+sig.desc+'</span></div>';
+    });
+    analysisHtml += '</div></div>';
+  }
+  
+  // Money flow
+  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">💰 资金流向</div>';
+  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">主力净流入</div><div style="color:'+((s.mainMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.mainMoney||0).toFixed(2)+'万</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">超大单</div><div style="color:'+((s.superMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.superMoney||0).toFixed(2)+'万</div></div>';
+  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">大单</div><div style="color:'+((s.largeMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.largeMoney||0).toFixed(2)+'万</div></div>';
+  analysisHtml += '</div></div>';
+  
+  // Risk assessment
+  var risks = [];
+  if (profit > 25) risks.push('⚠️ 盈利超过25%，注意止盈');
+  if (profit < -8) risks.push('⚠️ 亏损超过8%，注意止损');
+  if (s.change > 5) risks.push('⚠️ 今日涨幅较大，谨防回调');
+  if (s.change < -5) risks.push('⚠️ 今日跌幅较大，关注支撑');
+  if (s.mainMoney < -10) risks.push('⚠️ 主力资金净流出，注意风险');
+  if (s.turnover > 8) risks.push('⚠️ 换手率较高，波动较大');
+  if (s.isST) risks.push('⚠️ ST股票，风险较高');
+  if (analysis.cci > 100) risks.push('⚠️ CCI超买区域，谨防回调');
+  if (analysis.cci < -100) risks.push('✅ CCI超卖区域，存在反弹机会');
+  
+  if (risks.length > 0) {
+    analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">⚡ 综合风险评估</div>';
+    analysisHtml += '<div style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);padding:12px;border-radius:8px">';
+    risks.forEach(function(risk) {
+      analysisHtml += '<div style="padding:2px 0">'+risk+'</div>';
+    });
+    analysisHtml += '</div></div>';
+  }
+  
+  // Add time
+  analysisHtml += '<div style="color:#666;font-size:11px;text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #333">添加时间: '+new Date(p.addTime).toLocaleString()+'</div>';
+  
+  analysisHtml += '</div>';
+  
+  showModal(p.name + ' (' + code + ')', analysisHtml);
+}
+
 function getRecommendation(s, profit, analysis) {
   var rec = {action: '持有', reason: '观望', color: '#FFD700'};
   
@@ -1303,146 +1428,6 @@ function getRecommendation(s, profit, analysis) {
   return rec;
 }
 
-// Modal functions
-function showModal(title, content) {
-  var modal = document.getElementById('analysisModal');
-  var modalTitle = document.getElementById('modalTitle');
-  var modalBody = document.getElementById('modalBody');
-  modalTitle.innerHTML = title;
-  modalBody.innerHTML = content;
-  modal.classList.add('show');
-}
-
-function hideModal() {
-  var modal = document.getElementById('analysisModal');
-  modal.classList.remove('show');
-}
-
-function showStockAnalysis(code) {
-  var p = db.portfolio.find(function(x){return x.code === code;});
-  if (!p) return;
-  
-  var s = stockCache[code];
-  if (!s) return;
-  
-  var profit = ((s.price - p.buyPrice) / p.buyPrice * 100);
-  var analysis = getQuickAnalysis(s);
-  var rec = getRecommendation(s, profit, analysis);
-  var levels = calcSupportResistance(s);
-  
-  var analysisHtml = '<div style="background:#1A1A1A;padding:16px;border-radius:12px;margin-bottom:16px">';
-  analysisHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="color:#FF6B35;font-size:18px;font-weight:700">'+code+'</span><span style="color:#FFD700;font-size:18px;font-weight:700">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div>';
-  analysisHtml += '<div style="color:#888;margin-bottom:16px">'+p.name+'</div>';
-  
-  // Basic info
-  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">';
-  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">持仓数量</div><div style="color:#FFF;font-weight:600">'+p.shares+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">成本价</div><div style="color:#FFF;font-weight:600">'+p.buyPrice.toFixed(2)+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">现价</div><div style="color:#FFF;font-weight:600">'+(s.price||'-')+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#666;font-size:11px">今日涨跌</div><div style="color:'+(s.change>=0?'#FF4757':'#2ED573')+';font-weight:600">'+(s.change>=0?'+':'')+(s.change||0).toFixed(2)+'%</div></div>';
-  analysisHtml += '</div>';
-  
-  // Recommendation
-  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px;margin-bottom:16px"><div style="color:#666;font-size:11px;margin-bottom:8px">📋 综合建议</div><div style="color:'+rec.color+';font-size:20px;font-weight:700">'+rec.action+'</div><div style="color:#888;margin-top:4px">'+rec.reason+'</div></div>';
-  
-  // Technical indicators - CCI
-  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">📈 CCI指标</div>';
-  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-  var cciColor = analysis.cci > 100 ? '#FF4757' : analysis.cci < -100 ? '#2ED573' : '#FFD700';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">CCI值</div><div style="color:'+cciColor+';font-weight:700">'+(analysis.cci||0).toFixed(0)+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">CCI状态</div><div style="color:#FFF">'+(analysis.cci > 100 ? '超买' : analysis.cci < -100 ? '超卖' : '正常')+'</div></div>';
-  analysisHtml += '</div></div>';
-  
-  // MA indicators
-  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">📊 均线系统</div>';
-  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">MA5</div><div style="color:#FFF">'+(analysis.ma5||0).toFixed(2)+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">MA10</div><div style="color:#FFF">'+(analysis.ma10||0).toFixed(2)+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">MA20</div><div style="color:#FFF">'+(analysis.ma20||0).toFixed(2)+'</div></div>';
-  analysisHtml += '</div></div>';
-  
-  // K-line pattern
-  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">🕯️ K线形态</div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><span style="color:'+(analysis.pattern.includes('上涨')||analysis.pattern.includes('突破')||analysis.pattern.includes('启明星')?'#2ED573':analysis.pattern.includes('下跌')||analysis.pattern.includes('反转')||analysis.pattern.includes('黄昏')?'#FF4757':'#FFD700')+';font-weight:600">'+analysis.pattern+'</span></div></div>';
-  
-  // Volume
-  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">📊 量能分析</div>';
-  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-  var volColor = analysis.volumeRatio > 1.5 ? '#2ED573' : analysis.volumeRatio < 0.7 ? '#FF4757' : '#FFD700';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">量比</div><div style="color:'+volColor+';font-weight:700">'+(analysis.volumeRatio||1).toFixed(2)+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">5日涨跌</div><div style="color:'+((analysis.change5||0)>=0?'#FF4757':'#2ED573')+'">'+(analysis.change5>=0?'+':'')+(analysis.change5||0).toFixed(1)+'%</div></div>';
-  analysisHtml += '</div></div>';
-  
-  // Chip distribution
-  if (analysis.chipDistribution) {
-    analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">🎯 筹码分布</div>';
-    analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-    analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">集中度</div><div style="color:#FFF">'+(analysis.chipDistribution.concentrated||0)+'%</div></div>';
-    analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">5日涨跌</div><div style="color:#FFF">'+(analysis.change5>=0?'+':'')+(analysis.change5||0).toFixed(1)+'%</div></div>';
-    analysisHtml += '</div></div>';
-  }
-  
-  // Support/Resistance
-  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">🎯 支撑阻力</div>';
-  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">支撑位</div><div style="color:#2ED573;font-weight:700">'+(analysis.support||levels.support).toFixed(2)+'</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">阻力位</div><div style="color:#FF4757;font-weight:700">'+(analysis.resistance||levels.resistance).toFixed(2)+'</div></div>';
-  analysisHtml += '</div></div>';
-  
-  // All signals
-  if (analysis.signals && analysis.signals.length > 0) {
-    analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">💡 技术信号</div>';
-    analysisHtml += '<div style="background:#0D0D0D;padding:12px;border-radius:8px">';
-    analysis.signals.forEach(function(sig) {
-      var sigColor = sig.value ? '#2ED573' : '#FF4757';
-      analysisHtml += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #222"><span style="color:'+sigColor+'">'+(sig.value ? '✅' : '❌')+' '+sig.type+'</span><span style="color:#888;font-size:11px">'+sig.desc+'</span></div>';
-    });
-    analysisHtml += '</div></div>';
-  }
-  
-  // Money flow
-  analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">💰 资金流向</div>';
-  analysisHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">主力净流入</div><div style="color:'+((s.mainMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.mainMoney||0).toFixed(2)+'万</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">超大单</div><div style="color:'+((s.superMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.superMoney||0).toFixed(2)+'万</div></div>';
-  analysisHtml += '<div style="background:#0D0D0D;padding:10px;border-radius:8px"><div style="color:#666;font-size:10px">大单</div><div style="color:'+((s.largeMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.largeMoney||0).toFixed(2)+'万</div></div>';
-  analysisHtml += '</div></div>';
-  
-  // Risk assessment
-  var risks = [];
-  if (profit > 25) risks.push('⚠️ 盈利超过25%，注意止盈');
-  if (profit < -8) risks.push('⚠️ 亏损超过8%，注意止损');
-  if (s.change > 5) risks.push('⚠️ 今日涨幅较大，谨防回调');
-  if (s.change < -5) risks.push('⚠️ 今日跌幅较大，关注支撑');
-  if (s.mainMoney < -10) risks.push('⚠️ 主力资金净流出，注意风险');
-  if (s.turnover > 8) risks.push('⚠️ 换手率较高，波动较大');
-  if (s.isST) risks.push('⚠️ ST股票，风险较高');
-  if (analysis.cci > 100) risks.push('⚠️ CCI超买区域，谨防回调');
-  if (analysis.cci < -100) risks.push('✅ CCI超卖区域，存在反弹机会');
-  
-  if (risks.length > 0) {
-    analysisHtml += '<div style="margin-bottom:12px"><div style="color:#666;font-size:12px;margin-bottom:8px">⚡ 综合风险评估</div>';
-    analysisHtml += '<div style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);padding:12px;border-radius:8px">';
-    risks.forEach(function(risk) {
-      analysisHtml += '<div style="padding:2px 0">'+risk+'</div>';
-    });
-    analysisHtml += '</div></div>';
-  }
-  
-  // Add time
-  analysisHtml += '<div style="color:#666;font-size:11px;text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #333">添加时间: '+new Date(p.addTime).toLocaleString()+'</div>';
-  
-  analysisHtml += '</div>';
-  
-  showModal(p.name + ' (' + code + ')', analysisHtml);
-}
-
-// Close modal on outside click
-document.addEventListener('click', function(e) {
-  var modal = document.getElementById('analysisModal');
-  if (e.target === modal) {
-    hideModal();
-  }
 });
 </script>
 
