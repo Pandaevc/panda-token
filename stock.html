@@ -953,55 +953,121 @@ async function runScreener() {
 
 async function runStrategy1() {
   await loadStocks();
-  document.getElementById('strategy1Result').innerHTML = '<div class="loading">AI分析中...</div>';
-  var results = allStocks.filter(function(s) { return !s.isST && s.change > 0; }).map(function(s) {
-    var score = 0;
-    score += Math.min(s.change, 10);
-    var money = (s.mainMoney + s.superMoney + s.largeMoney) / 10000;
-    if (money > 0) score += Math.min(money / 100, 5);
-    score += Math.min(s.turnover / 2, 5);
-    if (s.history && s.history.length >= 3) {
-      var today = s.history[s.history.length - 1], yesterday = s.history[s.history.length - 2];
-      if (parseFloat(today[5]) > parseFloat(yesterday[5]) * 1.2 && parseFloat(today[2]) > parseFloat(yesterday[2])) score += 5;
-    }
-    return {stock: s, score: score};
+  document.getElementById('strategy1Result').innerHTML = '<div class="loading">🔍 搜索热门板块中...</div>';
+  
+  // 使用最新的技术分析系统选股
+  var validStocks = allStocks.filter(function(s) { 
+    return !s.isST && s.change > 0 && s.history && s.history.length >= 20; 
   });
+  
+  // 对每只股票进行综合评分
+  var results = validStocks.map(function(s) {
+    var analysis = getQuickAnalysis(s);
+    var rec = getRecommendation(s, 0, analysis);
+    var moneyScore = 0;
+    var mainMoney = (s.mainMoney || 0) + (s.superMoney || 0);
+    if (mainMoney > 50) moneyScore = 5;
+    else if (mainMoney > 20) moneyScore = 3;
+    else if (mainMoney > 0) moneyScore = 1;
+    
+    // 综合评分
+    var totalScore = analysis.score + moneyScore * 2;
+    // 热门板块加分
+    var isHot = s.sectorName && (
+      s.sectorName.indexOf('科技') >= 0 || s.sectorName.indexOf('AI') >= 0 || 
+      s.sectorName.indexOf('新能源') >= 0 || s.sectorName.indexOf('芯片') >= 0 ||
+      s.sectorName.indexOf('人工智能') >= 0 || s.sectorName.indexOf('半导体') >= 0 ||
+      s.sectorName.indexOf('汽车') >= 0 || s.sectorName.indexOf('医药') >= 0 ||
+      s.sectorName.indexOf('互联网') >= 0 || s.sectorName.indexOf('机器人') >= 0
+    );
+    if (isHot) totalScore += 3;
+    
+    return {stock: s, score: totalScore, analysis: analysis, rec: rec};
+  });
+  
+  // 按评分排序
   results.sort(function(a, b) { return b.score - a.score; });
+  
   var top = results[0];
   if (top) {
     var s = top.stock;
-    document.getElementById('strategy1Result').innerHTML = '<div style="background:#0D0D0D;padding:20px;border-radius:12px"><div style="display:flex;justify-content:space-between"><div><span class="stock-code" style="font-size:24px" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="font-size:18px;color:#888">'+s.name+'</span></div><span class="up" style="font-size:28px;font-weight:700">'+(s.change||0).toFixed(2)+'%</span></div></div>';
+    var rec = top.rec;
+    document.getElementById('strategy1Result').innerHTML = 
+      '<div style="background:#0D0D0D;padding:20px;border-radius:12px;border:2px solid '+rec.color+'">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+          '<div><span class="stock-code" style="font-size:24px;cursor:pointer;color:#FF6B35" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="font-size:18px;color:#888">'+s.name+'</span></div>' +
+          '<span class="up" style="font-size:28px;font-weight:700">'+(s.change||0).toFixed(2)+'%</span></div>' +
+        '<div style="background:'+rec.color+';color:#fff;padding:8px 16px;border-radius:8px;display:inline-block;margin-bottom:12px;font-weight:700">'+rec.action+' - '+rec.reason+'</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px">' +
+          '<div style="color:#888">主力资金<br><span style="color:'+((s.mainMoney||0)>=0?'#FF4757':'#2ED573')+'">'+(s.mainMoney||0).toFixed(0)+'万</span></div>' +
+          '<div style="color:#888">换手率<br><span style="color:#FFF">'+(s.turnover||0).toFixed(1)+'%</span></div>' +
+          '<div style="color:#888">板块<br><span style="color:#FFF">'+(s.sectorName||'-')+'</span></div>' +
+        '</div></div>';
+  } else {
+    document.getElementById('strategy1Result').innerHTML = '<div style="color:#666">暂无可推荐股票</div>';
   }
 }
 
 async function runStrategy2() {
   await loadStocks();
-  document.getElementById('strategy2Result').innerHTML = '<div class="loading">AI分析中...</div>';
+  document.getElementById('strategy2Result').innerHTML = '<div class="loading">🔍 分析强势回调股票中...</div>';
+  
+  // 寻找有涨停记录且回调的股票
   var results = [];
   for (var s of allStocks) {
-    if (s.isST || !s.history || s.history.length < 3) continue;
-    var h = s.history;
+    if (s.isST || !s.history || s.history.length < 20) continue;
+    
+    // 检查是否有涨停记录
     var hasLimitUp = false;
+    var h = s.history;
     for (var j = 0; j < Math.min(h.length, 10); j++) {
-      if ((parseFloat(h[j][2]) - parseFloat(h[j][1])) / parseFloat(h[j][1]) * 100 >= 9.9) { hasLimitUp = true; break; }
+      if ((parseFloat(h[j][2]) - parseFloat(h[j][1])) / parseFloat(h[j][1]) * 100 >= 9.9) { 
+        hasLimitUp = true; 
+        break; 
+      }
     }
     if (!hasLimitUp) continue;
-    var d3 = h[h.length-1], d2 = h[h.length-2], d1 = h[h.length-3];
-    var d2Pct = (parseFloat(d3[2]) - parseFloat(d3[1])) / parseFloat(d3[1]) * 100;
-    var d2Shadow = (parseFloat(d2[3]) - parseFloat(d2[2])) / parseFloat(d2[2]) * 100;
-    var d2Vol = parseFloat(d2[5]), d1Vol = parseFloat(d1[5]);
-    if (d2Pct < 9.9 || d2Vol <= d1Vol * 1.2 || d2Shadow > 2) continue;
-    var d3Vol = parseFloat(d3[5]), d3Close = parseFloat(d3[2]), d2Close = parseFloat(d2[2]);
-    if (d3Vol > d2Vol * 0.5 || d3Close < d2Close) continue;
-    results.push(s);
-    if (results.length >= 3) break;
+    
+    // 使用技术分析
+    var analysis = getQuickAnalysis(s);
+    var rec = getRecommendation(s, 0, analysis);
+    
+    // 回调筛选条件：昨日涨幅<5%，今日未涨停
+    var today = h[h.length-1];
+    var yesterday = h[h.length-2];
+    var todayPct = (parseFloat(today[2]) - parseFloat(today[1])) / parseFloat(today[1]) * 100;
+    if (todayPct >= 9.9) continue; // 今日涨停跳过
+    
+    var moneyScore = 0;
+    var mainMoney = (s.mainMoney || 0) + (s.superMoney || 0);
+    if (mainMoney > 20) moneyScore = 3;
+    else if (mainMoney > 0) moneyScore = 1;
+    
+    var totalScore = analysis.score + moneyScore;
+    results.push({stock: s, score: totalScore, analysis: analysis, rec: rec});
+    
+    if (results.length >= 5) break;
   }
+  
+  results.sort(function(a, b) { return b.score - a.score; });
+  results = results.slice(0, 3);
+  
   if (results.length === 0) {
-    document.getElementById('strategy2Result').innerHTML = '<div style="color:#666">没有符合条件的股票</div>';
+    document.getElementById('strategy2Result').innerHTML = '<div style="color:#666">暂无符合条件的强势回调股票</div>';
     return;
   }
-  document.getElementById('strategy2Result').innerHTML = results.map(function(s, i) {
-    return '<div style="background:#0D0D0D;padding:16px;border-radius:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><div><span style="color:#FF6B35;font-weight:700;margin-right:8px">'+(i+1)+'</span><span class="stock-code" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div><span class="up">'+(s.change||0).toFixed(2)+'%</span></div></div>';
+  
+  document.getElementById('strategy2Result').innerHTML = results.map(function(item, i) {
+    var s = item.stock;
+    var rec = item.rec;
+    return '<div style="background:#0D0D0D;padding:16px;border-radius:12px;margin-bottom:8px;border-left:4px solid '+rec.color+'">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<div><span style="color:#FF6B35;font-weight:700;margin-right:8px">'+(i+1)+'</span><span class="stock-code" style="cursor:pointer;color:#FF6B35" onclick="showKLine(\''+s.code+'\')">'+s.code+'</span> <span style="color:#888">'+s.name+'</span></div>' +
+        '<span class="up">'+(s.change||0).toFixed(2)+'%</span></div>' +
+      '<div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">' +
+        '<span style="background:'+rec.color+';color:#fff;padding:4px 8px;border-radius:4px;font-size:12px">'+rec.action+'</span>' +
+        '<span style="color:#888;font-size:12px">'+rec.reason+'</span>' +
+      '</div></div>';
   }).join('');
 }
 
