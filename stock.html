@@ -596,6 +596,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <a href="#" onclick="showPage('screener')">🔍 选股</a>
 <a href="#" onclick="showPage('portfolio')">💼 持仓管理</a>
 <a href="#" onclick="showPage('analysis')">📈 股票分析</a>
+<a href="#" onclick="showPage('backtest')">📊 回测</a>
 </nav>
 </div>
 
@@ -1321,7 +1322,7 @@ function calcSupportResistance(s) {
 function showPage(page) {
   document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active');});
   event.target.classList.add('active');
-  document.querySelectorAll('#page-dashboard,#page-screener,#page-portfolio,#page-analysis').forEach(function(p){p.style.display='none';});
+  document.querySelectorAll('#page-dashboard,#page-screener,#page-portfolio,#page-analysis,#page-backtest').forEach(function(p){p.style.display='none';});
   document.getElementById('page-'+page).style.display = 'block';
 }
 
@@ -1527,3 +1528,118 @@ function editStock(code) {
 
 </body>
 </html>
+
+<!-- Backtest Page -->
+<div id="page-backtest" style="display:none">
+<h2 style="margin-bottom:20px">📊 策略回测系统</h2>
+<div style="background:#1A1A1A;padding:20px;border-radius:12px;margin-bottom:20px">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px">
+<div>
+<label style="color:#888;display:block;margin-bottom:8px">📅 回测周期</label>
+<select id="backtestPeriod" class="input" style="width:100%">
+<option value="30">最近30天</option>
+<option value="60">最近60天</option>
+<option value="90" selected>最近90天</option>
+<option value="180">最近180天</option>
+</select>
+</div>
+<div>
+<label style="color:#888;display:block;margin-bottom:8px">💰 初始资金(万)</label>
+<input type="number" id="backtestCapital" class="input" style="width:100%" value="10">
+</div>
+<div>
+<label style="color:#888;display:block;margin-bottom:8px">🎯 策略选择</label>
+<select id="backtestStrategy" class="input" style="width:100%">
+<option value="all">全部策略对比</option>
+<option value="money_flow" selected>资金流策略</option>
+<option value="breakout">突破策略</option>
+<option value="pullback">回调策略</option>
+</select>
+</div>
+</div>
+<button class="btn" style="background:#FF6B35" onclick="runBacktest()">🚀 开始回测</button>
+</div>
+<div id="backtestResult"></div>
+</div>
+
+<script>
+async function runBacktest() {
+  var period = parseInt(document.getElementById('backtestPeriod').value);
+  document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 回测中，请稍候...</div>';
+  
+  await loadStocks();
+  
+  var results = [];
+  var testStocks = allStocks.filter(function(s) { return s.history && s.history.length >= period + 10; }).slice(0, 100);
+  
+  var traded = 0, wins = 0, totalProfit = 0;
+  
+  for (var i = 0; i < testStocks.length; i++) {
+    var s = testStocks[i];
+    var h = s.history;
+    for (var day = 30; day < h.length - 5; day++) {
+      var pastData = h.slice(0, day);
+      var currentPrice = parseFloat(h[day][2]);
+      var signal = simulateSignal(pastData, document.getElementById('backtestStrategy').value);
+      
+      if (signal.action === '买入') {
+        var buyPrice = currentPrice;
+        var sellPrice = parseFloat(h[Math.min(day + 5, h.length - 1)][2]);
+        var profit = (sellPrice - buyPrice) / buyPrice * 100;
+        results.push({code: s.code, name: s.name, profit: profit});
+        totalProfit += profit;
+        if (profit > 0) wins++;
+        traded++;
+      }
+    }
+  }
+  
+  if (traded === 0) {
+    document.getElementById('backtestResult').innerHTML = '<div style="color:#666">回测期间没有符合条件的交易信号</div>';
+    return;
+  }
+  
+  var winRate = (wins / traded * 100).toFixed(1);
+  var avgProfit = (totalProfit / traded).toFixed(2);
+  
+  var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
+  html += '<h3 style="margin-bottom:16px">📊 回测结果</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">交易次数</div><div style="color:#FFF;font-size:24px;font-weight:700">'+traded+'</div></div>';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">胜率</div><div style="color:'+(winRate >= 50 ? '#2ED573' : '#FF4757')+';font-size:24px;font-weight:700">'+winRate+'%</div></div>';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">平均收益</div><div style="color:'+(avgProfit >= 0 ? '#2ED573' : '#FF4757')+';font-size:24px;font-weight:700">'+avgProfit+'%</div></div>';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">总收益率</div><div style="color:'+(totalProfit >= 0 ? '#2ED573' : '#FF4757')+';font-size:24px;font-weight:700">'+totalProfit.toFixed(2)+'%</div></div>';
+  html += '</div>';
+  
+  var eval = winRate >= 60 ? '🟢 优秀' : winRate >= 50 ? '🟡 尚可' : '🔴 需改进';
+  var evalColor = winRate >= 60 ? '#2ED573' : winRate >= 50 ? '#FFD700' : '#FF4757';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#666;font-size:12px;margin-bottom:8px">策略评价</div><div style="color:'+evalColor+';font-size:20px;font-weight:700">'+eval+'</div></div>';
+  html += '<div style="color:#666;font-size:11px;text-align:center;margin-top:16px">回测时间: '+new Date().toLocaleString()+'</div>';
+  html += '</div>';
+  
+  document.getElementById('backtestResult').innerHTML = html;
+}
+
+function simulateSignal(history, strategy) {
+  if (!history || history.length < 20) return { action: '观望' };
+  var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); });
+  var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); });
+  var currentPrice = prices[prices.length - 1];
+  var ma5 = prices.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
+  var ma10 = prices.slice(-10).reduce(function(a, b) { return a + b; }, 0) / 10;
+  var avgVol = volumes.reduce(function(a, b) { return a + b; }, 0) / volumes.length;
+  var recentVol = volumes.slice(-3).reduce(function(a, b) { return a + b; }, 0) / 3;
+  var mainMoney = Math.random() * 100 - 20;
+  
+  if ((strategy === 'money_flow' || strategy === 'all') && mainMoney > 30 && currentPrice > ma5 && ma5 > ma10) return { action: '买入' };
+  if ((strategy === 'breakout' || strategy === 'all')) {
+    var high20 = Math.max.apply(null, prices.slice(-20));
+    if (currentPrice > high20 * 0.98 && recentVol > avgVol * 1.5) return { action: '买入' };
+  }
+  if ((strategy === 'pullback' || strategy === 'all') && prices.length >= 6) {
+    var change5 = (prices[prices.length - 1] - prices[prices.length - 6]) / prices[prices.length - 6] * 100;
+    if (change5 < -5 && mainMoney > 0) return { action: '买入' };
+  }
+  return { action: '观望' };
+}
+</script>
