@@ -7,15 +7,15 @@
 <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 <script>
 function getQuickAnalysis(s) {
-  // 游资战法 - 优化版技术分析
+  // 游资战法 - 综合技术分析
   var history = s.history || [];
   var n = history.length;
   
   var signals = [];
   var score = 0;
   
-  if (n < 20) {
-    return { rating: '弱', cci: 0, ma5: 0, ma10: 0, ma20: 0, volumeRatio: 1, pattern: '数据不足', signals: [], score: -100 };
+  if (n < 5) {
+    return { rating: '中', cci: 0, ma5: 0, ma10: 0, ma20: 0, volumeRatio: 1, pattern: '数据不足', signals: [], score: 0 };
   }
   
   // 基础数据
@@ -52,104 +52,10 @@ function getQuickAnalysis(s) {
   var support = Math.min.apply(null, lows);
   var resistance = Math.max.apply(null, highs);
   
-  // 资金流向
+  // ===== 资金流向分析 (最重要) =====
   var mainMoney = (s.mainMoney || 0);
   var superMoney = (s.superMoney || 0);
   var totalMainMoney = mainMoney + superMoney;
-  
-  // ===== 严格的选股条件 =====
-  
-  // 1. 资金必须强 (>30万)
-  if (totalMainMoney > 30) {
-    signals.push({ type: '💰 资金', desc: '主力大幅净流入 ' + totalMainMoney.toFixed(0) + '万', value: true });
-    score += 5;
-  } else if (totalMainMoney > 10) {
-    signals.push({ type: '💰 资金', desc: '主力净流入 ' + totalMainMoney.toFixed(0) + '万', value: true });
-    score += 2;
-  } else {
-    signals.push({ type: '💰 资金', desc: '主力净流出 ' + totalMainMoney.toFixed(0) + '万', value: false });
-    score -= 5;
-  }
-  
-  // 2. 放量上涨 (量价配合)
-  if (todayVol > yesVol * 1.3 && todayClose > yesClose) {
-    signals.push({ type: '📈 量价', desc: '放量上涨，量价配合良好', value: true });
-    score += 3;
-  } else if (todayVol < yesVol * 0.7 && todayClose < yesClose) {
-    signals.push({ type: '📉 量价', desc: '缩量下跌，注意风险', value: false });
-    score -= 3;
-  }
-  
-  // 3. 均线多头排列 (强烈信号)
-  if (currentPrice > ma5 && ma5 > ma10 && ma10 > ma20) {
-    signals.push({ type: '📊 均线', desc: 'MA5>MA10>MA20 多头排列', value: true });
-    score += 5;
-  } else if (currentPrice > ma5 && ma5 > ma10) {
-    signals.push({ type: '📊 均线', desc: '短期均线向上', value: true });
-    score += 2;
-  } else if (currentPrice < ma5 && ma5 < ma10 && ma10 < ma20) {
-    signals.push({ type: '📊 均线', desc: 'MA5<MA10<MA20 空头排列', value: false });
-    score -= 5;
-  }
-  
-  // 4. 突破20日新高 (强势信号)
-  var high20 = Math.max.apply(null, highs.slice(-20));
-  if (currentPrice >= high20 * 0.98) {
-    signals.push({ type: '🚀 突破', desc: '接近20日新高', value: true });
-    score += 4;
-  }
-  
-  // 5. CCI超卖反弹
-  if (cci < -100) {
-    signals.push({ type: '📈 CCI', desc: 'CCI=' + cci.toFixed(0) + ' 超卖反弹', value: true });
-    score += 3;
-  } else if (cci > 150) {
-    signals.push({ type: '📉 CCI', desc: 'CCI=' + cci.toFixed(0) + ' 严重超买', value: false });
-    score -= 4;
-  }
-  
-  // 6. 5日涨幅适中 (不要涨太多)
-  if (n >= 6) {
-    var change5 = (todayClose - prices[prices.length - 6]) / prices[prices.length - 6] * 100;
-    if (change5 > 0 && change5 < 15) {
-      signals.push({ type: '📈 5日', desc: '5日涨幅 ' + change5.toFixed(1) + '% 适中', value: true });
-      score += 2;
-    } else if (change5 >= 15) {
-      signals.push({ type: '⚠️ 5日', desc: '5日涨幅 ' + change5.toFixed(1) + '% 过大，注意回调', value: false });
-      score -= 3;
-    } else if (change5 < -10) {
-      signals.push({ type: '📈 5日', desc: '5日跌幅 ' + change5.toFixed(1) + '% 可能超跌反弹', value: true });
-      score += 2;
-    }
-  }
-  
-  // 7. 换手率适中
-  if (s.turnover > 3 && s.turnover < 15) {
-    signals.push({ type: '🔥 换手', desc: '换手率适中 ' + s.turnover.toFixed(1) + '%', value: true });
-    score += 1;
-  } else if (s.turnover >= 20) {
-    signals.push({ type: '🔥 换手', desc: '换手率过高 ' + s.turnover.toFixed(1) + '%', value: false });
-    score -= 2;
-  }
-  
-  // 综合评分
-  var rating = score >= 8 ? '强' : score >= 3 ? '中' : '弱';
-  
-  return {
-    rating: rating,
-    score: score,
-    cci: cci,
-    ma5: ma5,
-    ma10: ma10,
-    ma20: ma20,
-    volumeRatio: volumeRatio,
-    pattern: '综合分析',
-    signals: signals,
-    support: support,
-    resistance: resistance,
-    change5: (prices[prices.length - 1] - prices[prices.length - 6]) / prices[prices.length - 6] * 100
-  };
-}
   
   if (totalMainMoney > 50) {
     signals.push({ type: '💰 资金', desc: '主力大幅净流入 +' + totalMainMoney.toFixed(0) + '万', value: true });
@@ -518,73 +424,124 @@ function showStockAnalysis(code) {
 }
 
 function getRecommendation(s, profit, analysis) {
-  // 严格选股策略
-  var rec = {action: '观望', reason: '不符合买入条件', color: '#888888'};
+  // 游资战法核心：资金为王、趋势为王、热点板块
+  var rec = {action: '观望', reason: '技术面中性', color: '#FFD700'};
   
   var score = analysis.score || 0;
   var signals = analysis.signals || [];
   
-  // 热点板块
+  // 热点板块判断
   var isHot = s.hotConcept || (s.sectorName && (
     s.sectorName.indexOf('科技') >= 0 || s.sectorName.indexOf('AI') >= 0 || 
     s.sectorName.indexOf('新能源') >= 0 || s.sectorName.indexOf('芯片') >= 0 ||
     s.sectorName.indexOf('人工智能') >= 0 || s.sectorName.indexOf('半导体') >= 0 ||
+    s.sectorName.indexOf('汽车') >= 0 || s.sectorName.indexOf('医药') >= 0 ||
     s.sectorName.indexOf('互联网') >= 0 || s.sectorName.indexOf('机器人') >= 0
   ));
   
-  // 检查关键信号
+  // 提取关键信号
+  var mainMoney = (s.mainMoney || 0);
+  var superMoney = (s.superMoney || 0);
+  var totalMainMoney = mainMoney + superMoney;
+  
   var hasMALong = signals.some(function(sig) { return sig.type === '均线' && sig.value === true; });
   var hasMAShort = signals.some(function(sig) { return sig.type === '均线' && sig.value === false; });
   var hasVolumeUp = signals.some(function(sig) { return sig.type === '📈 量价' && sig.value === true; });
-  var hasBreakthrough = signals.some(function(sig) { return sig.type === '🚀 突破'; });
+  var hasPatternUp = signals.some(function(sig) { return sig.type.includes('突破') || sig.type.includes('N型') || sig.type.includes('早晨') || sig.type.includes('二波'); });
+  var hasPatternDown = signals.some(function(sig) { return sig.type.includes('反转') || sig.type.includes('黄昏'); });
   var hasCCIOversold = signals.some(function(sig) { return sig.desc && sig.desc.includes('超卖'); });
   var hasCCIOverbought = signals.some(function(sig) { return sig.desc && sig.desc.includes('超买'); });
+  var hasBreakthrough = signals.some(function(sig) { return sig.type === '🚀 突破'; });
+  var hasSupport = signals.some(function(sig) { return sig.type === '✅ 支撑'; });
+  var hasTwoWave = signals.some(function(sig) { return sig.type === '🌊 二波'; });
   
+  // 统计正负信号
   var posCount = signals.filter(function(sig) { return sig.value === true; }).length;
   var negCount = signals.filter(function(sig) { return sig.value === false; }).length;
   
-  // ===== 严格买入条件 =====
-  // 必须满足至少3个正向信号且总分>=6才能买入
-  if (score >= 8 && posCount >= 3) {
-    if (hasMALong && hasVolumeUp) {
-      rec = {action: '买入', reason: '✅ 多头排列+放量上涨，强烈买入', color: '#FF4757'};
-    } else if (hasBreakthrough) {
-      rec = {action: '买入', reason: '✅ 放量突破，强势信号', color: '#FF4757'};
-    } else if (isHot && posCount >= 4) {
-      rec = {action: '买入', reason: '🔥 热门板块+多个正向信号', color: '#FF4757'};
-    } else if (hasCCIOversold && posCount >= 3) {
-      rec = {action: '买入', reason: '📈 CCI超卖反弹+资金支持', color: '#FF4757'};
-    } else if (posCount >= 4) {
-      rec = {action: '买入', reason: '✅ 多项技术指标向好', color: '#FF4757'};
+  // ===== 游资战法核心逻辑 =====
+  
+  // 1. 主力资金判断 (最重要)
+  var moneyLevel = 0;
+  if (totalMainMoney > 50) moneyLevel = 3;
+  else if (totalMainMoney > 20) moneyLevel = 2;
+  else if (totalMainMoney > 5) moneyLevel = 1;
+  else if (totalMainMoney < -30) moneyLevel = -2;
+  else if (totalMainMoney < -10) moneyLevel = -1;
+  
+  // 2. 趋势判断
+  var trendLevel = 0;
+  if (hasMALong || hasBreakthrough || hasTwoWave) trendLevel = 2;
+  else if (hasMAShort || hasPatternDown) trendLevel = -2;
+  else if (hasSupport) trendLevel = 1;
+  
+  // 3. 量能判断
+  var volumeLevel = 0;
+  if (analysis.volumeRatio > 1.5) volumeLevel = 1;
+  else if (analysis.volumeRatio < 0.6) volumeLevel = -1;
+  
+  // 4. 板块热度
+  var sectorLevel = isHot ? 1 : 0;
+  
+  // 5. 信号对比
+  var signalLevel = posCount - negCount;
+  
+  // 计算总分
+  var totalScore = moneyLevel * 2 + trendLevel * 2 + volumeLevel + sectorLevel + signalLevel;
+  
+  // ===== 根据综合评分给出建议 =====
+  
+  // 买入信号 (强)
+  if (totalScore >= 6) {
+    if (isHot && moneyLevel >= 2) {
+      rec = {action: '买入', reason: '🔥 热点+主力大幅流入+趋势启动', color: '#FF4757'};
+    } else if (hasTwoWave) {
+      rec = {action: '买入', reason: '🌊 二波上攻形态，强势信号', color: '#FF4757'};
+    } else if (hasBreakthrough && moneyLevel >= 1) {
+      rec = {action: '买入', reason: '🚀 突破压力位，趋势转强', color: '#FF4757'};
+    } else {
+      rec = {action: '买入', reason: '💰 资金流入+趋势向好', color: '#FF4757'};
     }
   }
-  // 勉强买入条件
-  else if (score >= 5 && posCount >= 3) {
-    rec = {action: '买入', reason: '✅ 技术面偏多，适度买入', color: '#FF8C00'};
+  // 加仓信号 (偏强)
+  else if (totalScore >= 3) {
+    if (hasMALong) {
+      rec = {action: '加仓', reason: '📊 均线多头排列，可加仓', color: '#FF8C00'};
+    } else if (moneyLevel >= 1 && trendLevel >= 0) {
+      rec = {action: '加仓', reason: '💰 资金流入，可适度加仓', color: '#FF8C00'};
+    } else {
+      rec = {action: '加仓', reason: '📈 技术面偏多，适度加仓', color: '#FF8C00'};
+    }
   }
-  // ===== 卖出条件（优先级高）=====
-  // 止损 -5%
-  else if (profit < -5) {
-    rec = {action: '清仓', reason: '💀 止损-5%，坚决卖出', color: '#666666'};
+  // 观望信号 (中性)
+  else if (totalScore >= -1) {
+    if (hasCCIOversold && moneyLevel >= 0) {
+      rec = {action: '观望', reason: '📈 CCI超卖，等待反弹', color: '#FFD700'};
+    } else if (posCount >= negCount) {
+      rec = {action: '观望', reason: '📊 正向信号略多，谨慎观望', color: '#FFD700'};
+    } else {
+      rec = {action: '观望', reason: '趋势不明，谨慎观望', color: '#FFD700'};
+    }
   }
-  // 止盈 +15%
-  else if (profit > 15) {
-    rec = {action: '清仓', reason: '💰 盈利15%+，建议止盈', color: '#666666'};
+  // 减仓信号 (偏弱)
+  else if (totalScore >= -5) {
+    if (hasCCIOverbought) {
+      rec = {action: '减仓', reason: '📉 CCI超买，适度减仓', color: '#0096FF'};
+    } else if (moneyLevel < 0 && trendLevel <= 0) {
+      rec = {action: '减仓', reason: '⚠️ 资金流出+趋势转弱', color: '#0096FF'};
+    } else {
+      rec = {action: '减仓', reason: '⚠️ 技术面偏弱，建议减仓', color: '#0096FF'};
+    }
   }
-  // 减仓条件
-  else if (profit > 8 && (hasCCIOverbought || negCount >= 2)) {
-    rec = {action: '减仓', reason: '⚠️ 盈利较大+超买信号，减仓锁利', color: '#0096FF'};
-  }
-  else if (profit > 5 && hasMAShort) {
-    rec = {action: '减仓', reason: '⚠️ 均线走弱，减仓观望', color: '#0096FF'};
-  }
-  // 继续持有
-  else if (score >= 3 && posCount >= negCount) {
-    rec = {action: '持有', reason: '✅ 技术面良好，继续持有', color: '#2ED573'};
-  }
-  // 观望
+  // 清仓信号 (弱)
   else {
-    rec = {action: '观望', reason: '信号不明确，谨慎观望', color: '#FFD700'};
+    if (moneyLevel <= -2 && hasMAShort) {
+      rec = {action: '清仓', reason: '💀 主力大幅流出+空头排列，坚决清仓', color: '#666666'};
+    } else if (hasPatternDown) {
+      rec = {action: '清仓', reason: '🕯️ K线反转形态，趋势走弱', color: '#666666'};
+    } else {
+      rec = {action: '清仓', reason: '⚠️ 技术面弱势，建议清仓', color: '#666666'};
+    }
   }
   
   return rec;
