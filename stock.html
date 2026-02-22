@@ -1772,8 +1772,8 @@ async function analyzeLimitUpStocks() {
   document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 分析涨停股票模式中...</div>';
   
   try {
-    // 获取涨幅>9.5%的股票（接近涨停）
-    var url = 'https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f1,f2,f3,f4,f5,f6,f12,f13,f14,f15,f16,f17,f18,f20,f21,f23&f3=9.5';
+    // 获取涨停股票（涨幅>=9.5%）
+    var url = 'https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f1,f2,f3,f4,f5,f6,f12,f13,f14,f15,f16,f17,f18,f20,f21,f23';
     var res = await fetch(url);
     var data = await res.json();
     
@@ -1782,7 +1782,8 @@ async function analyzeLimitUpStocks() {
       return;
     }
     
-    var limitUpStocks = data.data.diff.slice(0, 50);
+    // 过滤涨停股（涨幅>=9.5%）
+    var limitUpStocks = data.data.diff.filter(function(s) { return s.f3 >= 9.5; }).slice(0, 50);
     var patterns = {
       volumeUp: 0,      // 前一天放量
       volumeDown: 0,   // 前一天缩量
