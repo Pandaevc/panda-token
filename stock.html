@@ -544,14 +544,21 @@ function getRecommendation(s, profit, analysis) {
     }
   }
   
-  // ===== 止盈止损条件（优先级最高）=====
-  // 止损 -5%
-  if (profit < -5) {
-    rec = {action: '清仓', reason: '💀 止损-5%，坚决卖出', color: '#666666'};
-  }
-  // 止盈 +15%
-  else if (profit > 15) {
-    rec = {action: '清仓', reason: '💰 盈利15%+，建议止盈', color: '#666666'};
+  // ===== 止盈止损用技术指标判断（不用固定点数）=====
+  // 止损：均线死叉 或 放量下跌
+  if (analysis.signals) {
+    var hasMAShort = analysis.signals.some(function(sig) { return sig.type === '均线' && sig.value === false; });
+    var hasDrop = analysis.signals.some(function(sig) { return sig.type === '📉 量价' && sig.value === false; });
+    var hasBreakdown = analysis.signals.some(function(sig) { return sig.type === '📉 CCI' && sig.value === false; });
+    
+    // 止损条件：均线走弱+亏损
+    if ((hasMAShort || hasBreakdown) && profit < -3) {
+      rec = {action: '清仓', reason: '💀 技术面走弱+亏损，止损卖出', color: '#666666'};
+    }
+    // 止盈条件：超买信号+盈利
+    else if (hasBreakdown && profit > 5) {
+      rec = {action: '清仓', reason: '💰 超买信号+盈利可观，止盈卖出', color: '#666666'};
+    }
   }
   
   return rec;
