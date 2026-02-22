@@ -1591,7 +1591,7 @@ async function getTopStocks() {
       html += '<div style="margin-top:16px">';
       
       stocks.forEach(function(s, i) {
-        var color = s.signal === '强烈买入' ? '#FF4757' : s.signal === '买入' ? '#FF8C00' : '#2ED573';
+        var color = s.signal === '强烈买入' ? '#FF4757' : s.signal === '买入' ? '#FF8C00' : s.signal === '加仓' ? '#2ED573' : s.signal === '减仓' ? '#FF6B35' : s.signal === '清仓' ? '#FF0000' : '#FFD700';
         html += '<div style="background:#0D0D0D;padding:12px;margin:8px 0;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
         html += '<div><span style="color:#FFD700;font-weight:bold">' + (i+1) + '. ' + s.code + '</span> <span style="color:#888">' + s.name + '</span></div>';
         html += '<div style="color:' + color + ';font-weight:bold">' + s.signal + '</div>';
@@ -1618,10 +1618,12 @@ async function analyzeLimitUp() {
     var data = await res.json();
     
     var total = data.total || 0;
+    var strongBuy = data['强烈买入'] || 0;
     var buy = data['买入'] || 0;
     var add = data['加仓'] || 0;
     var watch = data['观望'] || 0;
-    var sell = data['减仓'] || 0;
+    var reduce = data['减仓'] || 0;
+    var clear = data['清仓'] || 0;
     
     var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
     html += '<h3 style="color:#FFD700">📊 涨停股信号分布（' + total + '只）</h3>';
@@ -1632,7 +1634,7 @@ async function analyzeLimitUp() {
     html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#888">减仓</div><div style="color:#666;font-size:24px;font-weight:bold">' + sell + '</div></div>';
     html += '</div>';
     
-    var action = buy + add;
+    var action = strongBuy + buy + add;
     var actionPct = total > 0 ? Math.round(action/total*100) : 0;
     html += '<div style="margin-top:16px;padding:16px;background:#0D0D0D;border-radius:8px">';
     html += '<div style="color:#888">可操作占比</div>';
