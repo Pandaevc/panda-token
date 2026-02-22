@@ -964,7 +964,26 @@ async function renderPortfolio() {
       if (s.turnover > 5) analysisText += '；换手率较高，活跃度高';
       if (s.mainMoney < -10) analysisText += '；主力资金净流出，注意风险';
       else if (s.mainMoney > 10) analysisText += '；主力资金净流入，看涨';
-      return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="showEditStock(\''+p.code+'\')" style="background:#0096FF;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px">✏️</button><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700;margin-left:8px">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span onclick="showStockAnalysis(\''+p.code+'\')" style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div></div>';
+      
+      // 生成技术信号标签
+      var analysis = getQuickAnalysis(s);
+      var signalTags = '';
+      if (analysis.signals && analysis.signals.length > 0) {
+        var posCount = analysis.signals.filter(function(sig){return sig.value;}).length;
+        var negCount = analysis.signals.filter(function(sig){return !sig.value;}).length;
+        signalTags = '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">';
+        // 显示前3个最重要的信号
+        var importantSignals = analysis.signals.slice(0, 4);
+        importantSignals.forEach(function(sig) {
+          var tagColor = sig.value ? 'rgba(46,213,115,0.2)' : 'rgba(255,71,87,0.2)';
+          var textColor = sig.value ? '#2ED573' : '#FF4757';
+          signalTags += '<span style="background:'+tagColor+';color:'+textColor+';padding:2px 6px;border-radius:4px;font-size:10px;margin-right:4px">'+sig.type+'</span>';
+        });
+        signalTags += '<span style="background:#333;color:#888;padding:2px 6px;border-radius:4px;font-size:10px">✅'+posCount+' ❌'+negCount+'</span>';
+        signalTags += '</div>';
+      }
+      
+      return '<div class="sr-result"><div style="display:flex;justify-content:space-between;align-items:center"><div><span class="stock-code">'+p.code+'</span> <span style="color:#888">'+p.name+'</span></div><div style="display:flex;align-items:center;gap:8px"><button onclick="showEditStock(\''+p.code+'\')" style="background:#0096FF;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px">✏️</button><button onclick="deleteStock(\''+p.code+'\')" style="background:#FF4757;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">✕</button><span class="'+(profit>=0?'up':'down')+'" style="font-weight:700;margin-left:8px">'+(profit>=0?'+':'')+profit.toFixed(2)+'%</span></div></div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;color:#666"><div>持仓:'+p.shares+'</div><div>成本:'+p.buyPrice.toFixed(2)+'</div><div>现价:'+(p.currentPrice||'-')+'</div><div>板块:'+(s.sectorName||'-')+'</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span onclick="showStockAnalysis(\''+p.code+'\')" style="background:'+recColor+';color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer">'+rec.action+'</span><span style="font-size:11px;color:#888">'+rec.reason+'</span></div>'+signalTags+'</div>';
     } catch(e) {
       console.error('Error mapping stock:', p.code, e);
       return '';
