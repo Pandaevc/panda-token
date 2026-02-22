@@ -7,28 +7,37 @@
 <script src="https://cdn.plot.ly/plotly-2.24.1.min.js">
 
 function getQuickAnalysis(s) {
-  // Comprehensive technical analysis
+  // Comprehensive technical analysis - 统一的分析逻辑
   var history = s.history || [];
   var n = history.length;
   
-  if (n < 20) {
-    return { rating: '中', cci: 0, ma5: 0, ma10: 0, ma20: 0, volumeRatio: 1, pattern: '整理', signals: [] };
+  var signals = [];
+  var score = 0;
+  
+  // Basic data
+  if (n < 5) {
+    return { rating: '中', cci: 0, ma5: 0, ma10: 0, ma20: 0, volumeRatio: 1, pattern: '数据不足', signals: [], score: 0 };
   }
   
   // Get recent prices
-  var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); }); // close prices
-  var highs = history.slice(-20).map(function(h) { return parseFloat(h[3]); }); // high prices
-  var lows = history.slice(-20).map(function(h) { return parseFloat(h[4]); }); // low prices
-  var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); }); // volumes
+  var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); });
+  var highs = history.slice(-20).map(function(h) { return parseFloat(h[3]); });
+  var lows = history.slice(-20).map(function(h) { return parseFloat(h[4]); });
+  var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); });
   
-  // Calculate MA (Moving Average)
+  var currentPrice = prices[prices.length - 1];
+  var todayClose = prices[prices.length - 1];
+  var yesClose = prices[prices.length - 2];
+  var todayVol = volumes[volumes.length - 1];
+  var yesVol = volumes[volumes.length - 2];
+  
+  // Calculate MA
   var ma5 = prices.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
   var ma10 = prices.slice(-10).reduce(function(a, b) { return a + b; }, 0) / 10;
   var ma20 = prices.slice(-20).reduce(function(a, b) { return a + b; }, 0) / 20;
-  var currentPrice = prices[prices.length - 1];
   
-  // Calculate CCI (Commodity Channel Index)
-  var typicalPrices = history.slice(-14).map(function(h, i) {
+  // Calculate CCI
+  var typicalPrices = history.slice(-14).map(function(h) {
     return (parseFloat(h[2]) + parseFloat(h[3]) + parseFloat(h[4])) / 3;
   });
   var sma = typicalPrices.reduce(function(a, b) { return a + b; }, 0) / typicalPrices.length;
@@ -40,99 +49,123 @@ function getQuickAnalysis(s) {
   var recentVolume = volumes.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
   var volumeRatio = recentVolume / avgVolume;
   
-  // Price momentum
-  var change5 = (prices[prices.length - 1] - prices[prices.length - 6]) / prices[prices.length - 6] * 100;
-  var change10 = (prices[prices.length - 1] - prices[prices.length - 11]) / prices[prices.length - 11] * 100;
-  
-  // Support and resistance
+  // Support/Resistance
   var support = Math.min.apply(null, lows);
   var resistance = Math.max.apply(null, highs);
-  var position = (currentPrice - support) / (resistance - support) * 100;
   
-  // Chip distribution estimation (simplified)
-  var chipDistribution = estimateChipDistribution(prices, currentPrice);
+  // ===== 整合 analyzeStockTech 的分析逻辑 =====
   
-  // K-line pattern recognition
-  var pattern = recognizePattern(history.slice(-5), prices);
-  
-  // Generate signals
-  var signals = [];
-  var score = 0;
-  
-  // CCI signals
-  if (cci > 100) {
-    signals.push({ type: 'CCI超买', value: true, desc: 'CCI=' + cci.toFixed(0) + ' 超买区域' });
-    score -= 2;
-  } else if (cci < -100) {
-    signals.push({ type: 'CCI超卖', value: true, desc: 'CCI=' + cci.toFixed(0) + ' 超卖区域，可能反弹' });
-    score += 3;
-  } else if (cci > 0) {
-    signals.push({ type: 'CCI多头', value: true, desc: 'CCI=' + cci.toFixed(0) + ' 多头趋势' });
+  // 1. 量价关系
+  if (todayVol > yesVol * 1.2 && todayClose > yesClose) {
+    signals.push({ type: '📊 量价', desc: '放量上涨 - 主力积极', value: true });
     score += 2;
-  } else {
-    signals.push({ type: 'CCI空头', value: false, desc: 'CCI=' + cci.toFixed(0) + ' 空头趋势' });
+  } else if (todayVol < yesVol * 0.5 && todayClose < yesClose) {
+    signals.push({ type: '📊 量价', desc: '缩量下跌 - 观望', value: false });
     score -= 1;
   }
   
-  // MA signals
-  if (currentPrice > ma5 && ma5 > ma10 && ma10 > ma20) {
-    signals.push({ type: '均线多头', value: true, desc: 'MA5>MA10>MA20 多头排列' });
+  // 2. 资金流向
+  var money = (s.mainMoney + s.superMoney) / 10000;
+  if (money > 0) {
+    signals.push({ type: '💵 资金', desc: '主力净流入 +' + money.toFixed(0) + '万', value: true });
+    score += 2;
+  } else {
+    signals.push({ type: '💵 资金', desc: '主力净流出 ' + money.toFixed(0) + '万', value: false });
+    score -= 2;
+  }
+  
+  // 3. 突破压力位
+  if (todayClose > resistance) {
+    signals.push({ type: '🚀 突破', desc: '突破压力位 ' + resistance.toFixed(2), value: true });
     score += 3;
-  } else if (currentPrice < ma5 && ma5 < ma10 && ma10 < ma20) {
-    signals.push({ type: '均线空头', value: false, desc: 'MA5<MA10<MA20 空头排列' });
-    score -= 3;
-  } else if (currentPrice > ma5) {
-    signals.push({ type: 'MA5支撑', value: true, desc: '价格站在MA5上方' });
+  }
+  
+  // 4. 支撑位站稳
+  if (todayClose > support && todayClose < resistance) {
+    signals.push({ type: '✅ 支撑', desc: '站稳支撑位 ' + support.toFixed(2), value: true });
     score += 1;
   }
   
-  // Volume signals
-  if (volumeRatio > 1.5) {
-    signals.push({ type: '放量', value: true, desc: '成交量放大 ' + (volumeRatio * 100).toFixed(0) + '%' });
-    score += 2;
-  } else if (volumeRatio < 0.5) {
-    signals.push({ type: '缩量', value: false, desc: '成交量萎缩 ' + (volumeRatio * 100).toFixed(0) + '%' });
+  // 5. 缺口分析
+  if (n >= 2) {
+    var gap = parseFloat(history[history.length-1][1]) - yesClose;
+    var gapPct = gap / yesClose * 100;
+    if (gapPct > 3) {
+      signals.push({ type: '⚠️ 缺口', desc: '上方缺口 ' + gapPct.toFixed(2) + '% (建议等回补)', value: false });
+      score -= 2;
+    } else if (gapPct < -3) {
+      signals.push({ type: '✅ 缺口', desc: '下方缺口 ' + Math.abs(gapPct).toFixed(2) + '% (可能支撑)', value: true });
+      score += 1;
+    }
   }
   
-  // Momentum signals
-  if (change5 > 5) {
-    signals.push({ type: '强势上涨', value: true, desc: '5日涨幅 ' + change5.toFixed(1) + '%' });
-    score += 2;
-  } else if (change5 < -5) {
-    signals.push({ type: '强势下跌', value: false, desc: '5日跌幅 ' + change5.toFixed(1) + '%' });
+  // 6. 二波上攻形态
+  if (n >= 20) {
+    var firstHalf = prices.slice(-20, -10);
+    var secondHalf = prices.slice(-10);
+    var firstAvg = firstHalf.reduce(function(a,b){return a+b},0)/firstHalf.length;
+    var secondAvg = secondHalf.reduce(function(a,b){return a+b},0)/secondHalf.length;
+    if (secondAvg > firstAvg * 1.1 && todayClose > secondHalf[0]) {
+      signals.push({ type: '🌊 二波', desc: '二波上攻形态 - 强势信号', value: true });
+      score += 3;
+    }
+  }
+  
+  // 7. 主力坚决度
+  var avgVol5 = volumes.slice(-5).reduce(function(a,b){return a+parseFloat(b)},0)/5;
+  if (todayVol > avgVol5 * 1.5) {
+    signals.push({ type: '💪 坚决', desc: '成交量放大 主力可能行动', value: true });
+    score += 1;
+  } else if (todayVol < avgVol5 * 0.5) {
+    signals.push({ type: '😰 犹豫', desc: '缩量 主力不坚决', value: false });
+    score -= 1;
+  }
+  
+  // 8. CCI 指标
+  if (cci > 100) {
+    signals.push({ type: '📉 CCI', desc: 'CCI=' + cci.toFixed(0) + ' 超买区域', value: false });
     score -= 2;
-  }
-  
-  // Chip distribution signals
-  if (chipDistribution.concentrated > 70) {
-    signals.push({ type: '筹码集中', value: true, desc: '筹码集中度 ' + chipDistribution.concentrated + '%' });
-    score += 2;
-  } else if (chipDistribution.scattered > 50) {
-    signals.push({ type: '筹码分散', value: false, desc: '筹码分散，可能继续震荡' });
-  }
-  
-  // Pattern signals
-  if (pattern.includes('突破') || pattern.includes('启明星')) {
-    signals.push({ type: 'K线突破', value: true, desc: 'K线形态: ' + pattern });
+  } else if (cci < -100) {
+    signals.push({ type: '📈 CCI', desc: 'CCI=' + cci.toFixed(0) + ' 超卖区域，可能反弹', value: true });
     score += 3;
-  } else if (pattern.includes('黄昏') || pattern.includes('吞没')) {
-    signals.push({ type: 'K线反转', value: false, desc: 'K线形态: ' + pattern });
+  } else if (cci > 0) {
+    signals.push({ type: '📈 CCI', desc: 'CCI=' + cci.toFixed(0) + ' 多头趋势', value: true });
+    score += 1;
+  } else {
+    signals.push({ type: '📉 CCI', desc: 'CCI=' + cci.toFixed(0) + ' 空头趋势', value: false });
+    score -= 1;
+  }
+  
+  // 9. 均线系统
+  if (currentPrice > ma5 && ma5 > ma10 && ma10 > ma20) {
+    signals.push({ type: '📊 均线', desc: 'MA5>MA10>MA20 多头排列', value: true });
+    score += 3;
+  } else if (currentPrice < ma5 && ma5 < ma10 && ma10 < ma20) {
+    signals.push({ type: '📊 均线', desc: 'MA5<MA10<MA20 空头排列', value: false });
     score -= 3;
   }
   
-  // Position in range
-  if (position < 20) {
-    signals.push({ type: '接近支撑', value: true, desc: '接近支撑位 ' + support.toFixed(2) });
+  // 10. 换手率
+  if (s.turnover > 8) {
+    signals.push({ type: '🔥 换手', desc: '换手率较高 ' + s.turnover.toFixed(1) + '%', value: false });
+    score -= 1;
+  } else if (s.turnover > 3) {
+    signals.push({ type: '🔥 换手', desc: '换手率适中 ' + s.turnover.toFixed(1) + '%', value: true });
+    score += 1;
+  }
+  
+  // K线形态
+  var pattern = recognizePattern(history.slice(-5), prices);
+  if (pattern.includes('突破') || pattern.includes('启明星')) {
+    signals.push({ type: '🕯️ 形态', desc: pattern, value: true });
     score += 2;
-  } else if (position > 80) {
-    signals.push({ type: '接近阻力', value: false, desc: '接近阻力位 ' + resistance.toFixed(2) });
+  } else if (pattern.includes('黄昏') || pattern.includes('吞没')) {
+    signals.push({ type: '🕯️ 形态', desc: pattern, value: false });
     score -= 2;
   }
   
-  // Determine rating
-  var rating = '中';
-  if (score >= 6) rating = '强';
-  else if (score <= -4) rating = '弱';
+  // Rating
+  var rating = score >= 5 ? '强' : score >= 0 ? '中' : '弱';
   
   return {
     rating: rating,
@@ -144,11 +177,9 @@ function getQuickAnalysis(s) {
     volumeRatio: volumeRatio,
     pattern: pattern,
     signals: signals,
-    chipDistribution: chipDistribution,
     support: support,
     resistance: resistance,
-    change5: change5,
-    position: position
+    change5: (prices[prices.length - 1] - prices[prices.length - 6]) / prices[prices.length - 6] * 100
   };
 }
 
