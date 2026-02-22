@@ -513,16 +513,6 @@ function getRecommendation(s, profit, analysis) {
   
   return rec;
 }
-    rec = {action: '持有', reason: '形态良好，继续持有', color: '#2ED573'};
-  } else if (rating === '弱') {
-    rec = {action: '持有', reason: '走势偏弱，谨慎观望', color: '#FFD700'};
-  } else {
-    var defaultReasons = ['震荡整理，观望为主', '趋势不明，建议持有观望', '技术面中性，继续观察'];
-    rec = {action: '持有', reason: defaultReasons[Math.floor(Math.random() * defaultReasons.length)], color: '#FFD700'};
-  }
-  
-  return rec;
-}
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
