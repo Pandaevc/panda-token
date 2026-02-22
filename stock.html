@@ -1336,10 +1336,15 @@ function calcSupportResistance(s) {
 }
 
 function showPage(page) {
-  document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active');});
-  event.target.classList.add('active');
-  document.querySelectorAll('#page-dashboard,#page-screener,#page-portfolio,#page-analysis,#page-backtest').forEach(function(p){p.style.display='none';});
-  document.getElementById('page-'+page).style.display = 'block';
+  // Hide all pages first
+  var pages = ['dashboard', 'screener', 'portfolio', 'analysis', 'backtest'];
+  pages.forEach(function(p) {
+    var el = document.getElementById('page-' + p);
+    if (el) el.style.display = 'none';
+  });
+  // Show selected page
+  var selected = document.getElementById('page-' + page);
+  if (selected) selected.style.display = 'block';
 }
 
 loadData();
