@@ -1067,6 +1067,7 @@ function showPage(page) {
 loadData();
 
 
+function downloadTemplate() {
   var csv = "股票名称,股票代码,持股数,成本价\n汉邦高科,300449,1000,15.50\n北京雅克,600410,500,8.20";
   var blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
   var url = URL.createObjectURL(blob);
