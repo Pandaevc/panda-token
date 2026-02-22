@@ -1729,20 +1729,16 @@ function buildStockFromHistory(code, name, history) {
   var latest = history[history.length - 1];
   var yesHistory = history[history.length - 2] || latest;
   
-  return {
-    code: code,
-    name: name,
-    price: parseFloat(latest[2]),
-    // 根据真实量价计算资金流向
-    var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); });
-    var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); });
-    var avgVolume = volumes.reduce(function(a, b) { return a + b; }, 0) / volumes.length;
-    var recentVolume = volumes.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
-    var volumeRatio = recentVolume / avgVolume;
-    var priceChange = ((parseFloat(latest[2]) - parseFloat(yesHistory[2])) / parseFloat(yesHistory[2]) * 100);
-    
-    // 放量上涨=资金流入，放量下跌=资金流出
-    var mainMoney = 0;
+  // 根据真实量价计算资金流向
+  var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); });
+  var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); });
+  var avgVolume = volumes.reduce(function(a, b) { return a + b; }, 0) / volumes.length;
+  var recentVolume = volumes.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
+  var volumeRatio = recentVolume / avgVolume;
+  var priceChange = ((parseFloat(latest[2]) - parseFloat(yesHistory[2])) / parseFloat(yesHistory[2]) * 100);
+  
+  // 放量上涨=资金流入，放量下跌=资金流出
+  var mainMoney = 0;
     if (volumeRatio > 1.3 && priceChange > 0) mainMoney = 50;
     else if (volumeRatio > 1.3 && priceChange < 0) mainMoney = -30;
     else if (volumeRatio < 0.7 && priceChange < 0) mainMoney = 20;
