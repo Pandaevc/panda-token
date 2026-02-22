@@ -14,8 +14,8 @@ function getQuickAnalysis(s) {
   var signals = [];
   var score = 0;
   
-  if (n < 5) {
-    return { rating: '中', cci: 0, ma5: 0, ma10: 0, ma20: 0, volumeRatio: 1, pattern: '数据不足', signals: [], score: 0 };
+  if (n < 20) {
+    return { rating: '弱', cci: 0, ma5: 0, ma10: 0, ma20: 0, volumeRatio: 1, pattern: '数据不足', signals: [], score: -100 };
   }
   
   // 基础数据
@@ -542,6 +542,16 @@ function getRecommendation(s, profit, analysis) {
     } else {
       rec = {action: '清仓', reason: '⚠️ 技术面弱势，建议清仓', color: '#666666'};
     }
+  }
+  
+  // ===== 止盈止损条件（优先级最高）=====
+  // 止损 -5%
+  if (profit < -5) {
+    rec = {action: '清仓', reason: '💀 止损-5%，坚决卖出', color: '#666666'};
+  }
+  // 止盈 +15%
+  else if (profit > 15) {
+    rec = {action: '清仓', reason: '💰 盈利15%+，建议止盈', color: '#666666'};
   }
   
   return rec;
