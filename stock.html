@@ -1565,81 +1565,175 @@ function editStock(code) {
 <script>
 async function runBacktest() {
   var period = parseInt(document.getElementById('backtestPeriod').value);
-  document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 回测中，请稍候...</div>';
+  document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 使用自有策略回测中，请稍候...</div>';
   
   await loadStocks();
   
-  var results = [];
-  var testStocks = allStocks.filter(function(s) { return s.history && s.history.length >= period + 10; }).slice(0, 100);
+  // 获取有足够历史数据的股票
+  var testStocks = allStocks.filter(function(s) { 
+    return s.history && s.history.length >= period; 
+  }).slice(0, 50);
   
-  var traded = 0, wins = 0, totalProfit = 0;
+  if (testStocks.length < 10) {
+    document.getElementById('backtestResult').innerHTML = '<div style="color:#666">股票数据不足，无法回测</div>';
+    return;
+  }
   
-  for (var i = 0; i < testStocks.length; i++) {
-    var s = testStocks[i];
-    var h = s.history;
-    for (var day = 30; day < h.length - 5; day++) {
-      var pastData = h.slice(0, day);
-      var currentPrice = parseFloat(h[day][2]);
-      var signal = simulateSignal(pastData, document.getElementById('backtestStrategy').value);
+  var trades = []; // 交易记录
+  var positions = {}; // 当前持仓 {code: {shares, buyPrice, buyDate}}
+  var capital = 100000; // 初始资金10万
+  var initialCapital = capital;
+  
+  // 模拟每天的交易信号
+  for (var day = 30; day < period; day++) {
+    var today = day;
+    
+    // 检查持仓股票的信号
+    for (var code in positions) {
+      var pos = positions[code];
+      var stock = testStocks.find(function(s) { return s.code === code; });
+      if (!stock || !stock.history || stock.history.length <= today) continue;
       
-      if (signal.action === '买入') {
-        var buyPrice = currentPrice;
-        var sellPrice = parseFloat(h[Math.min(day + 5, h.length - 1)][2]);
-        var profit = (sellPrice - buyPrice) / buyPrice * 100;
-        results.push({code: s.code, name: s.name, profit: profit});
-        totalProfit += profit;
-        if (profit > 0) wins++;
-        traded++;
+      var h = stock.history.slice(0, today + 1);
+      var s = buildStockFromHistory(stock.code, stock.name, h);
+      
+      if (s && s.history && s.history.length >= 20) {
+        var analysis = getQuickAnalysis(s);
+        var profit = ((s.price - pos.buyPrice) / pos.buyPrice * 100);
+        var rec = getRecommendation(s, profit, analysis);
+        
+        // 根据信号决定是否卖出/减仓
+        if (rec.action === '清仓') {
+          // 全部卖出
+          var sellPrice = s.price;
+          var profit = (sellPrice - pos.buyPrice) / pos.buyPrice * 100;
+          trades.push({code: code, name: stock.name, action: '清仓', profit: profit, days: today - pos.buyDate});
+          capital += pos.shares * sellPrice;
+          delete positions[code];
+        } else if (rec.action === '减仓') {
+          // 卖出一半
+          var sellPrice = s.price;
+          var halfShares = Math.floor(pos.shares / 2);
+          var profit = (sellPrice - pos.buyPrice) / pos.buyPrice * 100;
+          trades.push({code: code, name: stock.name, action: '减仓', profit: profit, days: today - pos.buyDate});
+          capital += halfShares * sellPrice;
+          pos.shares -= halfShares;
+        }
+      }
+    }
+    
+    // 检查是否需要买入
+    var availableCapital = capital * 0.9; // 保留10%现金
+    if (availableCapital > 5000) {
+      // 找符合条件的股票买入
+      for (var i = 0; i < testStocks.length; i++) {
+        var stock = testStocks[i];
+        if (positions[stock.code]) continue; // 已有持仓
+        if (!stock.history || stock.history.length <= today) continue;
+        
+        var h = stock.history.slice(0, today + 1);
+        var s = buildStockFromHistory(stock.code, stock.name, h);
+        
+        if (s && s.history && s.history.length >= 20) {
+          var analysis = getQuickAnalysis(s);
+          var rec = getRecommendation(s, 0, analysis);
+          
+          if (rec.action === '买入' || rec.action === '加仓') {
+            // 买入
+            var buyPrice = s.price;
+            var shares = Math.floor(availableCapital / buyPrice / 100) * 100; // 整手买入
+            if (shares >= 100) {
+              positions[stock.code] = {shares: shares, buyPrice: buyPrice, buyDate: today};
+              capital -= shares * buyPrice;
+              trades.push({code: stock.code, name: stock.name, action: '买入', price: buyPrice, days: 0});
+              break; // 每次只买一只
+            }
+          }
+        }
       }
     }
   }
   
-  if (traded === 0) {
-    document.getElementById('backtestResult').innerHTML = '<div style="color:#666">回测期间没有符合条件的交易信号</div>';
-    return;
+  // 平仓所有持仓
+  for (var code in positions) {
+    var pos = positions[code];
+    var stock = testStocks.find(function(s) { return s.code === code; });
+    if (stock && stock.history) {
+      var sellPrice = parseFloat(stock.history[stock.history.length - 1][2]);
+      var profit = (sellPrice - pos.buyPrice) / pos.buyPrice * 100;
+      trades.push({code: code, name: stock.name, action: '最终平仓', profit: profit, days: period - pos.buyDate});
+    }
   }
   
-  var winRate = (wins / traded * 100).toFixed(1);
-  var avgProfit = (totalProfit / traded).toFixed(2);
+  // 计算统计数据
+  var buyTrades = trades.filter(function(t) { return t.action === '买入'; });
+  var sellTrades = trades.filter(function(t) { return t.action === '清仓' || t.action === '最终平仓' || t.action === '减仓'; });
+  var wins = sellTrades.filter(function(t) { return t.profit > 0; }).length;
+  var totalProfit = sellTrades.reduce(function(sum, t) { return sum + (t.profit || 0); }, 0);
+  var winRate = sellTrades.length > 0 ? (wins / sellTrades.length * 100).toFixed(1) : 0;
+  var avgProfit = sellTrades.length > 0 ? (totalProfit / sellTrades.length).toFixed(2) : 0;
+  var totalReturn = ((capital - initialCapital) / initialCapital * 100).toFixed(2);
   
   var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
-  html += '<h3 style="margin-bottom:16px">📊 回测结果</h3>';
-  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">';
-  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">交易次数</div><div style="color:#FFF;font-size:24px;font-weight:700">'+traded+'</div></div>';
+  html += '<h3 style="margin-bottom:16px">📊 策略回测结果 (最近' + period + '天)</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">买入次数</div><div style="color:#FF6B35;font-size:24px;font-weight:700">'+buyTrades.length+'</div></div>';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">卖出次数</div><div style="color:#FF6B35;font-size:24px;font-weight:700">'+sellTrades.length+'</div></div>';
   html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">胜率</div><div style="color:'+(winRate >= 50 ? '#2ED573' : '#FF4757')+';font-size:24px;font-weight:700">'+winRate+'%</div></div>';
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px">';
   html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">平均收益</div><div style="color:'+(avgProfit >= 0 ? '#2ED573' : '#FF4757')+';font-size:24px;font-weight:700">'+avgProfit+'%</div></div>';
-  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">总收益率</div><div style="color:'+(totalProfit >= 0 ? '#2ED573' : '#FF4757')+';font-size:24px;font-weight:700">'+totalProfit.toFixed(2)+'%</div></div>';
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;text-align:center"><div style="color:#666;font-size:12px">总收益率</div><div style="color:'+(totalReturn >= 0 ? '#2ED573' : '#FF4757')+';font-size:24px;font-weight:700">'+totalReturn+'%</div></div>';
   html += '</div>';
   
-  var eval = winRate >= 60 ? '🟢 优秀' : winRate >= 50 ? '🟡 尚可' : '🔴 需改进';
-  var evalColor = winRate >= 60 ? '#2ED573' : winRate >= 50 ? '#FFD700' : '#FF4757';
-  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#666;font-size:12px;margin-bottom:8px">策略评价</div><div style="color:'+evalColor+';font-size:20px;font-weight:700">'+eval+'</div></div>';
+  // 交易明细
+  if (trades.length > 0) {
+    html += '<div style="color:#888;font-size:12px;margin-bottom:8px">📝 最近10笔交易:</div>';
+    html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px;max-height:200px;overflow-y:auto">';
+    trades.slice(-10).reverse().forEach(function(t) {
+      var color = t.profit > 0 ? '#2ED573' : t.profit < 0 ? '#FF4757' : '#888';
+      html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #222;font-size:12px"><span>'+t.code+' '+t.name+' '+t.action+'</span><span style="color:'+color+'">'+(t.profit ? (t.profit > 0 ? '+' : '') + t.profit.toFixed(2) + '%' : '')+'</span></div>';
+    });
+    html += '</div>';
+  }
+  
+  // 策略评价
+  var eval = '🔴 需改进';
+  var evalColor = '#FF4757';
+  if (winRate >= 60 && parseFloat(totalReturn) > 20) { eval = '🟢 优秀'; evalColor = '#2ED573'; }
+  else if (winRate >= 50 && parseFloat(totalReturn) > 0) { eval = '🟡 尚可'; evalColor = '#FFD700'; }
+  
+  html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;margin-top:16px"><div style="color:#666;font-size:12px;margin-bottom:8px">综合评价</div><div style="color:'+evalColor+';font-size:20px;font-weight:700">'+eval+'</div></div>';
   html += '<div style="color:#666;font-size:11px;text-align:center;margin-top:16px">回测时间: '+new Date().toLocaleString()+'</div>';
   html += '</div>';
   
   document.getElementById('backtestResult').innerHTML = html;
 }
 
-function simulateSignal(history, strategy) {
-  if (!history || history.length < 20) return { action: '观望' };
-  var prices = history.slice(-20).map(function(h) { return parseFloat(h[2]); });
-  var volumes = history.slice(-20).map(function(h) { return parseFloat(h[5]); });
-  var currentPrice = prices[prices.length - 1];
-  var ma5 = prices.slice(-5).reduce(function(a, b) { return a + b; }, 0) / 5;
-  var ma10 = prices.slice(-10).reduce(function(a, b) { return a + b; }, 0) / 10;
-  var avgVol = volumes.reduce(function(a, b) { return a + b; }, 0) / volumes.length;
-  var recentVol = volumes.slice(-3).reduce(function(a, b) { return a + b; }, 0) / 3;
-  var mainMoney = Math.random() * 100 - 20;
+// 从历史数据构建股票对象（用于回测）
+function buildStockFromHistory(code, name, history) {
+  if (!history || history.length < 20) return null;
   
-  if ((strategy === 'money_flow' || strategy === 'all') && mainMoney > 30 && currentPrice > ma5 && ma5 > ma10) return { action: '买入' };
-  if ((strategy === 'breakout' || strategy === 'all')) {
-    var high20 = Math.max.apply(null, prices.slice(-20));
-    if (currentPrice > high20 * 0.98 && recentVol > avgVol * 1.5) return { action: '买入' };
-  }
-  if ((strategy === 'pullback' || strategy === 'all') && prices.length >= 6) {
-    var change5 = (prices[prices.length - 1] - prices[prices.length - 6]) / prices[prices.length - 6] * 100;
-    if (change5 < -5 && mainMoney > 0) return { action: '买入' };
-  }
-  return { action: '观望' };
+  var latest = history[history.length - 1];
+  var yesHistory = history[history.length - 2] || latest;
+  
+  return {
+    code: code,
+    name: name,
+    price: parseFloat(latest[2]),
+    change: ((parseFloat(latest[2]) - parseFloat(yesHistory[2])) / parseFloat(yesHistory[2]) * 100),
+    open: parseFloat(latest[1]),
+    high: parseFloat(latest[3]),
+    low: parseFloat(latest[4]),
+    volume: parseFloat(latest[5]),
+    turnover: (parseFloat(latest[5]) / 1000000 * 100) || 0,
+    market: 100,
+    mainMoney: (Math.random() * 100 - 30), // 模拟主力资金
+    superMoney: (Math.random() * 50 - 20),
+    largeMoney: (Math.random() * 30 - 10),
+    history: history,
+    sectorName: ''
+  };
 }
+</script>
 </script>
