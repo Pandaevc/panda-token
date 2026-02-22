@@ -1586,10 +1586,34 @@ async function analyzeLimitUp() {
     
     if (data.total > 0) {
       var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
-      html += '<h3>📊 涨停股前一天特征（' + data.total + '只）</h3>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">';
-      html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#888">前一天放量</div><div style="color:#2ED573;font-size:24px">' + data.volume_up + ' (' + data.volume_up_pct + '%)</div></div>';
-      html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#888">均线多头</div><div style="color:#2ED573;font-size:24px">' + data.ma_golden + ' (' + data.ma_golden_pct + '%)</div></div>';
+      html += '<h3>📊 涨停股特征分析（' + data.total + '只样本）</h3>';
+      
+      // 威廉指标分析
+      html += '<div style="color:#FFD700;margin:16px 0 8px">📈 威廉指标（机构算法）</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:11px">四线归零买</div><div style="color:#FF4757;font-size:20px">' + data.four_line_zero + ' (' + data.four_line_zero_pct + '%)</div></div>';
+      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:11px">白线下20买</div><div style="color:#FF4757;font-size:20px">' + data.white_under_20 + ' (' + data.white_under_20_pct + '%)</div></div>';
+      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:11px">白穿红线买</div><div style="color:#FF4757;font-size:20px">' + data.white_cross_red + ' (' + data.white_cross_red_pct + '%)</div></div>';
+      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:11px">白穿黄线买</div><div style="color:#FF4757;font-size:20px">' + data.white_cross_yellow + ' (' + data.white_cross_yellow_pct + '%)</div></div>';
+      html += '</div>';
+      
+      // CCI和均线
+      html += '<div style="color:#FFD700;margin:16px 0 8px">📊 其他指标</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:11px">CCI超卖反弹</div><div style="color:#2ED573;font-size:20px">' + data.cci_oversold + ' (' + data.cci_oversold_pct + '%)</div></div>';
+      html += '<div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:11px">均线多头排列</div><div style="color:#2ED573;font-size:20px">' + data.ma_golden + ' (' + data.ma_golden_pct + '%)</div></div>';
+      html += '</div>';
+      
+      // 结论
+      html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px;margin-top:16px">';
+      html += '<h4 style="color:#FFD700">💡 涨停基因总结</h4>';
+      var conclusions = [];
+      if (data.four_line_zero_pct > 5) conclusions.push('✅ 四线归零: ' + data.four_line_zero_pct + '%');
+      if (data.white_under_20_pct > 10) conclusions.push('✅ 白线下20: ' + data.white_under_20_pct + '%');
+      if (data.white_cross_red_pct > 10) conclusions.push('✅ 白穿红线: ' + data.white_cross_red_pct + '%');
+      if (data.cci_oversold_pct > 10) conclusions.push('⚡ CCI超卖: ' + data.cci_oversold_pct + '%');
+      if (conclusions.length === 0) conclusions.push('分析中...');
+      html += conclusions.map(c => '<div style="color:#888;margin:4px">' + c + '</div>').join('');
       html += '</div></div>';
       el.innerHTML = html;
     } else {
