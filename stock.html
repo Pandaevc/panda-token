@@ -1569,11 +1569,37 @@ function editStock(code) {
 🎯 回测逻辑：完全使用策略一（AI综合精选）选股，根据推荐信号（买入/加仓/减仓/清仓）进行交易
 </div>
 <button class="btn" style="background:#FF6B35" onclick="runBacktest()">🚀 开始回测</button>
+<button class="btn" style="background:#2ED573;margin-left:10px" onclick="analyzeLimitUp()">📊 涨停模式</button>
 </div>
 <div id="backtestResult"></div>
 </div>
 
 <script>
+// 涨停模式分析 - 调用后端API
+async function analyzeLimitUp() {
+  var el = document.getElementById('backtestResult');
+  el.innerHTML = '<div class="loading">🔍 分析涨停模式中...</div>';
+  
+  try {
+    var res = await fetch('https://stock-api-2.vercel.app/api/limitup-pattern');
+    var data = await res.json();
+    
+    if (data.total > 0) {
+      var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
+      html += '<h3>📊 涨停股前一天特征（' + data.total + '只）</h3>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">';
+      html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#888">前一天放量</div><div style="color:#2ED573;font-size:24px">' + data.volume_up + ' (' + data.volume_up_pct + '%)</div></div>';
+      html += '<div style="background:#0D0D0D;padding:16px;border-radius:8px"><div style="color:#888">均线多头</div><div style="color:#2ED573;font-size:24px">' + data.ma_golden + ' (' + data.ma_golden_pct + '%)</div></div>';
+      html += '</div></div>';
+      el.innerHTML = html;
+    } else {
+      el.innerHTML = '<div style="color:#666">暂无数据</div>';
+    }
+  } catch(e) {
+    el.innerHTML = '<div style="color:#666">调用失败: ' + e.message + '</div>';
+  }
+}
+
 async function runBacktest() {
   var period = parseInt(document.getElementById('backtestPeriod').value);
   document.getElementById('backtestResult').innerHTML = '<div class="loading">🔍 使用自有策略回测中，请稍候...</div>';
