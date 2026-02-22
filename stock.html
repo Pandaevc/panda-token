@@ -1570,7 +1570,8 @@ function editStock(code) {
 </div>
 <button class="btn" style="background:#FF6B35" onclick="runBacktest()">🚀 开始回测</button>
 <button class="btn" style="background:#2ED573;margin-left:10px" onclick="getTopStocks()">🏆 TOP股票</button>
-<button class="btn" style="background:#0096FF;margin-left:10px" onclick="analyzeLimitUp()">📊 涨停模式</button>
+<button class="btn" style="background:#0096FF;margin-left:10px" onclick="scanAll()">🔍 全盘扫描</button>
+<button class="btn" style="background:#FF6B35;margin-left:10px" onclick="analyzeLimitUp()">📊 涨停模式</button>
 </div>
 <div id="backtestResult"></div>
 </div>
@@ -1605,6 +1606,51 @@ async function getTopStocks() {
     }
   } catch(e) {
     el.innerHTML = '<div style="color:#666">获取失败: ' + e.message + '</div>';
+  }
+}
+
+// 扫描全市场
+async function scanAll() {
+  var el = document.getElementById('backtestResult');
+  el.innerHTML = '<div class="loading">🔍 扫描A股市场中...</div>';
+  
+  try {
+    var res = await fetch('https://stock-api-2.vercel.app/api/scan-all');
+    var data = await res.json();
+    
+    var signals = [
+      {name: '强烈买入', color: '#FF4757', list: data['强烈买入'] || []},
+      {name: '买入', color: '#FF8C00', list: data['买入'] || []},
+      {name: '加仓', color: '#2ED573', list: data['加仓'] || []},
+      {name: '观望', color: '#FFD700', list: data['观望'] || []},
+      {name: '减仓', color: '#FF6B35', list: data['减仓'] || []},
+      {name: '清仓', color: '#FF0000', list: data['清仓'] || []}
+    ];
+    
+    var html = '<div style="background:#1A1A1A;padding:20px;border-radius:12px">';
+    html += '<h3 style="color:#FFD700">📊 A股市场扫描结果</h3>';
+    
+    signals.forEach(function(sig) {
+      if (sig.list.length > 0) {
+        html += '<div style="margin-top:16px">';
+        html += '<div style="color:' + sig.color + ';font-weight:bold;margin-bottom:8px">' + sig.name + ' (' + sig.list.length + '只)</div>';
+        sig.list.slice(0, 5).forEach(function(stock) {
+          html += '<div style="background:#0D0D0D;padding:8px;margin:4px 0;border-radius:4px;display:flex;justify-content:space-between">';
+          html += '<span>' + stock.code + ' ' + stock.name + '</span>';
+          html += '<span style="color:' + (stock.change > 0 ? '#FF4757' : '#2ED573') + '">' + (stock.change > 0 ? '+' : '') + stock.change.toFixed(2) + '%</span>';
+          html += '</div>';
+        });
+        if (sig.list.length > 5) {
+          html += '<div style="color:#666;font-size:12px">...还有' + (sig.list.length - 5) + '只</div>';
+        }
+        html += '</div>';
+      }
+    });
+    
+    html += '</div>';
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="color:#666">扫描失败: ' + e.message + '</div>';
   }
 }
 
