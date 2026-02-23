@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - PandaToken</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FFF;min-height:100vh}
+.login{position:fixed;inset:0;background:#0D0D0D;display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:#1A1A1A;padding:40px;border-radius:16px;width:360px;text-align:center}
+.login h2{color:#FF6B35;margin-bottom:20px}
+.login input{width:100%;padding:14px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF;margin-bottom:14px}
+.login button{width:100%;padding:14px;background:linear-gradient(135deg,#FF6B35,#FF9800);border:none;border-radius:8px;color:#FFF;font-weight:600;cursor:pointer}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:#1A1A1A;padding:20px;display:none}
+.sidebar h2{color:#FFD700;margin-bottom:20px}
+.sidebar a{display:block;padding:14px;color:#888;text-decoration:none;border-radius:8px;margin-bottom:4px}
+.sidebar a:hover,.sidebar a.active{background:#FF6B35;color:#FFF}
+.main{margin-left:240px;padding:24px;display:none}
+.header{margin-bottom:24px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{background:#1A1A1A;padding:20px;border-radius:12px}
+.stat .v{font-size:24px;font-weight:700;color:#FFD700}
+.stat .l{font-size:12px;color:#666}
+.card{background:#1A1A1A;padding:20px;border-radius:12px;margin-bottom:20px}
+.card h3{margin-bottom:16px}
+table{width:100%}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #333}
+th{color:#666;font-size:12px}
+.badge{padding:4px 10px;border-radius:20px;font-size:12px}
+.badge-pending{background:rgba(255,215,0,0.2);color:#FFD700}
+.badge-paid{background:rgba(0,230,118,0.2);color:#00E676}
+.badge-shipped{background:rgba(255,107,53,0.2);color:#FF6B35}
+.pay-tabs{display:flex;gap:8px;margin-bottom:16px}
+.pay-tabs button{padding:10px 20px;background:#1A1A1A;border:none;border-radius:8px;color:#888;cursor:pointer}
+.pay-tabs button.active{background:#FF6B35;color:#FFF}
+.pay-sect{display:none}
+.pay-sect.active{display:block}
+.pay-card{background:#0D0D0D;padding:16px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.pay-card .info{font-size:13px;color:#888}
+.pay-card button{padding:6px 12px;background:#333;border:none;border-radius:6px;color:#FFF;cursor:pointer;margin-left:8px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;z-index:1000}
+.modal.show{display:flex}
+.modal-box{background:#1A1A1A;padding:24px;border-radius:16px;width:400px}
+.modal input{width:100%;padding:12px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF;margin-bottom:12px}
+@media(max-width:1000px){.sidebar{display:none}.main{margin-left:0}}
+</style>
+</head>
+<body>
+<!-- Login -->
+<div class="login" id="loginScreen">
+<div class="login-box">
+<h2>🐼 管理后台</h2>
+<input type="text" id="username" placeholder="用户名">
+<input type="password" id="password" placeholder="密码">
+<button onclick="doLogin()">登录</button>
+<p style="margin-top:16px;font-size:12px;color:#555">账号: admin | 密码: admin123</p>
+</div>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+<h2>🐼 PandaToken</h2>
+<a href="#" data-page="dashboard" class="active">📊 数据</a>
+<a href="#" data-page="orders">📋 订单</a>
+<a href="#" data-page="products">📦 商品</a>
+<a href="#" data-page="customers">👥 客户</a>
+<a href="#" data-page="logistics">🚚 物流</a>
+<a href="#" data-page="payments">💳 支付</a>
+<a href="#" data-page="marketing">📢 营销</a>
+<a href="#" data-page="settings">⚙️ 设置</a>
+<a href="shop.html" style="margin-top:20px;border-top:1px solid #333;padding-top:20px">← 返回商店</a>
+</div>
+
+<!-- Main -->
+<div class="main" id="main">
+<!-- Dashboard -->
+<div class="page" id="page-dashboard">
+<h1 class="header">📊 数据概览</h1>
+<div class="stats">
+<div class="stat"><div class="v" id="statSales">$0</div><div class="l">销售额</div></div>
+<div class="stat"><div class="v" id="statOrders">0</div><div class="l">订单</div></div>
+<div class="stat"><div class="v" id="statUsers">0</div><div class="l">用户</div></div>
+<div class="stat"><div class="v" id="statPending">0</div><div class="l">待处理</div></div>
+</div>
+<div class="card">
+<h3>📋 最近订单</h3>
+<table><thead><tr><th>订单号</th><th>客户</th><th>金额</th><th>状态</th></tr></thead><tbody id="recentTable"></tbody></table>
+</div>
+</div>
+
+<!-- Orders -->
+<div class="page" id="page-orders" style="display:none">
+<h1 class="header">📋 订单管理</h1>
+<div class="card">
+<table><thead><tr><th>订单号</th><th>客户</th><th>商品</th><th>金额</th><th>状态</th><th>操作</th></tr></thead><tbody id="orderTable"></tbody></table>
+</div>
+</div>
+
+<!-- Products -->
+<div class="page" id="page-products" style="display:none">
+<h1 class="header">📦 商品管理</h1>
+<div class="card">
+<h3>熊猫智能电子烟 Pro</h3>
+<p style="color:#888;margin:10px 0">价格: $70 | 代币: 3000 PANDA</p>
+<p style="color:#888">口味: 原味, 薄荷, 芒果, 葡萄</p>
+</div>
+</div>
+
+<!-- Customers -->
+<div class="page" id="page-customers" style="display:none">
+<h1 class="header">👥 客户管理</h1>
+<div class="card">
+<table><thead><tr><th>ID</th><th>名称</th><th>手机</th><th>订单数</th></tr></thead><tbody id="customerTable"></tbody></table>
+</div>
+</div>
+
+<!-- Logistics -->
+<div class="page" id="page-logistics" style="display:none">
+<h1 class="header">🚚 物流配送</h1>
+<div class="card">
+<h3>待发货</h3>
+<table><thead><tr><th>订单</th><th>收货人</th><th>地址</th><th>操作</th></tr></thead><tbody id="shipTable"></tbody></table>
+</div>
+</div>
+
+<!-- Payments -->
+<div class="page" id="page-payments" style="display:none">
+<h1 class="header">💳 支付管理</h1>
+<div class="pay-tabs">
+<button class="active" onclick="switchPay('usdt')">🔷 USDT</button>
+<button onclick="switchPay('visa')">💳 Visa</button>
+<button onclick="switchPay('mast')">💳 Mastercard</button>
+</div>
+<div class="pay-sect active" id="usdtPay">
+<div class="card">
+<h3>USDT地址 <button onclick="showAddPay('usdt')" style="float:right;padding:6px 12px;background:#FF6B35;border:none;border-radius:6px;color:#FFF;cursor:pointer">➕</button></h3>
+<div id="usdtList"></div>
+</div>
+</div>
+<div class="pay-sect" id="visaPay">
+<div class="card">
+<h3>Visa <button onclick="showAddPay('visa')" style="float:right;padding:6px 12px;background:#FF6B35;border:none;border-radius:6px;color:#FFF;cursor:pointer">➕</button></h3>
+<div id="visaList"></div>
+</div>
+</div>
+<div class="pay-sect" id="mastPay">
+<div class="card">
+<h3>Mastercard <button onclick="showAddPay('mast')" style="float:right;padding:6px 12px;background:#FF6B35;border:none;border-radius:6px;color:#FFF;cursor:pointer">➕</button></h3>
+<div id="mastList"></div>
+</div>
+</div>
+</div>
+
+<!-- Marketing -->
+<div class="page" id="page-marketing" style="display:none">
+<h1 class="header">📢 营销管理</h1>
+<div class="card">
+<h3>推荐奖励</h3>
+<input type="number" id="referralBonus" value="500" placeholder="奖励代币数" style="width:100%;padding:12px;background:#0D0D0D;border:1px solid #333;border-radius:8px;color:#FFF;margin-bottom:12px">
+<button onclick="saveMarketing()" style="width:100%;padding:12px;background:#FF6B35;border:none;border-radius:8px;color:#FFF;cursor:pointer">保存</button>
+</div>
+</div>
+
+<!-- Settings -->
+<div class="page" id="page-settings" style="display:none">
+<h1 class="header">⚙️ 系统设置</h1>
+<div class="card">
+<button onclick="exportData()" style="width:100%;padding:12px;background:#333;border:none;border-radius:8px;color:#FFF;cursor:pointer;margin-bottom:10px">📥 导出数据</button>
+<button onclick="clearOrders()" style="width:100%;padding:12px;background:#ff4757;border:none;border-radius:8px;color:#FFF;cursor:pointer">🗑️ 清空订单</button>
+</div>
+</div>
+</div>
+
+<!-- Add Pay Modal -->
+<div class="modal" id="payModal">
+<div class="modal-box">
+<h3 style="margin-bottom:16px" id="payTitle">添加账户</h3>
+<div id="usdtFields">
+<input type="text" id="payName" placeholder="名称 (USDT-01)">
+<input type="text" id="payAddr" placeholder="TRC20地址">
+</div>
+<div id="cardFields" style="display:none">
+<input type="text" id="payName2" placeholder="名称 (Visa-01)">
+<input type="text" id="payHolder" placeholder="持卡人">
+<input type="text" id="payNum" placeholder="卡号">
+</div>
+<button onclick="savePay()" style="width:100%;padding:12px;background:#FF6B35;border:none;border-radius:8px;color:#FFF;cursor:pointer;margin-top:12px">保存</button>
+<button onclick="closeModal()" style="width:100%;padding:12px;background:#333;border:none;border-radius:8px;color:#888;cursor:pointer;margin-top:8px">取消</button>
+</div>
+</div>
+
+<script>
+// Data
+var db = {
+  orders: [],
+  users: [],
+  payments: {
+    usdt: [{id:1,name:'USDT-主',address:'TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E'}],
+    visa: [],
+    mast: []
+  }
+};
+var currentPay = 'usdt';
+
+// Login
+function doLogin() {
+  var u = document.getElementById('username').value;
+  var p = document.getElementById('password').value;
+  if (u === 'admin' && p === 'admin123') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'block';
+    document.getElementById('main').style.display = 'block';
+    loadData();
+  } else {
+    alert('错误! 账号:admin 密码:admin123');
+  }
+}
+
+// Load
+function loadData() {
+  var s = localStorage.getItem('panda_db');
+  if (s) { db = JSON.parse(s); }
+  render();
+}
+
+function saveData() {
+  localStorage.setItem('panda_db', JSON.stringify(db));
+  render();
+}
+
+function render() {
+  var sales = db.orders.reduce(function(t,o){return t+(o.amount||0)},0);
+  document.getElementById('statSales').innerText = '$'+sales;
+  document.getElementById('statOrders').innerText = db.orders.length;
+  document.getElementById('statUsers').innerText = db.users.length;
+  document.getElementById('statPending').innerText = db.orders.filter(function(o){return o.status==='pending_payment'}).length;
+  
+  document.getElementById('recentTable').innerHTML = db.orders.slice(-5).reverse().map(function(o){
+    return '<tr><td>'+o.id+'</td><td>'+(o.userPhone||'匿名')+'</td><td>$'+o.amount+'</td><td>'+(o.status||'待支付')+'</td></tr>';
+  }).join('')||'<tr><td colspan="4" style="text-align:center;color:#666">暂无</td></tr>';
+  
+  document.getElementById('orderTable').innerHTML = db.orders.map(function(o){
+    return '<tr><td>'+o.id+'</td><td>'+(o.userPhone||'匿名')+'</td><td>熊猫电子烟</td><td>$'+o.amount+'</td><td>'+(o.status||'待支付')+'</td><td>'+(o.status==='paid'?'<button onclick="shipOrder(\''+o.id+'\')">发货</button>':'')+'</td></tr>';
+  }).join('')||'<tr><td colspan="6" style="text-align:center;color:#666">暂无</td></tr>';
+  
+  document.getElementById('customerTable').innerHTML = db.users.map(function(u){
+    return '<tr><td>'+u.id+'</td><td>'+u.name+'</td><td>'+u.phone+'</td><td>'+db.orders.filter(function(o){return o.userPhone===u.phone}).length+'</td></tr>';
+  }).join('')||'<tr><td colspan="4" style="text-align:center;color:#666">暂无</td></tr>';
+  
+  var toShip = db.orders.filter(function(o){return o.status==='paid'});
+  document.getElementById('shipTable').innerHTML = toShip.map(function(o){
+    return '<tr><td>'+o.id+'</td><td>'+(o.ship?o.ship.name:'-')+'</td><td>'+(o.ship?o.ship.address:'-')+'</td><td><button onclick="shipOrder(\''+o.id+'\')">发货</button></td></tr>';
+  }).join('')||'<tr><td colspan="4" style="text-align:center;color:#666">待发货</td></tr>';
+  
+  renderPayments();
+}
+
+function renderPayments() {
+  document.getElementById('usdtList').innerHTML = db.payments.usdt.map(function(a){
+    return '<div class="pay-card"><div class="info"><b>'+a.name+'</b><br>'+a.address+'</div><div><button onclick="copyAddr(\''+a.address+'\')">复制</button><button onclick="delPay(\'usdt\','+a.id+')">删除</button></div></div>';
+  }).join('')||'<p style="color:#666">暂无</p>';
+  
+  document.getElementById('visaList').innerHTML = db.payments.visa.map(function(a){
+    return '<div class="pay-card"><div class="info"><b>'+a.name+'</b><br>'+a.holder+' | '+a.number+'</div><button onclick="delPay(\'visa\','+a.id+')">删除</button></div>';
+  }).join('')||'<p style="color:#666">暂无</p>';
+  
+  document.getElementById('mastList').innerHTML = db.payments.mast.map(function(a){
+    return '<div class="pay-card"><div class="info"><b>'+a.name+'</b><br>'+a.holder+' | '+a.number+'</div><button onclick="delPay(\'mast\','+a.id+')">删除</button></div>';
+  }).join('')||'<p style="color:#666">暂无</p>';
+}
+
+// Navigation
+var links = document.querySelectorAll('.sidebar a');
+for (var i = 0; i < links.length; i++) {
+  links[i].onclick = function(e) {
+    e.preventDefault();
+    var page = this.getAttribute('data-page');
+    showPage(page);
+  };
+}
+
+function showPage(page) {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) {
+    pages[i].style.display = 'none';
+  }
+  document.getElementById('page-'+page).style.display = 'block';
+  
+  var links = document.querySelectorAll('.sidebar a');
+  for (var i = 0; i < links.length; i++) {
+    links[i].classList.remove('active');
+    if (links[i].getAttribute('data-page') === page) {
+      links[i].classList.add('active');
+    }
+  }
+}
+
+// Payments
+function switchPay(type) {
+  currentPay = type;
+  var buttons = document.querySelectorAll('.pay-tabs button');
+  for (var i = 0; i < buttons.length; i++) { buttons[i].classList.remove('active'); }
+  event.target.classList.add('active');
+  var sects = document.querySelectorAll('.pay-sect');
+  for (var i = 0; i < sects.length; i++) { sects[i].classList.remove('active'); }
+  document.getElementById(type+'Pay').classList.add('active');
+}
+
+function showAddPay(type) {
+  currentPay = type;
+  document.getElementById('payTitle').innerText = type==='usdt'?'添加USDT':'添加'+type.toUpperCase();
+  document.getElementById('usdtFields').style.display = type==='usdt'?'block':'none';
+  document.getElementById('cardFields').style.display = type!=='usdt'?'block':'none';
+  document.getElementById('payModal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('payModal').classList.remove('show'); }
+
+function savePay() {
+  if (currentPay === 'usdt') {
+    var name = document.getElementById('payName').value;
+    var addr = document.getElementById('payAddr').value;
+    if (name && addr) { db.payments.usdt.push({id:Date.now(),name:name,address:addr}); saveData(); closeModal(); }
+  } else {
+    var name = document.getElementById('payName2').value;
+    var holder = document.getElementById('payHolder').value;
+    var num = document.getElementById('payNum').value;
+    if (name && holder && num) { db.payments[currentPay].push({id:Date.now(),name:name,holder:holder,number:num}); saveData(); closeModal(); }
+  }
+}
+
+function delPay(type,id) {
+  if (confirm('删除?')) {
+    db.payments[type] = db.payments[type].filter(function(a){return a.id!==id});
+    saveData();
+  }
+}
+
+function copyAddr(addr) { navigator.clipboard.writeText(addr); alert('已复制'); }
+
+// Orders
+function shipOrder(id) {
+  var o = db.orders.find(function(x){return x.id===id});
+  if (o) {
+    var e = prompt('快递:');
+    var t = prompt('运单:');
+    if (e && t) { o.status='shipped'; o.express=e; o.tracking=t; saveData(); }
+  }
+}
+
+// Other
+function saveMarketing() { alert('已保存!'); }
+function exportData() { var d=JSON.stringify(db,null,2); var a=document.createElement('a');a.href='data:text/json,'+encodeURIComponent(d);a.download='panda-backup.json';a.click(); }
+function clearOrders() { if(confirm('清空订单?')){db.orders=[];saveData();} }
+</script>
+</body>
+</html>
