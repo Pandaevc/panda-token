@@ -116,8 +116,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <input type="file" id="fileInput" accept=".csv,.txt" style="display:none" onchange="handleFileUpload(event)">
 <div style="margin-top:12px;color:#666;font-size:13px">或手动添加：</div>
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:12px">
-<input type="text" id="holdCode" placeholder="股票代码" class="input">
 <input type="text" id="holdName" placeholder="股票名称" class="input">
+<input type="text" id="holdCode" placeholder="股票代码" class="input">
 <input type="number" id="holdShares" placeholder="持股数量" class="input">
 <input type="number" id="holdBuyPrice" placeholder="成本价" class="input">
 <button class="btn" onclick="addHolding()">添加</button>
@@ -182,7 +182,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <h3>编辑持仓</h3>
 <input type="hidden" id="editIndex">
 <div style="display:grid;gap:12px">
-<input type="text" id="editCode" class="input" placeholder="股票代码" readonly>
+<input type="text" id="editCode" class="input" placeholder="股票代码" readonly style="background:#333">
 <input type="text" id="editName" class="input" placeholder="股票名称">
 <input type="number" id="editShares" class="input" placeholder="持股数量">
 <input type="number" id="editPrice" class="input" placeholder="成本价">
@@ -276,8 +276,8 @@ function handleFileUpload(event) {
 }
 
 function addHolding() {
-  const code = document.getElementById('holdCode').value.trim();
   const name = document.getElementById('holdName').value.trim();
+  const code = document.getElementById('holdCode').value.trim();
   const shares = parseFloat(document.getElementById('holdShares').value);
   const price = parseFloat(document.getElementById('holdBuyPrice').value);
   if (!code || !shares || !price) { alert('请填写完整'); return; }
@@ -301,7 +301,7 @@ async function analyzeAllHoldings() {
   
   document.getElementById('holdingsList').innerHTML = '<div class="loading">分析中...</div>';
   
-  let html = '<table class="table"><thead><tr><th>股票</th><th>持股数</th><th>成本</th><th>当前价</th><th>盈亏</th><th>建议</th><th>操作</th></tr></thead><tbody>';
+  let html = '<table class="table"><thead><tr><th>股票</th><th>持股数</th><th>成本</th><th>当前价</th><th>持仓金额</th><th>盈亏</th><th>利润率</th><th>建议</th><th>操作</th></tr></thead><tbody>';
   
   let totalAmount = 0;
   let totalCost = 0;
