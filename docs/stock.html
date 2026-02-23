@@ -185,7 +185,7 @@ async function loadTodayPicks() {
   
   try {
     const resp = await fetch('today_picks.json?_=' + Date.now());
-    const picks = await resp.json();
+    const picks = [{"code":"000571","name":"新大洲A","industry":"煤炭开采","score":110,"reasons":["振幅2.1%","换手下降","站5/10日","缩量","价涨量缩","10日涨停","CCI上升"],"price":5.86,"ma5":5.81,"stopLoss":5.57,"target8":6.33,"target15":6.74},{"code":"000423","name":"东阿阿胶","industry":"中药Ⅱ","score":90,"reasons":["振幅1.5%","换手下降","站5/10日","缩量","价涨量缩"],"price":49.08,"ma5":49.04,"stopLoss":46.63,"target8":53.01,"target15":56.44},{"code":"000526","name":"学大教育","industry":"教育","score":90,"reasons":["振幅2.9%","换手下降","站5/10日","缩量","价涨量缩"],"price":39.22,"ma5":38.74,"stopLoss":37.26,"target8":42.36,"target15":45.1}];
     
     if (!picks || picks.length === 0) {
       document.getElementById('dailyPicks').innerHTML = '<div class="loading">请先运行 python3 jq_v3.py 获取今日推荐</div>';
