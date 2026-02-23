@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - PandaToken</title>
+<script src="https://cdn.jsdelivr.net/npm/tronweb@4.3.0/dist/TronWeb.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
+body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui;sans-serif}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:var(--surface);border-radius:16px;padding:28px;max-width:360px;width:90%;text-align:center;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;background:none;border:none;color:#666;font-size:24px;cursor:pointer}
+.modal-icon{font-size:48px;margin-bottom:16px}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:12px}
+.modal-msg{font-size:14px;color:#AAA;margin-bottom:20px;line-height:1.6}
+.modal-btn{padding:12px 32px;background:var(--g);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer}
+header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
+.c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700}
+.logo-icon{width:38px;height:38px;background:var(--g);border-radius:10px}
+.logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-right{display:flex;align-items:center;gap:12px}
+.btn{padding:8px 18px;border-radius:20px;font-weight:600;font-size:13px;cursor:pointer;border:none}
+.btn-primary{background:var(--g);color:#fff}
+.btn-outline{background:0;border:1px solid var(--primary);color:var(--primary)}
+.hero{padding:120px 24px 40px}
+h1{font-size:32px;font-weight:700;margin-bottom:30px;text-align:center}
+.admin-sec{background:var(--surface);border:var(--b);border-radius:16px;padding:24px;margin:20px auto;max-width:800px}
+.admin-sec h2{font-size:18px;margin-bottom:16px;padding-bottom:12px;border-bottom:var(--b)}
+.addr-list{display:flex;flex-direction:column;gap:10px;margin:15px 0}
+.addr-item{display:flex;align-items:center;justify-content:space-between;background:var(--dark);padding:12px;border-radius:8px}
+.addr-item .addr{font-family:monospace;font-size:13px;color:var(--success)}
+.addr-item .role{font-size:12px;padding:4px 10px;border-radius:12px;background:rgba(255,107,53,0.2);color:var(--primary)}
+.addr-item .role.admin{background:rgba(255,215,0,0.2);color:var(--accent)}
+.addr-item .remove{background:none;border:none;color:#ff4757;cursor:pointer;font-size:18px}
+.form{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap}
+.form input{flex:1;min-width:200px;padding:12px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff}
+.form select{padding:12px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0}
+.stat{background:var(--dark);padding:20px;border-radius:12px;text-align:center}
+.stat .v{font-size:24px;font-weight:700;color:var(--accent)}
+.stat .l{font-size:12px;color:var(--text-muted);margin-top:8px}
+.notice{background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);padding:12px;border-radius:8px;margin-bottom:15px;font-size:13px}
+.notice a{color:var(--accent)}
+.wallet-info{display:flex;align-items:center;gap:10px;margin-left:20px}
+.wallet-info .addr{font-family:monospace;font-size:12px;color:var(--success)}
+</style>
+</head>
+<body>
+<div class="modal" id="modal">
+<div class="modal-box">
+<button class="modal-close" onclick="closeModal()">×</button>
+<div class="modal-icon" id="modalIcon">✅</div>
+<div class="modal-title" id="modalTitle">提示</div>
+<div class="modal-msg" id="modalMsg"></div>
+<button class="modal-btn" onclick="closeModal()">确定</button>
+</div>
+</div>
+
+<header>
+<div class="c">
+<div class="logo"><div class="logo-icon">🐼</div><div class="logo-text">PandaToken 管理</div></div>
+<div class="header-right">
+<div class="wallet-info" id="walletInfo" style="display:none">
+<span class="addr" id="wAddr"></span>
+</div>
+<button class="btn btn-primary" id="cBtn" onclick="connectWallet()">连接钱包</button>
+<button class="btn btn-outline" id="dBtn" onclick="disconnectWallet()" style="display:none">断开</button>
+</div>
+</div>
+</header>
+
+<section class="hero">
+<h1>🏦 基金管理后台</h1>
+
+<div class="notice">
+⚠️ <b>重要:</b> 链接钱包后可查看代币余额<br>
+⚠️ 管理功能需要owner权限
+</div>
+
+<div class="stats">
+<div class="stat"><div class="v" id="foundationBal">--</div><div class="l">基金会 (10亿)</div></div>
+<div class="stat"><div class="v" id="liquidityBal">--</div><div class="l">底池 (10亿)</div></div>
+<div class="stat"><div class="v" id="multiSigCount">0</div><div class="l">多签成员</div></div>
+</div>
+
+<div class="admin-sec">
+<h2>👥 多签成员管理</h2>
+<p style="font-size:13px;color:var(--text-muted);margin-bottom:15px">添加合伙人钱包地址，共同管理资金</p>
+
+<div class="addr-list" id="addrList">
+<p style="text-align:center;color:var(--text-muted);padding:20px">连接钱包后可查看</p>
+</div>
+
+<div class="form">
+<input type="text" id="newAddr" placeholder="输入TRON地址 (T开头)">
+<select id="newRole">
+<option value="member">成员</option>
+<option value="admin">管理员</option>
+</select>
+<button class="btn btn-primary" onclick="addMember()">添加</button>
+</div>
+</div>
+
+<div class="admin-sec">
+<h2>📊 资金地址配置</h2>
+<div class="addr-list">
+<div class="addr-item">
+<span class="addr" id="foundationAddr">待设置</span>
+<span class="role">基金会</span>
+</div>
+<div class="addr-item">
+<span class="addr" id="liquidityAddr">待设置</span>
+<span class="role">底池</span>
+</div>
+</div>
+
+<div class="form">
+<input type="text" id="setFoundation" placeholder="基金会钱包地址">
+<button class="btn btn-primary" onclick="setFoundation()">设置基金会</button>
+</div>
+<div class="form">
+<input type="text" id="setLiquidity" placeholder="底池合约地址">
+<button class="btn btn-primary" onclick="setLiquidity()">设置底池</button>
+</div>
+</div>
+
+<div class="admin-sec">
+<h2>🔗 合约地址</h2>
+<div class="addr-list">
+<div class="addr-item">
+<span class="addr">0x... (部署后填入)</span>
+<span class="role">PandaToken</span>
+</div>
+<div class="addr-item">
+<span class="addr">0x... (部署后填入)</span>
+<span class="role">PandaExchange</span>
+</div>
+</div>
+</div>
+
+<div class="admin-sec">
+<h2>📋 项目链接</h2>
+<div class="addr-list">
+<div class="addr-item"><span>DApp首页</span><a href="index.html" style="color:var(--accent)">index.html</a></div>
+<div class="addr-item"><span>电子烟商店</span><a href="shop.html" style="color:var(--accent)">shop.html</a></div>
+<div class="addr-item"><span>管理后台</span><a href="admin.html" style="color:var(--accent)">admin.html</a></div>
+</div>
+</div>
+</section>
+
+<script>
+// 配置
+const CONTRACT_ADDRESS = "0x..."; // 部署后填入
+const CONTRACT_ABI = []; // 部署后填入
+
+var connected = false;
+var wallet = "";
+var isOwner = false;
+
+function $(id) {return document.getElementById(id);}
+
+function showModal(title, msg, icon) {
+  $('modalTitle').innerText = title;
+  $('modalMsg').innerText = msg;
+  $('modalIcon').innerText = icon || '✅';
+  $('modal').classList.add('show');
+}
+
+function closeModal() {
+  $('modal').classList.remove('show');
+}
+
+async function connectWallet() {
+  var tron = window.tronLink || window.tronWeb;
+  if (!tron) {
+    showModal('⚠️ 请使用TP钱包', '', '⚠️');
+    return;
+  }
+  
+  try {
+    var result = await tron.request({method: 'tron_requestAccounts'});
+    if (result && result.length > 0) {
+      var addr = result[0];
+      var tw = new TronWeb({fullHost: 'https://api.trongrid.io'});
+      wallet = tw.address.fromHex(addr);
+      
+      connected = true;
+      $('cBtn').style.display = 'none';
+      $('dBtn').style.display = 'inline-block';
+      $('walletInfo').style.display = 'flex';
+      $('wAddr').innerText = wallet.substring(0,8) + '...' + wallet.substring(-4);
+      
+      // 加载本地保存的配置
+      loadConfig();
+      
+      // 模拟查询余额 (实际需要调用合约)
+      $('foundationBal').innerText = '10亿';
+      $('liquidityBal').innerText = '10亿';
+      
+      showModal('✅ 连接成功', '钱包: ' + wallet.substring(0,10) + '...', '✅');
+    }
+  } catch (e) {
+    showModal('❌ 连接失败', e.message, '❌');
+  }
+}
+
+function disconnectWallet() {
+  connected = false;
+  wallet = '';
+  $('cBtn').style.display = 'inline-block';
+  $('dBtn').style.display = 'none';
+  $('walletInfo').style.display = 'none';
+}
+
+// 本地配置
+function loadConfig() {
+  var members = JSON.parse(localStorage.getItem('multiSigMembers') || '[]');
+  renderMembers(members);
+  
+  var f = localStorage.getItem('foundationAddr');
+  var l = localStorage.getItem('liquidityAddr');
+  if (f) $('foundationAddr').innerText = f.substring(0,10) + '...';
+  if (l) $('liquidityAddr').innerText = l.substring(0,10) + '...';
+}
+
+function renderMembers(members) {
+  var list = $('addrList');
+  if (members.length === 0) {
+    list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px">暂无成员</p>';
+    return;
+  }
+  
+  list.innerHTML = members.map(function(m, i) {
+    return '<div class="addr-item">' +
+      '<span class="addr">' + m.addr.substring(0,8) + '...' + m.addr.substring(-4) + '</span>' +
+      '<span class="role ' + (m.role === 'admin' ? 'admin' : '') + '">' + (m.role === 'admin' ? '管理员' : '成员') + '</span>' +
+      '<button class="remove" onclick="removeMember(' + i + ')">×</button>' +
+    '</div>';
+  }).join('');
+  
+  $('multiSigCount').innerText = members.length;
+}
+
+function addMember() {
+  var addr = $('newAddr').value.trim();
+  var role = $('newRole').value;
+  
+  if (!addr || !addr.startsWith('T')) {
+    showModal('⚠️ 地址格式错误', 'TRON地址以T开头', '⚠️');
+    return;
+  }
+  
+  var members = JSON.parse(localStorage.getItem('multiSigMembers') || '[]');
+  if (members.some(function(m) { return m.addr === addr; })) {
+    showModal('⚠️ 地址已存在', '', '⚠️');
+    return;
+  }
+  
+  members.push({addr: addr, role: role});
+  localStorage.setItem('multiSigMembers', JSON.stringify(members));
+  
+  $('newAddr').value = '';
+  renderMembers(members);
+  showModal('✅ 添加成功', '', '✅');
+}
+
+function removeMember(index) {
+  if (!confirm('确定删除?')) return;
+  
+  var members = JSON.parse(localStorage.getItem('multiSigMembers') || '[]');
+  members.splice(index, 1);
+  localStorage.setItem('multiSigMembers', JSON.stringify(members));
+  renderMembers(members);
+}
+
+function setFoundation() {
+  var addr = $('setFoundation').value.trim();
+  if (addr) {
+    localStorage.setItem('foundationAddr', addr);
+    $('foundationAddr').innerText = addr.substring(0,10) + '...';
+    showModal('✅ 设置成功', '', '✅');
+  }
+}
+
+function setLiquidity() {
+  var addr = $('setLiquidity').value.trim();
+  if (addr) {
+    localStorage.setItem('liquidityAddr', addr);
+    $('liquidityAddr').innerText = addr.substring(0,10) + '...';
+    showModal('✅ 设置成功', '', '✅');
+  }
+}
+
+// 初始化
+loadConfig();
+</script>
+</body>
+</html>

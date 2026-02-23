@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - 密钥写入合约</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:#0d0d0d;color:#fff;min-height:100vh;padding:40px}
+h1{color:#FF6B35;margin-bottom:30px}
+.card{background:#1a1a1a;padding:30px;border-radius:16px;margin-bottom:20px;max-width:800px}
+button{background:linear-gradient(135deg,#FF6B35,#FF9800);color:#fff;border:none;padding:14px 28px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer}
+textarea{width:100%;height:300px;background:#0d0d0d;border:1px solid #333;border-radius:8px;color:#fff;padding:15px;font-family:monospace;margin-top:15px}
+.info{background:#1a1a1a;padding:20px;border-radius:8px;margin-bottom:20px}
+.info code{background:#333;padding:2px 8px;border-radius:4px}
+</style>
+</head>
+<body>
+<h1>⚙️ 管理后台 - 密钥写入</h1>
+
+<div class="info">
+<h3>合约地址</h3>
+<p>PandaToken: <code>41e79cc9de0911d1080cf3d72b1f4a594f72600138</code></p>
+<p>PandaExchange: <code>410a9593fac129d4b63ea7fab3a24d4725be846fc3</code></p>
+</div>
+
+<div class="card">
+<h2>写入密钥到合约</h2>
+<p style="color:#888;margin-bottom:15px">粘贴从密钥生成系统导出的JSON:</p>
+<textarea id="keysJson" placeholder='{"keys": ["0x...", "0x..."], "value": "..."}'></textarea>
+<button onclick="writeToContract()" style="margin-top:15px">写入合约</button>
+</div>
+
+<div class="card">
+<h2>操作说明</h2>
+<ol style="color:#888;line-height:2;padding-left:20px">
+<li>在"密钥生成系统"生成30个密钥</li>
+<li>导出JSON格式</li>
+<li>粘贴到上方文本框</li>
+<li>点击"写入合约"</li>
+<li>用户即可使用密钥兑换代币</li>
+</ol>
+</div>
+
+<script>
+async function writeToContract() {
+  const json = document.getElementById('keysJson').value;
+  
+  try {
+    const data = JSON.parse(json);
+    
+    if (!data.keys || !Array.isArray(data.keys)) {
+      alert('无效的JSON格式');
+      return;
+    }
+    
+    // 转换密钥格式
+    const keys = data.keys.map(k => {
+      // 转换为bytes32格式
+      let key = k.replace('0x', '');
+      if (key.length > 64) key = key.slice(-64);
+      return '0x' + key.padStart(64, '0');
+    });
+    
+    const value = data.value || '0x' + (100n * 1n).toString(16).padStart(64, '0');
+    
+    alert('准备写入 ' + keys.length + ' 个密钥\n\n注意: 需要使用部署者钱包调用合约!');
+    
+    // 这里需要 tronweb 来调用合约
+    // 实际部署时需要通过私钥调用
+    
+  } catch(e) {
+    alert('JSON解析错误: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>

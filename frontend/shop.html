@@ -4,253 +4,117 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>熊猫智能电子烟 - PandaToken</title>
+<script src="https://cdn.jsdelivr.net/npm/tronweb@4.3.0/dist/TronWeb.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
---primary:#FF6B35;--primary-dark:#E55A25;
---accent:#FFD700;--accent-light:#FFE44D;
---success:#00E676;
---dark:#0D0D0D;--darker:#050505;
---surface:#1A1A1A;--surface-light:#252525;
---text:#FFF;--text-muted:#888;--text-dim:#666;
---g:linear-gradient(135deg,#FF6B35,#FF9800);
---g2:linear-gradient(135deg,#FFD700,#FF9800);
---g3:linear-gradient(135deg,#1A1A1A,#0D0D0D);
---b:1px solid rgba(255,255,255,0.08);
---shadow:0 20px 60px rgba(0,0,0,0.5);
---shadow-lg:0 30px 80px rgba(0,0,0,0.6)
-}
-body{background:var(--darker);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;min-height:100vh;line-height:1.6}
-.bg{position:fixed;inset:0;z-index:-1;background:var(--darker)}
-.bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(255,107,53,0.12),transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(255,215,0,0.08),transparent 50%)}
-.bg::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
-
-/* Header */
-header{position:fixed;top:0;inset-x:0;z-index:100;padding:16px 0;background:rgba(5,5,5,0.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06)}
-.c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
-.logo{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700}
-.logo-icon{width:44px;height:44px;background:var(--g);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 20px rgba(255,107,53,0.4);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(255,107,53,0.4)}50%{box-shadow:0 4px 30px rgba(255,107,53,0.6)}}
-.logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800}
-nav{display:flex;gap:36px;margin:0 auto}
-nav a{color:#AAA;text-decoration:none;font-weight:500;font-size:14px;transition:color 0.3s}
-nav a:hover{color:#fff}
-.header-right{display:flex;align-items:center;gap:14px;margin-left:auto}
-.login-btn{background:transparent;color:var(--primary);border:2px solid var(--primary);padding:8px 20px;border-radius:25px;font-weight:600;cursor:pointer;font-size:13px;transition:all 0.3s}
-.login-btn:hover{background:var(--primary);color:#fff}
-.user-info{display:none;align-items:center;gap:12px}
-.user-info .name{font-weight:600;font-size:14px;color:var(--accent)}
-.cart-btn{background:var(--g);color:#fff;border:none;padding:10px 24px;border-radius:25px;font-weight:600;position:relative;cursor:pointer;box-shadow:0 4px 15px rgba(255,107,53,0.3)}
-.cart-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,53,0.4)}
-.cart-btn .c{position:absolute;top:-8px;right:-8px;background:linear-gradient(135deg,#FF1744,#FF5252);width:22px;height:22px;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center}
-
-/* Hero */
-.hero{padding:180px 24px 100px;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(255,107,53,0.15) 0%,transparent 70%);pointer-events:none}
-.badge{display:inline-block;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:12px 28px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:24px;font-weight:500}
-.hero h1{font-size:56px;font-weight:800;margin-bottom:18px;line-height:1.2}
-.hero h1 span{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero .subtitle{font-size:20px;color:#999;max-width:600px;margin:0 auto 40px}
-.hero-stats{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-top:50px}
-.hero-stat{text-align:center}
-.hero-stat .num{font-size:42px;font-weight:800;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-stat .label{font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
-
-/* Product Section */
-.prods{padding:100px 24px;max-width:1200px;margin:0 auto}
-.prods-header{text-align:center;margin-bottom:60px}
-.prods-header h2{font-size:42px;font-weight:700;margin-bottom:16px}
-.prods-header p{font-size:18px;color:var(--text-muted)}
-.product-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
-@media(max-width:900px){.product-grid{grid-template-columns:1fr;gap:40px}}
-
-/* Product Visual */
-.product-vis{position:relative}
-.ecig-container{position:relative;max-width:300px;margin:0 auto}
-.ecig{width:100%;height:420px;background:linear-gradient(180deg,#1a1a2e,#0f0f1a);border-radius:32px;position:relative;overflow:hidden;box-shadow:var(--shadow-lg),0 0 100px rgba(255,107,53,0.1);border:1px solid rgba(255,255,255,0.05)}
-.ecig::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.05) 0%,transparent 50%)}
-.screen{position:absolute;top:32px;left:24px;right:24px;height:180px;background:#000;border-radius:16px;overflow:hidden;border:2px solid rgba(255,215,0,0.2);box-shadow:inset 0 0 30px rgba(0,0,0,0.8)}
-.scr-con{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;gap:8px}
-.scr-con.spin{animation:spin 0.15s infinite}
-@keyframes spin{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.scr-res{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:bold;color:var(--accent);display:none;text-shadow:0 2px 10px rgba(0,0,0,0.8)}
-.scr-res.show{display:block;animation:popIn 0.3s}
-@keyframes popIn{0%{transform:translate(-50%,-50%) scale(0)}100%{transform:translate(-50%,-50%) scale(1)}}
-.led{position:absolute;bottom:28px;left:24px;right:24px;height:28px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:10px;box-shadow:0 0 30px var(--primary),0 0 60px rgba(255,107,53,0.3);animation:led 2s infinite}
-@keyframes led{0%,100%{opacity:1;box-shadow:0 0 30px var(--primary),0 0 60px rgba(255,107,53,0.3)}50%{opacity:0.7;box-shadow:0 0 20px var(--primary),0 0 40px rgba(255,107,53,0.2)}}
-.mouth{position:absolute;bottom:-50px;transform:translateX(-50%);left:50%;width:52px;height:52px;background:linear-gradient(180deg,#333,#1a1a1a);border-radius:0 0 16px 16px}
-.glow{position:absolute;-50% -50% 100% 100%;background:radial-gradient(circle,rgba(255,107,53,0.3) 0%,transparent 70%);pointer-events:none}
-
-/* Product Info */
-.product-info h2{font-size:38px;font-weight:700;margin-bottom:16px}
-.product-info .tag{display:inline-block;background:var(--g);color:#fff;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px}
-.product-info .desc{color:#AAA;font-size:17px;line-height:1.8;margin-bottom:24px}
-.features{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px}
-.feature{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:12px 20px;border-radius:12px;font-size:14px;display:flex;align-items:center;gap:10px}
-.feature .icon{font-size:20px}
-.buy-card{background:linear-gradient(180deg,var(--surface),var(--dark));border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:32px}
-.price{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
-.price .c{font-size:48px;font-weight:800;color:var(--primary)}
-.price .o{font-size:20px;color:var(--text-dim);text-decoration:line-through}
-.token{background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,107,53,0.1));color:var(--accent);padding:16px;border-radius:14px;margin:20px 0;font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,215,0,0.2)}
-.buy-btn{width:100%;padding:20px;background:var(--g);border:none;border-radius:16px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 8px 30px rgba(255,107,53,0.3)}
-.buy-btn:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(255,107,53,0.4)}
-
-/* Payment Section */
-.pay{padding:100px 24px;max-width:900px;margin:0 auto;background:linear-gradient(180deg,var(--surface) 0%,var(--darker) 100%);border-radius:40px;margin:0 auto 80px}
-.pay h2{text-align:center;font-size:38px;font-weight:700;margin-bottom:12px}
-.pay > p{text-align:center;color:var(--text-muted);margin-bottom:40px}
-.mets{display:flex;gap:14px;margin-bottom:32px}
-.met{flex:1;padding:20px;text-align:center;background:var(--dark);border:2px solid rgba(255,255,255,0.06);border-radius:14px;cursor:pointer;font-weight:600;transition:all 0.3s}
-.met:hover{border-color:rgba(255,107,53,0.3)}
-.met.active{border-color:var(--primary);background:rgba(255,107,53,0.1)}
-.met .icon{font-size:24px;margin-bottom:6px}
-.chk{background:var(--dark);border-radius:20px;padding:36px;border:1px solid rgba(255,255,255,0.06)}
-.chk h3{font-size:22px;margin-bottom:28px;font-weight:600}
-.sec{margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,0.06)}
-.sec:last-child{border:none;margin-bottom:0;padding-bottom:0}
-.sec h4{font-size:15px;margin-bottom:18px;display:flex;align-items:center;gap:10px;color:var(--text-muted);font-weight:500}
-.g{margin-bottom:18px}
-.g label{display:block;margin-bottom:10px;font-weight:500;font-size:14px}
-.g input,.g select{width:100%;padding:16px;background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:var(--text);font-size:15px;transition:border-color 0.3s}
-.g input:focus,.g select:focus{outline:none;border-color:var(--primary)}
-.summ{background:var(--surface);padding:24px;border-radius:14px;margin:24px 0}
-.summ .r{display:flex;justify-content:space-between;padding:12px 0;font-size:15px;border-bottom:1px solid rgba(255,255,255,0.06)}
-.summ .r:last-child{border:none}
-.summ .r.t{font-size:20px;font-weight:700;color:var(--primary);border-top:2px solid rgba(255,107,53,0.2);margin-top:12px;padding-top:16px}
-.chk-btn{width:100%;padding:20px;background:var(--g);border:none;border-radius:14px;color:#fff;font-size:17px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 6px 25px rgba(255,107,53,0.3)}
-.chk-btn:hover{transform:translateY(-2px);box-shadow:0 10px 35px rgba(255,107,53,0.4)}
-.res{margin-top:24px;padding:24px;border-radius:14px;display:none;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2)}
-.res.show{display:block;animation:fadeIn 0.3s}
-@keyframes fadeIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
-.res h4{color:var(--success);margin-bottom:16px;font-size:18px}
-.res p{margin:10px 0;font-size:15px}
-.res .id{font-family:monospace;background:var(--surface);padding:8px 12px;border-radius:6px}
-
-/* Modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
-.modal.show{display:flex;animation:fadeIn 0.2s}
-.mod{background:linear-gradient(180deg,var(--surface),var(--dark));border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:40px;max-width:420px;width:90%;text-align:center}
-.mod h3{color:#fff;margin-bottom:28px;font-size:22px;font-weight:600}
-.mod input{width:100%;padding:16px;background:var(--dark);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-size:15px;margin-bottom:14px}
-.mod input:focus{outline:none;border-color:var(--primary)}
-.mod button{padding:16px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:600;cursor:pointer;width:100%;transition:all 0.3s}
-.mod button:hover{box-shadow:0 6px 25px rgba(255,107,53,0.4)}
-
-/* Footer */
-footer{padding:50px 24px;border-top:1px solid rgba(255,255,255,0.06);text-align:center}
-footer p{color:var(--text-muted);font-size:14px}
-footer a{color:var(--primary);text-decoration:none}
-
-/* Mobile */
-@media(max-width:768px){
-nav{display:none}
-.hero h1{font-size:36px}
-.hero-stats{gap:24px}
-.product-info h2{font-size:28px}
-.pay{margin:0 12px 60px;padding:40px 20px}
-}
+:root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
+body{background:var(--darker);color:var(--text);font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:var(--surface);border-radius:20px;padding:32px;max-width:500px;width:95%;text-align:center;position:relative;max-height:90vh;overflow-y:auto;z-index:1001}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000}
+.modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;background:none;border:none;color:#666;font-size:28px;cursor:pointer}
+.modal-title{font-size:22px;font-weight:700;margin-bottom:20px}
+.modal-btn{padding:14px 24px;background:var(--g);border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer;width:100%;margin-top:12px}
+.modal-btn.secondary{background:#333}
+.modal-btn.success{background:var(--success);color:#000}
+.modal-input{width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;margin:10px 0;font-size:15px}
+.modal-select{width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;margin:10px 0;font-size:15px}
+.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.12),transparent 50%)}
+header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b);z-index:200}
+.c{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700}
+.logo-icon{width:42px;height:42px;background:var(--g);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+nav{display:flex;gap:28px;margin:0 auto}
+nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:15px}
+nav a:hover,nav a.active{color:#fff}
+.header-right{display:flex;align-items:center;gap:16px;margin-left:auto}
+.cart-btn{position:relative;background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.cart-badge{position:absolute;top:-8px;right:-8px;background:var(--primary);color:#fff;font-size:11px;padding:2px 6px;border-radius:10px}
+.user-btn{width:40px;height:40px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:none;color:#fff}
+.hero{padding:140px 24px 60px;text-align:center}
+.badge{display:inline-block;background:rgba(0,230,118,0.15);border:1px solid rgba(0,230,118,0.3);padding:12px 28px;border-radius:30px;font-size:14px;color:var(--success);margin-bottom:28px}
+h1{font-size:48px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:16px;color:#B0B0B0;margin:0 auto 40px}
+.product{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.ecig-display{height:320px;background:linear-gradient(180deg,#1a1a2e,#0d0d1a);border-radius:24px;display:flex;align-items:center;justify-content:center;position:relative}
+.ecig{width:100px;height:260px;background:linear-gradient(135deg,#2a2a3e,#1a1a2e);border-radius:50px;position:relative;transform:perspective(600px) rotateY(-10deg);box-shadow:-20px 10px 40px rgba(0,0,0,0.6)}
+.ecig-screen{position:absolute;top:28px;left:12px;right:12px;height:100px;background:#000;border-radius:16px;overflow:hidden}
+.slot{display:flex;align-items:center;justify-content:center;font-size:32px;gap:4px;animation:slot 0.1s infinite}
+@keyframes slot{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.ecig-led{position:absolute;bottom:35px;left:15px;right:15px;height:22px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:11px;animation:led 2s infinite}
+@keyframes led{0%,100%{opacity:1;box-shadow:0 0 20px var(--primary)}50%{opacity:0.5}}
+.ecig-tip{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:28px;height:42px;background:linear-gradient(180deg,#555,#333);border-radius:8px 8px 0 0}
+.product-info{text-align:left}
+.product-info h2{font-size:32px;margin-bottom:12px}
+.tag{display:inline-block;background:var(--g);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;margin-bottom:16px}
+.desc{color:#888;font-size:15px;line-height:1.7;margin-bottom:20px}
+.flavors{margin:20px 0}
+.flavors label{display:block;font-size:14px;color:#888;margin-bottom:10px}
+.flavor-btns{display:flex;gap:10px;flex-wrap:wrap}
+.flavor-btn{padding:10px 18px;background:var(--dark);border:2px solid rgba(255,255,255,0.1);border-radius:10px;color:#888;cursor:pointer;transition:all 0.3s}
+.flavor-btn.active{border-color:var(--primary);background:rgba(255,107,53,0.1);color:#fff}
+.price{font-size:36px;font-weight:700;color:var(--primary);margin:20px 0}
+.price .original{font-size:18px;color:#666;text-decoration:line-through;margin-left:12px}
+.buy-btn{padding:18px 36px;background:var(--g);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;width:100%;margin-top:20px}
+.buy-btn:hover{transform:scale(1.02)}
+.referral-banner{background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(0,230,118,0.08));border:1px solid rgba(0,230,118,0.3);border-radius:16px;padding:20px;margin-top:30px;text-align:center}
+.referral-banner h3{color:var(--success);margin-bottom:8px}
+footer{padding:40px 24px;border-top:var(--b);text-align:center}
+footer p{color:var(--text-muted);font-size:13px}
+@media(max-width:768px){.product{grid-template-columns:1fr}h1{font-size:32px}}
 </style>
 </head>
 <body>
-<div class="bg"></div>
+<!-- Login Modal -->
+<div class="modal-overlay" id="loginOverlay" style="display:none"></div>
+<div class="modal" id="loginModal">
+<div class="modal-box">
+<button class="modal-close" onclick="closeLogin()">×</button>
+<div class="modal-title">📱 手机号登录</div>
+<input type="tel" class="modal-input" id="phoneInput" placeholder="请输入手机号 (+86 138 0000 0000)">
+<div style="display:flex;gap:10px;margin:10px 0">
+<input type="text" class="modal-input" id="codeInput" placeholder="验证码" style="flex:1">
+<button class="modal-btn secondary" style="width:auto;margin:10px 0" onclick="sendCode()">发送验证码</button>
+</div>
+<button class="modal-btn" onclick="verifyLogin()">登录</button>
+</div>
+</div>
 
-<!-- Header -->
-<header>
-<div class="c">
-<div class="logo">
-<div class="logo-icon">🐼</div>
-<div class="logo-text">熊猫闪充</div>
-</div>
-<nav>
-<a href="#prods">产品</a>
-<a href="#pay">购买</a>
-<a href="index.html">DApp</a>
-</nav>
-<div class="header-right">
-<button class="login-btn" id="lBtn" onclick="showL()">登录</button>
-<div class="user-info" id="uInfo">
-<span class="name" id="uName"></span>
-<button class="login-btn" onclick="logOut()">退出</button>
-</div>
-<button class="cart-btn" onclick="scrollChk()">🛒 <span class="c" id="cCount">0</span></button>
-</div>
-</div>
-</header>
+<!-- Checkout Modal -->
+<div class="modal-overlay" id="checkoutOverlay" style="display:none"></div>
+<div class="modal" id="checkoutModal">
+<div class="modal-box" style="max-width:600px">
+<button class="modal-close" onclick="closeCheckout()">×</button>
+<div class="modal-title">🛒 确认订单</div>
 
-<!-- Hero -->
-<section class="hero">
-<span class="badge">🎰 全球首创</span>
-<h1>熊猫智能电子烟 <span>Pro</span></h1>
-<p class="subtitle">全球首款带智能老虎机的电子烟！吸烟同时参与抽奖，代币惊喜不断</p>
-<div class="hero-stats">
-<div class="hero-stat"><div class="num">3000</div><div class="label">代币密钥</div></div>
-<div class="hero-stat"><div class="num">$70</div><div class="label">超值价格</div></div>
-<div class="hero-stat"><div class="num">70%</div><div class="label">中奖概率</div></div>
+<div style="background:var(--dark);padding:20px;border-radius:12px;margin:20px 0;text-align:left">
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>商品</span><span>熊猫智能电子烟 Pro</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>口味</span><span id="selectedFlavor">原味</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>代币</span><span style="color:var(--success)">3000 PANDA</span></div>
+<div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:10px;border-top:var(--b)"><span>总计</span><span style="color:var(--primary)">$70 USD</span></div>
 </div>
-</section>
 
-<!-- Product -->
-<section class="prods" id="prods">
-<div class="prods-header">
-<h2>🎰 智能老虎机</h2>
-<p>每一次吸烟，都是惊喜</p>
+<h4 style="text-align:left;margin:20px 0 10px">支付方式</h4>
+<div class="flavor-btns" style="margin:15px 0">
+<div class="flavor-btn active" onclick="selectPay('usdt')" id="payUSDT">🔷 USDT (TRC20)</div>
+<div class="flavor-btn" onclick="selectPay('visa')" id="payVISA">💳 Visa</div>
+<div class="flavor-btn" onclick="selectPay('mast')" id="payMAST">💳 Mastercard</div>
 </div>
-<div class="product-grid">
-<div class="product-vis">
-<div class="ecig-container">
-<div class="ecig">
-<div class="screen">
-<div class="scr-con" id="scrCon">🍒 🍒 🍒</div>
-<div class="scr-res" id="scrRes"></div>
-</div>
-<div class="led"></div>
-<div class="mouth"></div>
-</div>
-</div>
-</div>
-<div class="product-info">
-<span class="tag">2026 新品</span>
-<h2>熊猫智能电子烟 Pro</h2>
-<p class="desc">全球首款带智能屏幕的电子烟！每次吸烟时老虎机自动转动，有机会获得PANDA代币密钥！</p>
-<div class="features">
-<div class="feature"><span class="icon">🎰</span> 智能老虎机</div>
-<div class="feature"><span class="icon">🔊</span> 中奖提示</div>
-<div class="feature"><span class="icon">🔑</span> 3000代币</div>
-<div class="feature"><span class="icon">🔋</span> 超长续航</div>
-</div>
-<div class="buy-card">
-<div class="price"><span class="c">$70</span><span class="o">$99</span></div>
-<div class="token">🎰 包含 3,000 PANDA 代币密钥</div>
-<button class="buy-btn" onclick="buyNow()">🛒 立即购买</button>
-</div>
-</div>
-</div>
-</div>
-</section>
 
-<!-- Payment -->
-<section class="pay" id="pay">
-<h2>💳 选择支付方式</h2>
-<p>安全快捷，支持多种支付方式</p>
-<div class="mets">
-<div class="met active" onclick="selM('usdt')"><div class="icon">🔷</div><div>USDT</div></div>
-<div class="met" onclick="selM('visa')"><div class="icon">💳</div><div>Visa</div></div>
-<div class="met" onclick="selM('mc')"><div class="icon">💳</div><div>Mastercard</div></div>
+<!-- USDT支付说明 -->
+<div id="usdtPayment" style="text-align:left;margin:15px 0">
+<div style="font-size:13px;color:#888;margin-bottom:12px">📌 请向以下地址转账 <strong style="color:var(--primary)">70 USDT</strong></div>
+<div style="background:var(--dark);padding:12px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;margin-bottom:10px">TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E</div>
+<div style="font-size:12px;color:var(--success);margin-bottom:15px">✅ 转账后自动确认，无需手动上传哈希</div>
 </div>
-<div class="chk" id="chkForm">
-<h3>📝 订单信息</h3>
-<div class="sec">
-<h4>👤 用户信息</h4>
-<div class="g"><label>登录邮箱</label><input type="email" id="ordEmail" placeholder="用于账户绑定"></div>
-</div>
-<div class="sec">
-<h4>📦 收货信息</h4>
-<div class="g"><label>收货人 *</label><input type="text" id="shipName" placeholder="姓名"></div>
-<div class="g"><label>联系电话 *</label><input type="tel" id="shipPhone" placeholder="电话"></div>
-<div class="g"><label>国家/地区 *</label>
-<select id="shipCountry">
-<option value="">选择国家</option>
+
+<h4 style="text-align:left;margin:20px 0 10px">收货信息</h4>
+<input type="text" class="modal-input" id="shipName" placeholder="收货人姓名 *">
+<input type="tel" class="modal-input" id="shipPhone" placeholder="联系电话 *">
+<select class="modal-select" id="shipCountry">
+<option value="">选择国家 *</option>
 <option value="CN">中国</option>
 <option value="US">美国</option>
 <option value="UK">英国</option>
@@ -258,134 +122,347 @@ nav{display:none}
 <option value="JP">日本</option>
 <option value="SV">萨尔瓦多</option>
 </select>
+<input type="text" class="modal-input" id="shipAddress" placeholder="详细地址 *">
+
+<label style="display:flex;align-items:center;gap:10px;margin:15px 0;text-align:left">
+<input type="checkbox" id="saveAddress"><span style="font-size:13px;color:#888">保存为默认地址</span>
+</label>
+
+<button class="modal-btn" onclick="submitOrder()">✅ 提交订单</button>
 </div>
-<div class="g"><label>详细地址 *</label><input type="text" id="shipAddr" placeholder="街道、城市、邮编"></div>
 </div>
-<div class="sec">
-<h4>🔷 支付信息</h4>
-<div class="g"><label>USDT地址 (TRC20)</label>
-<select id="usdtAddr">
-<option value="TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E">地址1 (推荐)</option>
-<option value="TMbrADTHB4GP4VHWVDYNAEJXKQM4D4E4F">地址2</option>
-<option value="TSbrADTHB4GP4VHWVDYNAEJXKQM5D5E5F">地址3</option>
-</select>
+
+<!-- User Menu -->
+<div class="modal-overlay" id="userOverlay" style="display:none"></div>
+<div class="modal" id="userModal" style="position:fixed;top:70px;right:24px;max-width:280px;padding:20px">
+<div style="text-align:left;padding-bottom:15px;border-bottom:var(--b);margin-bottom:15px">
+<div id="userName" style="font-weight:600"></div>
+<div id="userEmail" style="font-size:12px;color:#888"></div>
 </div>
-<div class="g"><label>交易哈希 (TX Hash) *</label><input type="text" id="txHash" placeholder="USDT转账后的交易哈希"></div>
-<div class="g"><label>钱包地址 (领代币) *</label><input type="text" id="walletAddr" placeholder="TRC20钱包地址"></div>
+<!-- 移除直接链接到后台的入口，改为安全验证 -->
+<button onclick="goToAdmin()" style="display:block;width:100%;padding:10px 0;text-align:left;background:none;border:none;color:var(--accent);cursor:pointer">⚙️ 管理后台</button>
+<button onclick="logout()" style="display:block;width:100%;padding:10px 0;text-align:left;background:none;border:none;color:#ff4757;cursor:pointer">🚪 退出登录</button>
 </div>
-<div class="summ">
-<div class="r"><span>熊猫智能电子烟 Pro</span><span>$70</span></div>
-<div class="r"><span>代币密钥</span><span>3,000 PANDA</span></div>
-<div class="r t"><span>总计</span><span>$70 USD</span></div>
+
+<div class="bg"></div>
+<header>
+<div class="c">
+<div class="logo"><div class="logo-icon">🐼</div><div class="logo-text">PandaToken</div></div>
+<nav>
+<a href="#home" class="active">首页</a>
+<a href="#product">产品</a>
+</nav>
+<div class="header-right">
+<button class="cart-btn" onclick="showCheckout()">🛒</button>
+<button class="user-btn" id="userBtn" onclick="toggleUserMenu()">👤</button>
 </div>
-<button class="chk-btn" onclick="subOrd()">✅ 确认订单</button>
-<div class="res" id="resBox">
-<h4>🎉 订单提交成功！</h4>
-<p><strong>订单号:</strong> <span class="id" id="ordId"></span></p>
-<p><strong>物流单号:</strong> <span class="id" id="trackId"></span></p>
+</div>
+</header>
+
+<section class="hero" id="home">
+<div class="badge">🎰 吸烟即挖矿</div>
+<h1>熊猫智能电子烟 Pro</h1>
+<p class="subtitle">全球首款智能老虎机电子烟</p>
+</section>
+
+<section class="product" id="product">
+<div class="ecig-display">
+<div class="ecig">
+<div class="ecig-tip"></div>
+<div class="ecig-screen"><div class="slot" id="slotDisplay">🍒 🍋 🍇</div></div>
+<div class="ecig-led"></div>
+</div>
+</div>
+<div class="product-info">
+<span class="tag">2026 新品</span>
+<h2>熊猫智能电子烟 Pro</h2>
+<p class="desc">全球首款带智能屏幕的电子烟！吸烟时自动触发老虎机，有机会获得PANDA代币密钥！</p>
+
+<div class="flavors">
+<label>选择口味</label>
+<div class="flavor-btns">
+<div class="flavor-btn active" onclick="selectFlavor(this,'原味')">🌿 原味</div>
+<div class="flavor-btn" onclick="selectFlavor(this,'薄荷')">🍃 薄荷</div>
+<div class="flavor-btn" onclick="selectFlavor(this,'芒果')">🥭 芒果</div>
+<div class="flavor-btn" onclick="selectFlavor(this,'葡萄')">🍇 葡萄</div>
+</div>
+</div>
+
+<div class="price">$70 <span class="original">$99</span></div>
+
+<button class="buy-btn" onclick="startBuy()">🛒 立即购买</button>
+
+<div class="referral-banner">
+<h3>👥 邀请好友得代币</h3>
+<p>每邀请1人购买，<strong style="color:var(--success)">立即获得 500 PANDA</strong></p>
 </div>
 </div>
 </section>
 
-<footer><p>© 2026 熊猫闪充 - 红熵科技 | <a href="https://www.pandaevc.com">www.pandaevc.com</a></p></footer>
-
-<!-- Login Modal -->
-<div class="modal" id="logModal">
-<div class="mod">
-<h3>🔐 用户登录/注册</h3>
-<input type="email" id="logEmail" placeholder="邮箱">
-<input type="password" id="logPass" placeholder="密码">
-<input type="text" id="logName" placeholder="昵称(可选)">
-<button onclick="doLog()">登录 / 注册</button>
-</div>
-</div>
+<footer><p>© 2026 PandaToken | All Rights Reserved</p></footer>
 
 <script>
-var log=false,usrE="",usrN="",pMeth="usdt";
+// ==================== 配置 ====================
+var USDT_ADDRESS = 'TDPBRADTHB4GP4VHWVDYNAEJXKQM3D3E3E'; // 固定收款地址
+var EXPECTED_AMOUNT = 70;
 
-function showL(){document.getElementById("logModal").classList.add("show");}
+// ==================== 数据 ====================
+var currentUser = JSON.parse(localStorage.getItem('panda_current_user') || 'null');
+var selectedFlavor = '原味';
+var selectedPay = 'usdt';
+var orderPending = false;
 
-function doLog(){
-    var e=document.getElementById("logEmail").value.trim();
-    var n=document.getElementById("logName").value.trim()||e.split("@")[0];
-    if(!e){alert("请输入邮箱");return;}
-    log=true;usrE=e;usrN=n;
-    document.getElementById("lBtn").style.display="none";
-    document.getElementById("uInfo").style.display="flex";
-    document.getElementById("uName").innerHTML=usrN;
-    document.getElementById("ordEmail").value=usrE;
-    document.getElementById("logModal").classList.remove("show");
-    alert("登录成功！欢迎 "+usrN);
+// ==================== 用户 ====================
+function toggleUserMenu() {
+  var m = document.getElementById('userModal');
+  var o = document.getElementById('userOverlay');
+  if (m.style.display === 'block') {
+    m.style.display = 'none';
+    o.style.display = 'none';
+  } else {
+    if (!currentUser) {showLogin();return;}
+    m.style.display = 'block';
+    o.style.display = 'block';
+    o.style.position = 'fixed';
+    o.style.inset = '0';
+    o.onclick = function() {toggleUserMenu();};
+  }
 }
 
-function logOut(){
-    log=false;usrE="";usrN="";
-    document.getElementById("lBtn").style.display="block";
-    document.getElementById("uInfo").style.display="none";
+// 安全访问后台 - 需要验证
+function goToAdmin() {
+  var adminCode = prompt('请输入管理员验证码:');
+  if (adminCode === 'admin123') {
+    window.location.href = 'shop-admin.html';
+  } else {
+    alert('验证码错误');
+  }
 }
 
-function buyNow(){
-    if(!log){alert("请先登录");showL();return;}
-    document.getElementById("pay").scrollIntoView({behavior:"smooth"});
+function showLogin() {
+  document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('loginOverlay').style.display = 'block';
+}
+function closeLogin() {
+  document.getElementById('loginModal').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'none';
 }
 
-function scrollChk(){
-    document.getElementById("chkForm").scrollIntoView({behavior:"smooth"});
+function sendCode() {
+  var phone = document.getElementById('phoneInput').value;
+  if (!phone) {alert('请输入手机号');return;}
+  alert('验证码已发送! (演示: 123456)');
+}
+function verifyLogin() {
+  var code = document.getElementById('codeInput').value;
+  var phone = document.getElementById('phoneInput').value;
+  if (code !== '123456') {alert('验证码错误 (演示: 123456)');return;}
+  
+  currentUser = {
+    id: Date.now(),
+    phone: phone,
+    name: phone.substr(-4),
+    isAdmin: phone === 'admin', // 特殊账号
+    created: new Date().toISOString()
+  };
+  localStorage.setItem('panda_current_user', JSON.stringify(currentUser));
+  
+  closeLogin();
+  updateUserUI();
+  alert('✅ 登录成功!');
 }
 
-function selM(m){
-    document.querySelectorAll(".met").forEach(function(x){x.classList.remove("active")});
-    event.currentTarget.classList.add("active");
-    pMeth=m;
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('panda_current_user');
+  toggleUserMenu();
+  document.getElementById('userBtn').innerText = '👤';
 }
 
-function subOrd(){
-    var n=document.getElementById("shipName").value.trim();
-    var p=document.getElementById("shipPhone").value.trim();
-    var c=document.getElementById("shipCountry").value;
-    var a=document.getElementById("shipAddr").value.trim();
-    var tx=document.getElementById("txHash").value.trim();
+function updateUserUI() {
+  if (currentUser) {
+    document.getElementById('userBtn').innerText = currentUser.name || '👤';
+    document.getElementById('userName').innerText = currentUser.name || '用户';
+    document.getElementById('userEmail').innerText = currentUser.phone || '';
+  }
+}
+
+// ==================== 商品 ====================
+function selectFlavor(btn, flavor) {
+  document.querySelectorAll('.flavor-btn').forEach(function(b) {b.classList.remove('active');});
+  btn.classList.add('active');
+  selectedFlavor = flavor;
+}
+
+// ==================== 购买流程 ====================
+function startBuy() {
+  if (!currentUser) {showLogin();return;}
+  showCheckout();
+}
+
+function showCheckout() {
+  if (!currentUser) {showLogin();return;}
+  
+  document.getElementById('checkoutModal').style.display = 'flex';
+  document.getElementById('checkoutOverlay').style.display = 'block';
+  document.getElementById('selectedFlavor').innerText = selectedFlavor;
+  
+  var savedAddr = JSON.parse(localStorage.getItem('panda_default_address') || 'null');
+  if (savedAddr) {
+    document.getElementById('shipName').value = savedAddr.name || '';
+    document.getElementById('shipPhone').value = savedAddr.phone || '';
+    document.getElementById('shipCountry').value = savedAddr.country || '';
+    document.getElementById('shipAddress').value = savedAddr.address || '';
+  }
+}
+function closeCheckout() {
+  document.getElementById('checkoutModal').style.display = 'none';
+  document.getElementById('checkoutOverlay').style.display = 'none';
+}
+
+function selectPay(method) {
+  selectedPay = method;
+  document.querySelectorAll('.flavor-btn').forEach(function(b) {b.classList.remove('active');});
+  document.getElementById('pay' + method.toUpperCase()).classList.add('active');
+  document.getElementById('usdtPayment').style.display = method === 'usdt' ? 'block' : 'none';
+}
+
+function submitOrder() {
+  var name = document.getElementById('shipName').value.trim();
+  var phone = document.getElementById('shipPhone').value.trim();
+  var country = document.getElementById('shipCountry').value;
+  var address = document.getElementById('shipAddress').value.trim();
+  
+  if (!name || !phone || !country || !address) {alert('请填写完整收货信息');return;}
+  
+  if (document.getElementById('saveAddress').checked) {
+    localStorage.setItem('panda_default_address', JSON.stringify({name, phone, country, address}));
+  }
+  
+  // 创建订单
+  var order = {
+    id: 'ORD' + Date.now(),
+    userId: currentUser.id,
+    userPhone: currentUser.phone,
+    flavor: selectedFlavor,
+    amount: 70,
+    tokens: 3000,
+    payMethod: selectedPay,
+    usdtAddress: USDT_ADDRESS,
+    ship: {name, phone, country, address},
+    status: selectedPay === 'usdt' ? 'pending_payment' : 'pending_payment',
+    created: new Date().toISOString()
+  };
+  
+  // 保存订单
+  var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
+  orders.push(order);
+  localStorage.setItem('panda_orders', JSON.stringify(orders));
+  localStorage.setItem('panda_pending_order', JSON.stringify(order));
+  
+  closeCheckout();
+  orderPending = true;
+  
+  if (selectedPay === 'usdt') {
+    alert('✅ 订单已创建!\n\n订单号: ' + order.id + '\n\n请向以下地址转账 $70 USDT:\n' + USDT_ADDRESS + '\n\n⏳ 转账后自动确认 (约1-3分钟)');
+    startUSDTMonitoring(order.id);
+  } else {
+    alert('✅ 订单已创建!\n\n订单号: ' + order.id + '\n金额: $70\n\n我们尽快处理您的支付');
+  }
+}
+
+// ==================== USDT 自动监听 ====================
+var tronWeb;
+async function initTron() {
+  if (typeof TronWeb !== 'undefined') {
+    tronWeb = new TronWeb({
+      fullHost: 'https://api.trongrid.io'
+    });
+    return true;
+  }
+  return false;
+}
+
+async function startUSDTMonitoring(orderId) {
+  await initTron();
+  
+  var checkCount = 0;
+  var maxChecks = 60; // 最多检查60次 (约5分钟)
+  
+  var statusDiv = document.createElement('div');
+  statusDiv.id = 'paymentStatus';
+  statusDiv.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--surface);padding:16px 24px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:1000';
+  statusDiv.innerHTML = '<div style="margin-bottom:8px">🔄 等待USDT转账确认...</div><div style="font-size:12px;color:#888">请向 ' + USDT_ADDRESS.substring(0,10) + '... 转账70 USDT</div><div style="margin-top:10px;font-size:12px;color:var(--primary)" id="checkCount">检查中 0/' + maxChecks + '</div>';
+  document.body.appendChild(statusDiv);
+  
+  var checkInterval = setInterval(async function() {
+    checkCount++;
+    document.getElementById('checkCount').innerText = '检查中 ' + checkCount + '/' + maxChecks;
     
-    if(!log){alert("请先登录");showL();return;}
-    if(!n||!p||!c||!a){alert("请填写完整信息");return;}
-    if(pMeth==="usdt"&&!tx){alert("请填写USDT交易哈希");return;}
-    
-    var oid="ORD"+Date.now();
-    var tid="PKG"+Math.random().toString(36).substr(2,10).toUpperCase();
-    
-    document.getElementById("ordId").innerHTML=oid;
-    document.getElementById("trackId").innerHTML=tid;
-    document.getElementById("resBox").classList.add("show");
-}
-
-// Slot machine animation
-function spinScr(){
-    var syms=["🍒","🍋","🍇","💎","🎰","🐼"];
-    var con=document.getElementById("scrCon");
-    con.classList.add("spin");
-    var cnt=0;
-    var int=setInterval(function(){
-        con.innerHTML=syms[Math.floor(Math.random()*syms.length)]+" "+syms[Math.floor(Math.random()*syms.length)]+" "+syms[Math.floor(Math.random()*syms.length)];
-        cnt++;
-        if(cnt>15){
-            clearInterval(int);
-            con.classList.remove("spin");
-            var fin=syms[Math.floor(Math.random()*syms.length)];
-            con.innerHTML=fin+" "+fin+" "+fin;
-            var res=document.getElementById("scrRes");
-            if(Math.random()>0.3){
-                res.innerHTML="🎉 中奖！";
-                res.style.color="var(--accent)";
-            }else{
-                res.innerHTML="🔄 再接再厉!";
-                res.style.color="#fff";
+    try {
+      // 查询USDT转账交易
+      var transactions = await tronWeb.trx.getTransactionsRelated(USDT_ADDRESS, 'all', 0, 20);
+      
+      if (transactions && transactions.data) {
+        for (var i = 0; i < transactions.data.length; i++) {
+          var tx = transactions.data[i];
+          if (tx.txID && tx.block_timestamp) {
+            var now = Date.now();
+            var txTime = tx.block_timestamp;
+            var amount = 0;
+            
+            // 解析交易数据
+            if (tx.raw_data && tx.raw_data.contract) {
+              var contract = tx.raw_data.contract[0];
+              if (contract.parameter && contract.parameter.value) {
+                var value = contract.parameter.value.amount || 0;
+                amount = value / 1000000; // 转换为USDT
+              }
             }
-            res.classList.add("show");
+            
+            // 检查是否是向我们的地址转账70 USDT
+            if (amount >= EXPECTED_AMOUNT && (now - txTime) < 3600000) { // 1小时内
+              // 找到转账!
+              clearInterval(checkInterval);
+              statusDiv.innerHTML = '<div style="color:var(--success);font-size:18px">✅ 支付已确认!</div><div style="font-size:12px;color:#888;margin-top:8px">订单: ' + orderId + '</div>';
+              setTimeout(function() {statusDiv.remove();}, 3000);
+              
+              // 更新订单状态
+              var orders = JSON.parse(localStorage.getItem('panda_orders') || '[]');
+              var order = orders.find(function(o) {return o.id === orderId;});
+              if (order) {
+                order.status = 'paid';
+                order.paidAt = new Date().toISOString();
+                localStorage.setItem('panda_orders', JSON.stringify(orders));
+              }
+              
+              orderPending = false;
+              alert('🎉 支付已确认!\n\n您的订单 ' + orderId + ' 已支付成功\n\n我们将尽快为您发货!');
+              return;
+            }
+          }
         }
-    },100);
+      }
+    } catch (e) {
+      console.log('检查失败:', e.message);
+    }
+    
+    if (checkCount >= maxChecks) {
+      clearInterval(checkInterval);
+      statusDiv.innerHTML = '<div style="color:var(--warning)">⚠️ 未检测到转账</div><div style="font-size:12px;color:#888;margin-top:8px">如已转账，请联系客服</div><button onclick="this.parentElement.remove()" style="margin-top:10px;padding:8px 16px;background:var(--g);border:none;border-radius:6px;color:#fff;cursor:pointer">关闭</button>';
+    }
+  }, 5000); // 每5秒检查一次
 }
 
-setInterval(spinScr,3000);
+// ==================== 初始化 ====================
+updateUserUI();
+
+setInterval(function() {
+  var symbols = ['🍒', '🍋', '🍇', '💎', '🎰', '🐼'];
+  var s = symbols[Math.floor(Math.random() * symbols.length)];
+  var el = document.getElementById('slotDisplay');
+  if (el) el.innerHTML = s + ' ' + s + ' ' + s;
+}, 200);
 </script>
 </body>
 </html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>密钥生成系统 - 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:#0d0d0d;color:#fff;min-height:100vh;padding:40px}
+h1{color:#FF6B35;margin-bottom:30px}
+.card{background:#1a1a1a;padding:30px;border-radius:16px;margin-bottom:20px;max-width:800px}
+.card h2{font-size:20px;margin-bottom:20px;color:#FFD700}
+.form-group{margin-bottom:20px}
+label{display:block;margin-bottom:8px;font-weight:500}
+input,select{width:100%;padding:14px;background:#0d0d0d;border:1px solid #333;border-radius:8px;color:#fff;font-size:16px}
+button{background:linear-gradient(135deg,#FF6B35,#FF9800);color:#fff;border:none;padding:14px 28px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer}
+button:hover{transform:translateY(-2px)}
+.result{background:#0d0d0d;padding:20px;border-radius:8px;margin-top:20px;word-break:break-all;font-family:monospace;font-size:14px}
+.key-item{padding:10px;border-bottom:1px solid #333}
+.key-item:last-child{border:none}
+.copy-btn{background:#333;padding:4px 12px;font-size:12px;margin-left:10px}
+</style>
+</head>
+<body>
+<h1>🔑 密钥生成系统</h1>
+
+<div class="card">
+<h2>1. 生成电子烟密钥</h2>
+<div class="form-group">
+<label>设备ID (用于标识这台电子烟)</label>
+<input type="text" id="deviceId" placeholder="例如: DEVICE_001">
+</div>
+<div class="form-group">
+<label>密钥数量 (每台30个)</label>
+<input type="number" id="keyCount" value="30">
+</div>
+<button onclick="generateKeys()">生成密钥</button>
+
+<div class="result" id="generated" style="display:none">
+<h3>生成的密钥 (已保存到本地存储):</h3>
+<div id="keyList"></div>
+</div>
+</div>
+
+<div class="card">
+<h2>2. 导出密钥 (用于写入合约)</h2>
+<p style="color:#888;margin-bottom:15px">将密钥导入合约的JSON格式:</p>
+<button onclick="exportKeys()">导出JSON</button>
+<button onclick="copyAll()">复制全部</button>
+<textarea id="exportArea" style="width:100%;height:200px;background:#0d0d0d;border:1px solid #333;border-radius:8px;color:#fff;padding:15px;font-family:monospace;margin-top:15px"></textarea>
+</div>
+
+<div class="card">
+<h2>3. 密钥数据库</h2>
+<p style="color:#888;margin-bottom:15px">已生成的设备列表:</p>
+<button onclick="listDevices()">查看全部设备</button>
+<div id="deviceList" class="result" style="margin-top:15px"></div>
+</div>
+
+<script>
+// 存储
+let keyDatabase = JSON.parse(localStorage.getItem('panda_keys') || '{}');
+
+function generateKeys() {
+  const deviceId = document.getElementById('deviceId').value.trim();
+  const count = parseInt(document.getElementById('keyCount').value) || 30;
+  
+  if (!deviceId) {
+    alert('请输入设备ID');
+    return;
+  }
+  
+  if (keyDatabase[deviceId]) {
+    alert('设备ID已存在: ' + deviceId);
+    return;
+  }
+  
+  const keys = [];
+  for (let i = 0; i < count; i++) {
+    // 生成随机密钥
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    const key = '0x' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    keys.push(key);
+  }
+  
+  keyDatabase[deviceId] = {
+    keys: keys,
+    created: new Date().toISOString(),
+    used: 0
+  };
+  
+  localStorage.setItem('panda_keys', JSON.stringify(keyDatabase));
+  
+  // 显示
+  const list = document.getElementById('keyList');
+  list.innerHTML = keys.map((k, i) => 
+    `<div class="key-item">第${i+1}天: ${k}</div>`
+  ).join('');
+  
+  document.getElementById('generated').style.display = 'block';
+  
+  alert('✅ 已生成 ' + count + ' 个密钥!\n设备ID: ' + deviceId);
+}
+
+function exportKeys() {
+  const deviceId = document.getElementById('deviceId').value.trim();
+  const data = keyDatabase[deviceId];
+  
+  if (!data) {
+    alert('请先输入已存在的设备ID');
+    return;
+  }
+  
+  // 导出JSON格式 (用于合约)
+  const exportData = {
+    deviceId: deviceId,
+    keys: data.keys,
+    value: '0x' + (100n * 1n).toString(16).padStart(64, '0') // 100代币
+  };
+  
+  document.getElementById('exportArea').value = JSON.stringify(exportData, null, 2);
+}
+
+function copyAll() {
+  const area = document.getElementById('exportArea');
+  area.select();
+  document.execCommand('copy');
+  alert('已复制!');
+}
+
+function listDevices() {
+  const list = document.getElementById('deviceList');
+  const devices = Object.keys(keyDatabase);
+  
+  if (devices.length === 0) {
+    list.innerHTML = '暂无设备';
+    return;
+  }
+  
+  list.innerHTML = devices.map(d => 
+    `<div class="key-item">
+      <strong>${d}</strong><br>
+      密钥数: ${keyDatabase[d].keys.length}<br>
+      已使用: ${keyDatabase[d].used}<br>
+      创建时间: ${keyDatabase[d].created}
+    </div>`
+  ).join('');
+}
+</script>
+</body>
+</html>

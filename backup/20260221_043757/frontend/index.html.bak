@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PandaToken - 熊猫闪充代币 DApp</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
+body{background:var(--darker);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%),radial-gradient(circle at 70% 80%,rgba(255,215,0,0.1),transparent 50%)}
+header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
+.c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;margin-right:auto}
+.logo-icon{width:38px;height:38px;background:var(--g);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+nav{display:flex;gap:28px;position:absolute;left:50%;transform:translateX(-50%)}
+nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:14px}
+nav a:hover{color:#fff}
+.actions{display:flex;align-items:center;gap:12px;margin-left:auto}
+.net{background:rgba(0,230,118,0.1);color:var(--success);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(0,230,118,0.3)}
+.btn{padding:8px 18px;border-radius:20px;font-weight:600;font-size:13px;cursor:pointer;border:none}
+.btn-primary{background:var(--g);color:#fff}
+.btn-outline{background:0;border:1px solid var(--primary);color:var(--primary)}
+.w-info{display:none;align-items:center;gap:10px;padding:6px 14px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:20px}
+.w-info .addr{font-size:12px;color:var(--success);font-family:monospace}
+.w-info .bal{font-size:13px;font-weight:700;color:var(--accent)}
+.hero{padding:140px 24px 80px;text-align:center}
+.badge{display:inline-block;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:10px 24px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
+h1{font-size:56px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:18px;color:#B0B0B0;max-width:500px;margin:0 auto 40px}
+.stats{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:40px}
+.stat{background:var(--surface);border:var(--b);padding:20px 32px;border-radius:16px}
+.stat .v{font-size:28px;font-weight:700;color:var(--accent)}
+.stat .l{font-size:12px;color:var(--text-muted);text-transform:uppercase}
+.sec{padding:80px 24px;max-width:1200px;margin:0 auto}
+.sec h2{text-align:center;font-size:38px;margin-bottom:14px}
+.sec > p{text-align:center;color:#B0B0B0;margin-bottom:50px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--surface);border:var(--b);padding:32px 24px;border-radius:20px;text-align:center}
+.card .icon{font-size:38px;margin-bottom:14px}
+.card h3{font-size:18px;margin-bottom:10px}
+.card p{font-size:13px;color:#B0B0B0}
+.stakes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto}
+.stake{background:var(--surface);border:var(--b);padding:36px 28px;border-radius:20px;text-align:center;position:relative}
+.stake.featured{background:linear-gradient(180deg,rgba(255,107,53,0.1),var(--surface));border:2px solid var(--primary)}
+.stake.featured::before{content:"推荐";position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--g);padding:5px 18px;border-radius:18px;font-size:11px;font-weight:700}
+.stake .period{font-size:26px;font-weight:700}
+.stake .apy{font-size:46px;font-weight:800;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:18px 0}
+.stake ul{list-style:none;text-align:left;margin:18px 0}
+.stake ul li{padding:8px 0;border-bottom:var(--b);font-size:13px;color:#B0B0B0}
+.stake ul li::before{content:"✓";color:var(--success);font-weight:bold}
+.stake button{width:100%;padding:14px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.st-form{background:var(--surface);border:var(--b);border-radius:20px;padding:28px;margin-top:30px;display:none}
+.st-form.show{display:block}
+.bal-disp{background:var(--dark);padding:14px 18px;border-radius:10px;margin-bottom:18px;display:flex;justify-content:space-between}
+.bal-disp .l{color:var(--text-muted)}
+.bal-disp .v{color:var(--accent);font-weight:700}
+.daily{background:linear-gradient(135deg,rgba(0,230,118,0.1),rgba(255,193,7,0.1));padding:18px;border-radius:10px;margin-bottom:18px}
+.daily .l{color:var(--text-muted);font-size:12px}
+.daily .v{font-size:24px;font-weight:700;color:var(--success)}
+.inp-grp{display:flex;gap:10px;margin-bottom:18px}
+.inp-grp input{flex:1;padding:14px 18px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text)}
+.inp-grp button{padding:14px 24px;background:var(--g);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer}
+.info{background:var(--dark);padding:14px;border-radius:10px;margin:18px 0}
+.info .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:var(--b)}
+.info .row:last-child{border:none}
+.info .row .v{color:var(--accent);font-weight:600}
+.ex-card{background:var(--surface);border:var(--b);border-radius:24px;padding:32px;max-width:480px;margin:0 auto}
+.tabs{display:flex;gap:6px;background:var(--dark);padding:4px;border-radius:12px;margin-bottom:24px}
+.tab{flex:1;padding:12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;background:0;border:none;color:var(--text-muted)}
+.tab.active{background:var(--g);color:#fff}
+.panels{display:none}
+.panels.active{display:block}
+.g{margin-bottom:18px}
+.g label{display:block;margin-bottom:8px;font-weight:500}
+.inp-wrap{position:relative}
+.inp-wrap input{width:100%;padding:14px 65px 14px 16px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:var(--text)}
+.inp-wrap .max{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:6px 12px;background:var(--primary);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;cursor:pointer}
+.tip{font-size:12px;color:var(--text-muted);margin-top:6px}
+.topt{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.topt .opt{background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer}
+.topt .opt:hover,.topt .opt.selected{border-color:var(--primary);background:rgba(255,107,53,0.1)}
+.topt .opt .n{font-weight:600;margin-bottom:4px;font-size:13px}
+.topt .opt .f{color:var(--accent);font-size:12px}
+.topt .opt .t{font-size:10px;color:var(--text-muted);margin-top:2px}
+.note{font-size:11px;color:var(--text-muted);margin-top:10px}
+.btn-full{width:100%;padding:16px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px}
+.dbets{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.dbet{background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;cursor:pointer}
+.dbet:hover,.dbet.selected{border-color:var(--primary);background:rgba(255,107,53,0.1)}
+.dbet .l{font-weight:600;font-size:13px}
+.dbet .o{font-size:11px;color:var(--text-muted)}
+.dnums{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.dnum{width:44px;height:44px;background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;cursor:pointer}
+.dnum:hover,.dnum.selected{border-color:var(--primary);background:rgba(255,107,53,0.2)}
+.ddisp{display:flex;justify-content:center;gap:14px;margin:20px 0}
+.dice{width:54px;height:54px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#333}
+.blind{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column}
+.blind.show{display:flex}
+.mbox{width:180px;height:180px;background:var(--g);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:70px;cursor:pointer;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.mhint{color:#fff;font-size:16px;margin-top:20px}
+footer{padding:40px 24px;border-top:var(--b);text-align:center}
+footer p{color:var(--text-muted);font-size:13px}
+footer a{color:var(--primary);text-decoration:none}
+@media(max-width:900px){.grid,.stakes{grid-template-columns:repeat(2,1fe
+```
+
+Let me rewrite this properly:
+<minimax:tool_call>
+<invoke name="exec">
+<parameter name="command">cd /Users/gaodelong/.openclaw/workspace/overseas-project/frontend
+
+# Write complete fixed index.html
+cat > index.html << 'ENDHTML'
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PandaToken - 熊猫闪充代币 DApp</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#FF6B35;--accent:#FFD700;--success:#00E676;--dark:#0D0D0D;--darker:#050505;--surface:#1A1A1A;--text:#FFF;--text-muted:#888;--g:linear-gradient(135deg,#FF6B35,#FF9800);--g2:linear-gradient(135deg,#FFD700,#FF9800);--b:1px solid rgba(255,255,255,0.08)}
+body{background:var(--darker);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:-1;background:var(--darker);background-image:radial-gradient(circle at 30% 20%,rgba(255,107,53,0.15),transparent 50%),radial-gradient(circle at 70% 80%,rgba(255,215,0,0.1),transparent 50%)}
+header{position:fixed;top:0;inset-x:0;z-index:100;padding:12px 0;background:rgba(5,5,5,0.95);backdrop-filter:blur(20px);border-bottom:var(--b)}
+.c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700}
+.logo-icon{width:38px;height:38px;background:var(--g);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.logo-text{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+nav{display:flex;gap:28px;margin:0 auto}
+nav a{color:#B0B0B0;text-decoration:none;font-weight:500;font-size:14px}
+nav a:hover{color:#fff}
+.actions{display:flex;align-items:center;gap:12px}
+.net{background:rgba(0,230,118,0.1);color:var(--success);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(0,230,118,0.3)}
+.btn{padding:8px 18px;border-radius:20px;font-weight:600;font-size:13px;cursor:pointer;border:none}
+.btn-primary{background:var(--g);color:#fff}
+.btn-outline{background:0;border:1px solid var(--primary);color:var(--primary)}
+.w-info{display:none;align-items:center;gap:10px;padding:6px 14px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:20px}
+.w-info .addr{font-size:12px;color:var(--success);font-family:monospace}
+.w-info .bal{font-size:13px;font-weight:700;color:var(--accent)}
+.hero{padding:140px 24px 80px;text-align:center}
+.badge{display:inline-block;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);padding:10px 24px;border-radius:30px;font-size:14px;color:var(--primary);margin-bottom:28px}
+h1{font-size:56px;font-weight:800;margin-bottom:18px;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:18px;color:#B0B0B0;max-width:500px;margin:0 auto 40px}
+.stats{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:40px}
+.stat{background:var(--surface);border:var(--b);padding:20px 32px;border-radius:16px}
+.stat .v{font-size:28px;font-weight:700;color:var(--accent)}
+.stat .l{font-size:12px;color:var(--text-muted);text-transform:uppercase}
+.sec{padding:80px 24px;max-width:1200px;margin:0 auto}
+.sec h2{text-align:center;font-size:38px;margin-bottom:14px}
+.sec > p{text-align:center;color:#B0B0B0;margin-bottom:50px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--surface);border:var(--b);padding:32px 24px;border-radius:20px;text-align:center}
+.card .icon{font-size:38px;margin-bottom:14px}
+.card h3{font-size:18px;margin-bottom:10px}
+.card p{font-size:13px;color:#B0B0B0}
+.stakes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto}
+.stake{background:var(--surface);border:var(--b);padding:36px 28px;border-radius:20px;text-align:center;position:relative}
+.stake.featured{background:linear-gradient(180deg,rgba(255,107,53,0.1),var(--surface));border:2px solid var(--primary)}
+.stake.featured::before{content:"推荐";position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--g);padding:5px 18px;border-radius:18px;font-size:11px;font-weight:700}
+.stake .period{font-size:26px;font-weight:700}
+.stake .apy{font-size:46px;font-weight:800;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:18px 0}
+.stake ul{list-style:none;text-align:left;margin:18px 0}
+.stake ul li{padding:8px 0;border-bottom:var(--b);font-size:13px;color:#B0B0B0}
+.stake ul li::before{content:"✓";color:var(--success);font-weight:bold}
+.stake button{width:100%;padding:14px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.st-form{background:var(--surface);border:var(--b);border-radius:20px;padding:28px;margin-top:30px;display:none}
+.st-form.show{display:block}
+.bal-disp{background:var(--dark);padding:14px 18px;border-radius:10px;margin-bottom:18px;display:flex;justify-content:space-between}
+.bal-disp .l{color:var(--text-muted)}
+.bal-disp .v{color:var(--accent);font-weight:700}
+.daily{background:linear-gradient(135deg,rgba(0,230,118,0.1),rgba(255,193,7,0.1));padding:18px;border-radius:10px;margin-bottom:18px}
+.daily .l{color:var(--text-muted);font-size:12px}
+.daily .v{font-size:24px;font-weight:700;color:var(--success)}
+.inp-grp{display:flex;gap:10px;margin-bottom:18px}
+.inp-grp input{flex:1;padding:14px 18px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text)}
+.inp-grp button{padding:14px 24px;background:var(--g);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer}
+.info{background:var(--dark);padding:14px;border-radius:10px;margin:18px 0}
+.info .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:var(--b)}
+.info .row:last-child{border:none}
+.info .row .v{color:var(--accent);font-weight:600}
+.ex-card{background:var(--surface);border:var(--b);border-radius:24px;padding:32px;max-width:480px;margin:0 auto}
+.tabs{display:flex;gap:6px;background:var(--dark);padding:4px;border-radius:12px;margin-bottom:24px}
+.tab{flex:1;padding:12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;background:0;border:none;color:var(--text-muted)}
+.tab.active{background:var(--g);color:#fff}
+.panels{display:none}
+.panels.active{display:block}
+.g{margin-bottom:18px}
+.g label{display:block;margin-bottom:8px;font-weight:500}
+.inp-wrap{position:relative}
+.inp-wrap input{width:100%;padding:14px 65px 14px 16px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:var(--text)}
+.inp-wrap .max{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:6px 12px;background:var(--primary);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;cursor:pointer}
+.tip{font-size:12px;color:var(--text-muted);margin-top:6px}
+.topt{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.topt .opt{background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer}
+.topt .opt:hover,.topt .opt.selected{border-color:var(--primary);background:rgba(255,107,53,0.1)}
+.topt .opt .n{font-weight:600;margin-bottom:4px;font-size:13px}
+.topt .opt .f{color:var(--accent);font-size:12px}
+.topt .opt .t{font-size:10px;color:var(--text-muted);margin-top:2px}
+.note{font-size:11px;color:var(--text-muted);margin-top:10px}
+.btn-full{width:100%;padding:16px;background:var(--g);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px}
+.dbets{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.dbet{background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;cursor:pointer}
+.dbet:hover,.dbet.selected{border-color:var(--primary);background:rgba(255,107,53,0.1)}
+.dbet .l{font-weight:600;font-size:13px}
+.dbet .o{font-size:11px;color:var(--text-muted)}
+.dnums{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.dnum{width:44px;height:44px;background:var(--dark);border:2px solid rgba(255,255,255,0.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;cursor:pointer}
+.dnum:hover,.dnum.selected{border-color:var(--primary);background:rgba(255,107,53,0.2)}
+.ddisp{display:flex;justify-content:center;gap:14px;margin:20px 0}
+.dice{width:54px;height:54px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#333}
+.blind{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column}
+.blind.show{display:flex}
+.mbox{width:180px;height:180px;background:var(--g);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:70px;cursor:pointer;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.mhint{color:#fff;font-size:16px;margin-top:20px}
+footer{padding:40px 24px;border-top:var(--b);text-align:center}
+footer p{color:var(--text-muted);font-size:13px}
+footer a{color:var(--primary);text-decoration:none}
+@media(max-width:900px){.grid,.stakes{grid-template-columns:repeat(2,1fr)}nav{display:none}}
+@media(max-width:600px){.grid,.stakes{grid-template-columns:1fr}h1{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="blind" id="blind" onclick="openBlind()"><div class="mbox" id="mbox">🎁</div><div class="mhint">点击开启盲盒</div></div>
+<header><div class="c"><div class="logo"><div class="logo-icon">🐼</div><div class="logo-text">PandaToken</div></div><nav><a href="#home">首页</a><a href="#features">特性</a><a href="#staking">质押</a><a href="#exchange">兑换</a><a href="#dice">🎲</a></nav><div class="actions"><span class="net">● TRON</span><div class="w-info" id="wInfo"><span class="addr" id="wAddr"></span><span class="bal" id="wBal">0</span></div><button class="btn btn-primary" id="cBtn" onclick="connectWallet()">连接钱包</button><button class="btn btn-outline" id="dBtn" onclick="disconnectWallet()" style="display:none">断开</button></div></div></header>
+<section class="hero" id="home"><div class="badge">🚀 下一代价值代币</div><h1>PandaToken (PANDA)</h1><p class="subtitle">只涨不跌加密货币，为熊猫闪充生态赋能</p><a href="shop.html" class="btn btn-primary" style="padding:12px 32px;font-size:14px;text-decoration:none;display:inline-block;">购买电子烟</a><div class="stats"><div class="stat"><div class="v">40亿</div><div class="l">代币总量</div></div><div class="stat"><div class="v">$0.005</div><div class="l">初始价格</div></div><div class="stat"><div class="v">3,000</div><div class="l">每支代币</div></div><div class="stat"><div class="v" id="pDis">$0.0052</div><div class="l">当前价</div></div></div></section>
+<section class="sec" id="features"><h2>核心特性</h2><p>独特的经济模型，确保只涨不跌</p><div class="grid"><div class="card"><div class="icon">📈</div><h3>只涨不跌</h3><p>独特经济模型</p></div><div class="card"><div class="icon">🎁</div><h3>盲盒惊喜</h3><p>密钥开启盲盒</p></div><div class="card"><div class="icon">🎲</div><h3>骰子游戏</h3><p>趣味博彩</p></div><div class="card"><div class="icon">🔒</div><h3>质押收益</h3><p>15%-90%年化</p></div><div class="card"><div class="icon">⚡</div><h3>Turbo释放</h3><p>稳定币价</p></div><div class="card"><div class="icon">🔄</div><h3>Swap交易</h3><p>代币变现</p></div></div></section>
+<section class="sec" id="staking"><h2>质押收益</h2><p>锁定代币，获得丰厚收益</p><div class="stakes"><div class="stake"><div class="period">30天</div><div class="apy">15%<span>/年</span></div><ul><li>每日计算收益</li><li>到期自动解锁</li></ul><button onclick="showStake(30)">质押</button></div><div class="stake featured"><div class="period">60天</div><div class="apy">45%<span>/年</span></div><ul><li>更高收益</li><li>每日释放</li></ul><button onclick="showStake(60)">质押</button></div><div class="stake"><div class="period">90天</div><div class="apy">90%<span>/年</span></div><ul><li>最高收益</li><li>机构首选</li></ul><button onclick="showStake(90)">质押</button></div></div><div class="ex-card st-form" id="stForm"><h3 style="margin-bottom:18px" id="stTitle">质押 - 30天</h3><div class="bal-disp"><span class="l">钱包余额</span><span class="v" id="stBal">0 PANDA</span></div><div class="daily"><div class="l">预计每日收益</div><div class="v" id="dailyE">0 PANDA/天</div></div><div class="inp-grp"><input type="number" id="stAmt" placeholder="输入质押数量" oninput="calcStake()"><button onclick="setMaxStake()">全部</button></div><div class="info"><div class="row"><span>质押数量</span><span class="v" id="stConfAmt">0</span></div><div class="row"><span>期限</span><span class="v" id="stConfDays">30天</span></div><div class="row"><span>预计收益</span><span class="v" id="stConfRew">0 PANDA</span></div></div><button class="btn-full" onclick="confirmStake()">确认质押</button></div></section>
+<section class="sec" id="exchange"><h2>兑换中心</h2><p>多种方式管理您的代币</p><div class="ex-card"><div class="tabs"><button class="tab active" onclick="switchTab('key')">密钥兑换</button><button class="tab" onclick="switchTab('turbo')">Turbo</button><button class="tab" onclick="switchTab('swap')">Swap</button></div>
+<div class="panels active" id="keyP"><div class="g"><label>🎁 输入密钥</label><input type="text" id="keyIn" placeholder="请输入密钥" style="width:100%;padding:14px;background:var(--dark);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text)"></div><div class="tip">每个密钥可开启盲盒，代币随机(最高3000)</div><button class="btn-full" onclick="redeemKey()">🎁 开启盲盒</button></div>
+<div class="panels" id="turboP"><div class="g"><label>⚡ 释放方式</label></div><div class="topt"><div class="opt" onclick="selectTurbo(this,'direct')"><div class="n">🚀 直接</div><div class="f">-20%</div><div class="t">即时USDT</div></div><div class="opt selected" onclick="selectTurbo(this,'30d')"><div class="n">📅 30天</div><div class="f">-10%</div><div class="t">每天释放</div></div><div class="opt" onclick="selectTurbo(this,'60d')"><div class="n">📆 60天</div><div class="f">0%</div><div class="t">每天释放</div></div></div><div class="g" style="margin-top:18px"><label>🔄 数量</label><div class="inp-wrap"><input type="number" id="tAmt" placeholder="输入数量" oninput="calcTurbo()"><button class="max" onclick="setMaxTurbo()">全部</button></div><div class="tip" id="tBal">可用: 0 PANDA</div></div><div class="info"><div class="row"><span>释放</span><span class="v" id="tOut">0</span></div><div class="row"><span>手续费</span><span class="v" id="tFee">0</span></div><div class="row"><span>USDT</span><span class="v" id="tUSD">$0</span></div></div><div class="note">⚠️ 线性释放需到期后方可Swap</div><button class="btn-full" onclick="executeTurbo()">⚡ 执行Turbo</button></div>
+<div class="panels" id="swapP"><div class="g"><label>🔄 Swap数量</label><div class="inp-wrap"><input type="number" id="sAmt" placeholder="输入数量" oninput="calcSwap()"><button class="max" onclick="setMaxSwap()">全部</button></div><div class="tip" id="sBal">可Swap: 0 (需Turbo释放)</div></div><div class="info"><div class="row"><span>汇率</span><span class="v">1=$0.005</span></div><div class="row"><span>获得</span><span class="v" id="sOut">$0</span></div><div class="row"><span>费5%</span><span class="v" id="sFee">$0</body></html>
