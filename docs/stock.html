@@ -179,10 +179,37 @@ function showPage(page) {
 // 数据存储
 let holdings = JSON.parse(localStorage.getItem('stock_holdings') || '[]');
 
+// 今日选股结果 (2026-02-23)
+const todayPicks = [
+  {rank:1, code:'000002', name:'万科A', sector:'房地产开发', buyPrice:4.71, stopLoss:4.42, target:'4.79/5.04', reason:'振幅小+换手下降+站5/10日线+缩量蓄势'},
+  {rank:2, code:'000010', name:'美丽生态', sector:'基础建设', buyPrice:3.56, stopLoss:3.35, target:'3.62/3.83', reason:'振幅小+换手下降+站5/10日线+缩量蓄势'},
+  {rank:3, code:'000063', name:'中兴通讯', sector:'通信设备', buyPrice:37.72, stopLoss:35.95, target:'38.35/40.57', reason:'振幅小+换手下降+站5/10日线+缩量蓄势'},
+];
+
 // 每日精选
 async function runDailyPick() {
-  document.getElementById('dailyResult').innerHTML = '<div class="loading">正在通过3天波段策略筛选...</div>';
-  document.getElementById('dailyResult').innerHTML = '<div style="background:#0D0D0D;padding:20px;border-radius:12px"><p style="color:#2ED573;font-weight:700;margin-bottom:12px">🎯 3天波段策略选股</p><p style="color:#888">请在本地运行：python3 jq_v3.py</p><div style="margin-top:16px;padding:12px;background:#1a1a1a;border-radius:8px"><p style="color:#2ED573;font-size:13px">回测数据：</p><p style="color:#888;font-size:12px">• 交易次数: 5255</p><p style="color:#888;font-size:12px">• 3天胜率: 48.2%</p><p style="color:#888;font-size:12px">• 总收益: +2336%</p><p style="color:#888;font-size:12px">• 5%以上: 10.7%</p></div></div>';
+  document.getElementById('dailyResult').innerHTML = '<div class="loading">正在筛选...</div>';
+  
+  let html = '<div style="background:#0D0D0D;padding:20px;border-radius:12px">';
+  html += '<p style="color:#2ED573;font-weight:700;margin-bottom:16px">🎯 3天波段策略 - 今日推荐</p>';
+  html += '<p style="color:#666;font-size:12px;margin-bottom:16px">符合条件：26只 | 建议仓位：60%</p>';
+  
+  todayPicks.forEach(p => {
+    html += `<div style="background:#1a1a1a;padding:16px;border-radius:8px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><span style="color:#FF6B35;font-weight:700;margin-right:8px">${p.rank}</span><span class="stock-code">${p.code}</span> <span style="color:#888">${p.name}</span></div>
+        <span style="color:#2ED573">${p.sector}</span>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:#888">
+        <p>建议买点：回踩${p.buyPrice}元 | 止损：${p.stopLoss}</p>
+        <p>止盈目标：${p.target}</p>
+        <p style="color:#2ED573;margin-top:8px">逻辑：${p.reason}</p>
+      </div>
+    </div>`;
+  });
+  
+  html += '</div>';
+  document.getElementById('dailyResult').innerHTML = html;
 }
 
 // 添加持仓
