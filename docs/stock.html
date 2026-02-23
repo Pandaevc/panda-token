@@ -208,18 +208,70 @@ function showPage(page) {
   document.getElementById('page-analysis').style.display = page === 'analysis' ? 'block' : 'none';
 }
 
-// 加载今日推荐
-async function loadPicks() {
-  document.getElementById('dailyPicks').innerHTML = '<div class="loading">加载中...</div>';
-  try {
-    const resp = await fetch('today_picks.json?_=' + Date.now());
-    const data = await resp.json();
-    todayPicks = data;
-    document.getElementById('pickCount').innerText = data.length || '-';
-    renderPicks();
-  } catch(e) {
-    document.getElementById('dailyPicks').innerHTML = '<div style="color:#666;text-align:center;padding:40px">暂无数据，请运行jq_v3.py获取</div>';
+// 今日推荐数据 - 内嵌
+var todayPicks = [
+  {
+    "code": "000571",
+    "name": "新大洲A",
+    "industry": "煤炭开采",
+    "score": 110,
+    "reasons": [
+      "振幅2.1%",
+      "换手下降",
+      "站5/10日",
+      "缩量",
+      "价涨量缩",
+      "10日涨停",
+      "CCI上升"
+    ],
+    "price": 5.86,
+    "ma5": 5.81,
+    "stopLoss": 5.57,
+    "target8": 6.33,
+    "target15": 6.74
+  },
+  {
+    "code": "000423",
+    "name": "东阿阿胶",
+    "industry": "中药Ⅱ",
+    "score": 90,
+    "reasons": [
+      "振幅1.5%",
+      "换手下降",
+      "站5/10日",
+      "缩量",
+      "价涨量缩"
+    ],
+    "price": 49.08,
+    "ma5": 49.04,
+    "stopLoss": 46.63,
+    "target8": 53.01,
+    "target15": 56.44
+  },
+  {
+    "code": "000526",
+    "name": "学大教育",
+    "industry": "教育",
+    "score": 90,
+    "reasons": [
+      "振幅2.9%",
+      "换手下降",
+      "站5/10日",
+      "缩量",
+      "价涨量缩"
+    ],
+    "price": 39.22,
+    "ma5": 38.74,
+    "stopLoss": 37.26,
+    "target8": 42.36,
+    "target15": 45.1
   }
+];
+
+// 加载今日推荐
+function loadPicks() {
+  document.getElementById('pickCount').innerText = todayPicks.length || '-';
+  renderPicks();
 }
 
 function renderPicks() {
