@@ -151,12 +151,12 @@ function showPage(page) {
   document.getElementById('page-analysis').style.display = page === 'analysis' ? 'block' : 'none';
 }
 
-// 今日推荐数据 - 内嵌
-const todayPicks = [
-  {code:'000571',name:'新大洲A',industry:'煤炭开采',ma5:5.81,stopLoss:5.57,target8:6.33,target15:6.74,reasons:['振幅2.1%','换手下降','站5/10日','缩量','价涨量缩','10日涨停','CCI上升']},
-  {code:'000423',name:'东阿阿胶',industry:'中药Ⅱ',ma5:49.04,stopLoss:46.63,target8:53.01,target15:56.44,reasons:['振幅1.5%','换手下降','站5/10日','缩量','价涨量缩']},
-  {code:'000526',name:'学大教育',industry:'教育',ma5:38.74,stopLoss:37.26,target8:42.36,target15:45.1,reasons:['振幅2.9%','换手下降','站5/10日','缩量','价涨量缩']}
-];
+// 今日推荐数据 - 从JS文件加载
+var todayPicks = [];
+var script = document.createElement('script');
+script.src = 'today_picks.js';
+script.onload = function() { renderPicks(); };
+document.head.appendChild(script);
 
 // 显示今日推荐
 function renderPicks() {
