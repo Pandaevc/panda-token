@@ -20,11 +20,9 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .stat:hover{transform:translateY(-2px)}
 .stat .v{font-size:32px;font-weight:700}
 .stat .l{font-size:13px;color:#666;margin-top:8px}
-.stat.up .v{color:#FF4757}
-.stat.down .v{color:#2ED573}
 .stat.green .v{color:#2ED573}
-.stat.yellow .v{color:#FFD700}
 .stat.blue .v{color:#0096FF}
+.stat.yellow .v{color:#FFD700}
 
 .card{background:linear-gradient(135deg,#1A1A1A,#252525);border-radius:16px;padding:24px;margin-bottom:24px}
 .card h3{margin-bottom:20px;font-size:18px}
@@ -32,35 +30,16 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .up{color:#FF4757}
 .down{color:#2ED573}
 .btn{padding:14px 28px;background:linear-gradient(135deg,#FF6B35,#FF8F5A);border:none;border-radius:12px;color:#FFF;cursor:pointer;font-size:15px;font-weight:600;transition:all 0.3s}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,107,53,0.3)}
-.btn-green{background:linear-gradient(135deg,#2ED573,#5AE08A)}
-.btn-red{background:linear-gradient(135deg,#FF4757,#FF6B7A)}
-.btn-yellow{background:linear-gradient(135deg,#FFD700,#FFE44D);color:#000}
-.btn-outline{background:transparent;border:2px solid #FF6B35;color:#FF6B35}
-.input{width:100%;padding:14px;background:#0D0D0D;border:2px solid #333;border-radius:12px;color:#FFF;font-size:15px;transition:border-color 0.3s}
+.btn:hover{transform:translateY(-2px)}
+.input{width:100%;padding:14px;background:#0D0D0D;border:2px solid #333;border-radius:12px;color:#FFF;font-size:15px}
 .input:focus{border-color:#FF6B35;outline:none}
-.search-box{display:flex;gap:12px;margin-bottom:20px}
-.loading{text-align:center;padding:40px;color:#666;font-size:16px}
-.tag{display:inline-block;padding:4px 12px;border-radius:6px;font-size:12px;margin-right:6px}
-.tag-green{background:rgba(46,213,115,0.2);color:#2ED573}
-.tag-red{background:rgba(255,71,87,0.2);color:#FF4757}
-.tag-yellow{background:rgba(255,215,0,0.2);color:#FFD700}
-.tag-blue{background:rgba(0,150,255,0.2);color:#0096FF}
+.loading{text-align:center;padding:40px;color:#666}
 
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:none;align-items:center;justify-content:center}
-.modal.show{display:flex}
-.modal-content{background:#1A1A1A;padding:32px;border-radius:20px;max-width:90%;max-height:90%;overflow:auto;min-width:400px}
-
-.action-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600}
+.action-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;margin-left:8px}
 .action-add{background:#2ED573;color:#FFF}
 .action-reduce{background:#FFD700;color:#000}
 .action-clear{background:#FF4757;color:#FFF}
 .action-hold{background:#666;color:#FFF}
-
-.score-circle{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;margin:0 auto}
-.score-high{background:linear-gradient(135deg,#2ED573,#5AE08A)}
-.score-mid{background:linear-gradient(135deg,#FFD700,#FFE44D);color:#000}
-.score-low{background:linear-gradient(135deg,#FF4757,#FF6B7A)}
 
 .pick-card{background:linear-gradient(135deg,#1A1A1A,#2D2D2D);padding:20px;border-radius:16px;margin-bottom:16px;border-left:4px solid #FF6B35}
 .pick-card:hover{transform:translateX(4px);transition:all 0.3s}
@@ -71,14 +50,12 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 .holding-row.clear{border-left-color:#FF4757}
 .holding-row.hold{border-left-color:#666}
 
-.analysis-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.analysis-item{background:#0D0D0D;padding:20px;border-radius:12px;text-align:center}
+.score-circle{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto}
+.score-high{background:linear-gradient(135deg,#2ED573,#5AE08A)}
+.score-mid{background:linear-gradient(135deg,#FFD700,#FFE44D);color:#000}
+.score-low{background:linear-gradient(135deg,#FF4757,#FF6B7A)}
 
-@media(max-width:1000px){
-  .nav{display:none}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .analysis-grid{grid-template-columns:repeat(2,1fr)}
-}
+@media(max-width:1000px){.nav{display:none}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -96,24 +73,23 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div id="page-dashboard">
 <div class="stats">
 <div class="stat green"><div class="v" id="pickCount">0</div><div class="l">今日精选</div></div>
-<div class="stat blue"><div class="v" id="winRate">48.2%</div><div class="l">策略胜率</div></div>
-<div class="stat yellow"><div class="v" id="totalReturn">+2336%</div><div class="l">历史收益</div></div>
-<div class="stat"><div class="v" id="positionRatio">60%</div><div class="l">建议仓位</div></div>
+<div class="stat blue"><div class="v">48.2%</div><div class="l">策略胜率</div></div>
+<div class="stat yellow"><div class="v">+2336%</div><div class="l">历史收益</div></div>
+<div class="stat"><div class="v">60%</div><div class="l">建议仓位</div></div>
 </div>
 
 <div class="card">
 <h3>🎯 今日推荐 - 3天波段策略</h3>
-<button class="btn" onclick="runDailyStrategy()">🔄 刷新推荐</button>
+<button class="btn" onclick="loadTodayPicks()">🔄 刷新</button>
 <div id="dailyPicks" style="margin-top:20px"></div>
 </div>
 
 <div class="card">
 <h3>📋 策略说明</h3>
 <div style="color:#888;line-height:2;font-size:14px">
-<p><strong>选股条件：</strong>振幅&lt;5% + 站上5/10日线 + 缩量蓄势 + 10日涨停 + 无巨量阴线</p>
-<p><strong>评分规则：</strong>振幅+15分 | 均线+20分 | 缩量+15分 | 无巨量阴+10分 | 涨停+10分</p>
-<p><strong>仓位：</strong>最多3只，每只20%，总仓位60%</p>
-<p><strong>卖点：</strong>盈利8%减仓50%，盈利15%清仓，亏损5%止损</p>
+<p>选股条件：振幅&lt;5% + 站上5/10日线 + 缩量蓄势 + 10日涨停 + 无巨量阴线</p>
+<p>仓位：最多3只，每只20%，总仓位60%</p>
+<p>卖点：盈利8%减仓50%，盈利15%清仓，亏损5%止损</p>
 </div>
 </div>
 </div>
@@ -122,8 +98,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div id="page-portfolio" style="display:none">
 <div class="stats">
 <div class="stat"><div class="v" id="holdCount">0</div><div class="l">持仓数量</div></div>
-<div class="stat up"><div class="v" id="totalProfit">0%</div><div class="l">总盈亏</div></div>
-<div class="stat red"><div class="v" id="needClear">0</div><div class="l">建议清仓</div></div>
+<div class="stat green"><div class="v" id="totalProfit">0%</div><div class="l">总盈亏</div></div>
+<div class="stat"><div class="v" id="needClear">0</div><div class="l">建议清仓</div></div>
 <div class="stat yellow"><div class="v" id="needReduce">0</div><div class="l">建议减仓</div></div>
 </div>
 
@@ -157,18 +133,26 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 <div id="page-analysis" style="display:none">
 <div class="card">
 <h3>🔍 个股深度分析</h3>
-<div class="search-box">
+<div style="display:flex;gap:12px">
 <input type="text" id="analyzeCode" placeholder="输入股票代码，如：000001" class="input" style="flex:1">
 <button class="btn" onclick="analyzeStock()">开始分析</button>
 </div>
 </div>
 
 <div id="analysisResult" style="display:none">
-<div class="analysis-grid">
-<div class="analysis-item"><div class="score-circle" id="scoreTotal">0</div><div style="color:#888;margin-top:8px">综合评分</div></div>
-<div class="analysis-item"><div style="font-size:28px;font-weight:700;color:#2ED573" id="scoreTech">0</div><div style="color:#888;margin-top:8px">技术面</div></div>
-<div class="analysis-item"><div style="font-size:28px;font-weight:700;color:#0096FF" id="scoreFund">0</div><div style="color:#888;margin-top:8px">资金面</div></div>
-<div class="analysis-item"><div style="font-size:28px;font-weight:700;color:#FFD700" id="scoreRisk">0</div><div style="color:#888;margin-top:8px">风险</div></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+<div style="background:#0D0D0D;padding:20px;border-radius:12px;text-align:center">
+<div class="score-circle" id="scoreTotal">0</div><div style="color:#888;margin-top:8px">综合评分</div>
+</div>
+<div style="background:#0D0D0D;padding:20px;border-radius:12px;text-align:center">
+<div style="font-size:28px;font-weight:700;color:#2ED573" id="scoreTech">0</div><div style="color:#888;margin-top:8px">技术面</div>
+</div>
+<div style="background:#0D0D0D;padding:20px;border-radius:12px;text-align:center">
+<div style="font-size:28px;font-weight:700;color:#0096FF" id="scoreFund">0</div><div style="color:#888;margin-top:8px">资金面</div>
+</div>
+<div style="background:#0D0D0D;padding:20px;border-radius:12px;text-align:center">
+<div style="font-size:28px;font-weight:700;color:#FFD700" id="scoreRisk">0</div><div style="color:#888;margin-top:8px">风险</div>
+</div>
 </div>
 
 <div class="card">
@@ -185,7 +169,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0D0D0D;color:#FF
 </div>
 
 <script>
-// 页面切换
 function showPage(page) {
   document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
   event.target.classList.add('active');
@@ -194,35 +177,43 @@ function showPage(page) {
   document.getElementById('page-analysis').style.display = page === 'analysis' ? 'block' : 'none';
 }
 
-// 数据存储
 let holdings = JSON.parse(localStorage.getItem('stock_holdings') || '[]');
-let todayPicks = JSON.parse(localStorage.getItem('todayPicks') || '[]');
 
 // 今日推荐
-function runDailyStrategy() {
-  if (todayPicks.length === 0) {
+async function loadTodayPicks() {
+  document.getElementById('dailyPicks').innerHTML = '<div class="loading">加载中...</div>';
+  
+  try {
+    const resp = await fetch('today_picks.json?_=' + Date.now());
+    const picks = await resp.json();
+    
+    if (!picks || picks.length === 0) {
+      document.getElementById('dailyPicks').innerHTML = '<div class="loading">请先运行 python3 jq_v3.py 获取今日推荐</div>';
+      return;
+    }
+    
+    document.getElementById('pickCount').innerText = picks.length;
+    
+    let html = '';
+    picks.forEach((p, i) => {
+      html += `<div class="pick-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><span style="color:#FF6B35;font-weight:700;font-size:18px">${i+1}.</span> <span class="stock-code" style="font-size:18px">${p.code}</span> <span style="color:#888;font-size:16px">${p.name}</span></div>
+          <span style="color:#0096FF">${p.industry}</span>
+        </div>
+        <div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;text-align:center">
+          <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">买点</div><div style="color:#2ED573;font-size:16px;font-weight:600">${p.ma5}</div></div>
+          <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">止损</div><div style="color:#FF4757;font-size:16px;font-weight:600">${p.stopLoss}</div></div>
+          <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">止盈8%</div><div style="color:#FFD700;font-size:16px;font-weight:600">${p.target8}</div></div>
+          <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">止盈15%</div><div style="color:#FFD700;font-size:16px;font-weight:600">${p.target15}</div></div>
+        </div>
+        <div style="margin-top:12px;color:#666;font-size:13px">${p.reasons.join('+')}</div>
+      </div>`;
+    });
+    document.getElementById('dailyPicks').innerHTML = html;
+  } catch(e) {
     document.getElementById('dailyPicks').innerHTML = '<div class="loading">请先运行 python3 jq_v3.py 获取今日推荐</div>';
-    return;
   }
-  
-  let html = '';
-  todayPicks.forEach((p, i) => {
-    html += `<div class="pick-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><span style="color:#FF6B35;font-weight:700;font-size:18px">${i+1}.</span> <span class="stock-code" style="font-size:18px">${p.code}</span> <span style="color:#888;font-size:16px">${p.name}</span></div>
-        <span class="tag tag-blue">${p.sector}</span>
-      </div>
-      <div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;text-align:center">
-        <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">买点</div><div style="color:#2ED573;font-size:16px;font-weight:600">${p.ma5}</div></div>
-        <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">止损</div><div style="color:#FF4757;font-size:16px;font-weight:600">${p.stopLoss}</div></div>
-        <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">止盈8%</div><div style="color:#FFD700;font-size:16px;font-weight:600">${p.target8}</div></div>
-        <div style="background:#0D0D0D;padding:12px;border-radius:8px"><div style="color:#888;font-size:12px">止盈15%</div><div style="color:#FFD700;font-size:16px;font-weight:600">${p.target15}</div></div>
-      </div>
-      <div style="margin-top:12px;color:#666;font-size:13px">${p.reason}</div>
-    </div>`;
-  });
-  
-  document.getElementById('dailyPicks').innerHTML = html;
 }
 
 // 添加持仓
@@ -258,7 +249,6 @@ function renderHoldings() {
   let needClear = 0, needReduce = 0;
   
   holdings.forEach((h, i) => {
-    // 模拟诊断结果
     const profit = (Math.random() * 20 - 5).toFixed(1);
     const action = profit < -5 ? 'clear' : profit > 15 ? 'clear' : profit > 8 ? 'reduce' : 'hold';
     const actionText = action === 'clear' ? '清仓' : action === 'reduce' ? '减仓50%' : '持有';
@@ -298,13 +288,12 @@ function removeHolding(i) {
 }
 
 // 个股分析
-async function analyzeStock() {
+function analyzeStock() {
   const code = document.getElementById('analyzeCode').value.trim();
   if (!code) { alert('请输入股票代码'); return; }
   
   document.getElementById('analysisResult').style.display = 'block';
   
-  // 模拟评分
   const score = Math.floor(Math.random() * 30 + 60);
   document.getElementById('scoreTotal').innerText = score;
   document.getElementById('scoreTotal').className = 'score-circle ' + (score >= 70 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low');
@@ -322,13 +311,12 @@ async function analyzeStock() {
     <p>✅ <strong>技术面：</strong>站上5日均线，短期趋势向好</p>
     <p>✅ <strong>资金面：</strong>缩量调整，主力锁仓明显</p>
     <p>✅ <strong>风险：</strong>支撑位在5日均线附近</p>
-    <p>⚠️ <strong>建议：</strong>可考虑在5日线附近低吸，止损放在今日低点下方</p>
+    <p>⚠️ <strong>建议：</strong>可考虑在5日线附近低吸</p>
   `;
 }
 
-// 初始化
 renderHoldings();
-if (todayPicks.length > 0) runDailyStrategy();
+loadTodayPicks();
 </script>
 </body>
 </html>
